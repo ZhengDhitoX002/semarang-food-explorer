@@ -24,7 +24,7 @@ export default function Login() {
                             <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
                                 <span className="material-symbols-outlined text-2xl">restaurant_menu</span>
                             </div>
-                            <h1 className="text-2xl font-black tracking-tight text-slate-900">
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                                 Semarang<span className="text-primary">Food</span>
                             </h1>
                         </Link>

@@ -169,7 +169,7 @@ export default function Promotion() {
 
                     {/* Hero */}
                     <div className="flex flex-col gap-3 mb-10 text-center md:text-left mt-4">
-                        <h1 className="text-4xl font-extrabold leading-tight tracking-tight">
+                        <h1 className="text-4xl font-bold leading-tight tracking-tight">
                             Tingkatkan Visibilitas Toko Anda
                         </h1>
                         <p className="text-slate-600 text-lg max-w-2xl">
@@ -191,7 +191,7 @@ export default function Promotion() {
                                     }`}
                                 >
                                     {pkg.popular && (
-                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
                                             Most Popular
                                         </div>
                                     )}
@@ -201,7 +201,7 @@ export default function Promotion() {
                                         </span>
                                         <h2 className="text-2xl font-bold">{pkg.name}</h2>
                                         <p className="flex items-baseline gap-1 mt-2">
-                                            <span className="text-3xl font-extrabold tracking-tight text-slate-900">{pkg.price}</span>
+                                            <span className="text-3xl font-bold tracking-tight text-slate-900">{pkg.price}</span>
                                             <span className="text-slate-500 text-sm font-medium">{pkg.period}</span>
                                         </p>
                                     </div>
@@ -315,12 +315,12 @@ export default function Promotion() {
                                     <div className="pt-6 border-t border-white/10 relative z-10">
                                         <div className="flex flex-col gap-1 mb-8">
                                             <span className="text-slate-400 text-sm">Total Pembayaran</span>
-                                            <span className="text-3xl font-black text-primary">{selectedPkg.price}</span>
+                                            <span className="text-3xl font-bold text-primary">{selectedPkg.price}</span>
                                         </div>
                                         <button 
                                             type="submit"
                                             disabled={processing || spots.length === 0}
-                                            className="w-full bg-primary hover:bg-primary/90 text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:shadow-none"
+                                            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:shadow-none"
                                         >
                                             <span className="material-symbols-outlined">lock</span>
                                             {processing ? 'Memproses...' : 'Bayar & Aktifkan'}

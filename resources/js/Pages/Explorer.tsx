@@ -118,7 +118,7 @@ export default function Explorer() {
     const mapCenter: [number, number] = [-6.9932, 110.4203];
 
     return (
-        <AppLayout showMobileNav showSearch={false}>
+        <AppLayout showSearch={false}>
             <Head title="Discover Authentic Tastes" />
 
             <div className="flex flex-1 flex-col md:flex-row overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
@@ -356,16 +356,25 @@ export default function Explorer() {
                 </div>
             </section>
 
-            {/* Mobile Floating View Toggle */}
-            <div className="md:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-40">
+            {/* Floating View Toggle — positioned at bottom-right above the nav bar for easy thumb access without blocking scroll */}
+            <div className="md:hidden fixed bottom-[84px] right-4 z-40">
                 <button
                     onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
-                    className="flex items-center gap-2 px-6 py-3 bg-off-black text-white rounded-full shadow-2xl font-bold text-sm"
+                    className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-2xl font-bold text-sm shadow-lg transition-all duration-300 active:scale-95"
+                    style={{
+                        background: viewMode === 'list'
+                            ? 'linear-gradient(135deg, #1a1a21 0%, #2d2d3a 100%)'
+                            : 'linear-gradient(135deg, #e77e23 0%, #f4a261 100%)',
+                        color: '#fff',
+                        boxShadow: viewMode === 'list'
+                            ? '0 8px 32px rgba(26, 26, 33, 0.35), 0 2px 8px rgba(0,0,0,0.15)'
+                            : '0 8px 32px rgba(231, 126, 35, 0.35), 0 2px 8px rgba(231, 126, 35, 0.15)',
+                    }}
                 >
-                    <span className="material-symbols-outlined text-xl">
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
                         {viewMode === 'list' ? 'map' : 'view_list'}
                     </span>
-                    {viewMode === 'list' ? 'Show Map' : 'Show List'}
+                    <span>{viewMode === 'list' ? 'Map' : 'List'}</span>
                 </button>
             </div>
         </AppLayout>

@@ -15,6 +15,19 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [CulinarySpotController::class, 'index']);
 Route::get('/spot/{id}', [CulinarySpotController::class, 'show']);
 
+// Navigation pages (Favorites, Orders, Profile)
+Route::get('/favorites', function () {
+    return \Inertia\Inertia::render('Favorites');
+})->name('favorites');
+
+Route::get('/orders', function () {
+    return \Inertia\Inertia::render('Orders');
+})->name('orders');
+
+Route::get('/profile', function () {
+    return \Inertia\Inertia::render('Profile');
+})->name('profile');
+
 /*
 |--------------------------------------------------------------------------
 | Auth Routes (Guest Only)

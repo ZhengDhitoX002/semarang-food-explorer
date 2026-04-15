@@ -77,7 +77,7 @@ export default function Dashboard() {
                                 <div className={`inline-flex items-center justify-center h-12 w-12 rounded-xl ${stat.color} mb-4`}>
                                     <span className="material-symbols-outlined">{stat.icon}</span>
                                 </div>
-                                <p className="text-3xl font-black">{stat.value}</p>
+                                <p className="text-3xl font-bold">{stat.value}</p>
                                 <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
                             </div>
                         ))}

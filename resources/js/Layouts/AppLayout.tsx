@@ -15,13 +15,13 @@ export default function AppLayout({
     children,
     showSearch = true,
     showFooter = true,
-    showMobileNav = false,
+    showMobileNav = true,
     activeTab = 'explore',
 }: AppLayoutProps) {
     return (
         <div className="relative flex min-h-screen flex-col">
-            <Header showSearch={showSearch} />
-            <main className="flex flex-1 flex-col">{children}</main>
+            <Header showSearch={showSearch} activeTab={activeTab} />
+            <main className="flex flex-1 flex-col pb-[68px] md:pb-0">{children}</main>
             {showFooter && <Footer />}
             {showMobileNav && <MobileBottomNav activeTab={activeTab} />}
         </div>

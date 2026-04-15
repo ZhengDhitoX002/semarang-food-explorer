@@ -78,7 +78,7 @@ export default function CulinarySpotDetail() {
                                 <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-white">
                                     <span className="material-symbols-outlined">restaurant</span>
                                 </div>
-                                <h2 className="text-lg font-extrabold leading-tight tracking-tight">
+                                <h2 className="text-lg font-bold leading-tight tracking-tight">
                                     {spot.name}
                                 </h2>
                             </Link>
@@ -123,7 +123,7 @@ export default function CulinarySpotDetail() {
                         <div className="lg:col-span-2">
                             <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                                 <div>
-                                    <h1 className="text-4xl font-black tracking-tight">{spot.name}</h1>
+                                    <h1 className="text-4xl font-bold tracking-tight">{spot.name}</h1>
                                     <div className="flex items-center gap-2 mt-2">
                                         <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">
                                             {spot.category?.name || 'Kuliner'}
@@ -318,7 +318,7 @@ export default function CulinarySpotDetail() {
 
                 {/* Footer */}
                 <footer className="mt-20 border-t border-primary/10 bg-white py-10 px-4">
-                    <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-center">
                         <div className="flex items-center gap-3">
                             <div className="h-8 w-8 bg-primary/20 rounded flex items-center justify-center text-primary">
                                 <span className="material-symbols-outlined text-[18px]">restaurant</span>
