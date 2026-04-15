@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #e77e23;
+    --color-background-light: #f8f7f6;
+    --color-background-dark: #211811;
+    --color-off-black: #1a1a21;
+
+    --font-family-display: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Glassmorphism search bar */
+.glass-search {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(231, 126, 35, 0.1);
+    transition: all 0.3s ease;
+}
+.glass-search:focus-within {
+    box-shadow: 0 0 20px rgba(231, 126, 35, 0.15);
+    border-color: var(--color-primary);
+}
+
+/* Shimmer loading effect */
+.shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(231, 126, 35, 0.2);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(231, 126, 35, 0.4);
+}
+
+/* Material Symbols filled variant */
+.fill-icon {
+    font-variation-settings: 'FILL' 1;
+}
+
+/* Hide scrollbar for filter tabs */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* ============================================================
+   LEAFLET MAP OVERRIDES
+   Tailwind CSS v4 resets break Leaflet's internal styling.
+   We must force correct dimensions and visibility here.
+   ============================================================ */
+.leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1;
+}
+
+.leaflet-pane,
+.leaflet-tile-pane,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-marker-pane,
+.leaflet-tooltip-pane,
+.leaflet-popup-pane,
+.leaflet-map-pane {
+    position: absolute !important;
+}
+
+/* THIS IS THE CRITICAL FIX:
+   Tailwind v4 sets img { max-width: 100%; height: auto; display: block; }
+   which completely breaks leaflet tile rendering because tiles are
+   absolutely positioned images that need exact pixel sizing */
+.leaflet-container img {
+    max-width: none !important;
+    max-height: none !important;
+}
+
+.leaflet-tile {
+    visibility: visible !important;
+    position: absolute !important;
+}
+
+.leaflet-control-zoom a {
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    color: #333 !important;
+    background: white !important;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 12px !important;
+}
+
+.leaflet-control-attribution {
+    font-size: 10px !important;
+}
+
+.leaflet-marker-icon {
+    position: absolute !important;
+}
