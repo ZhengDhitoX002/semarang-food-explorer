@@ -371,7 +371,10 @@ export default function Explorer() {
             {/* Floating View Toggle — positioned at bottom-right above the nav bar for easy thumb access without blocking scroll */}
             <div className="md:hidden fixed bottom-[84px] right-4 z-40">
                 <button
-                    onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
+                    onClick={() => {
+                        setViewMode(viewMode === 'list' ? 'map' : 'list');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-2xl font-bold text-sm shadow-lg transition-all duration-300 active:scale-95"
                     style={{
                         background: viewMode === 'list'
