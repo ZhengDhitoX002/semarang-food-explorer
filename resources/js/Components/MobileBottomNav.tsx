@@ -38,7 +38,7 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                         <Link
                             key={item.id}
                             href={href}
-                            className="relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-2xl transition-all duration-300"
+                            className="relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-2xl transition-all duration-200"
                             style={{
                                 minWidth: '64px',
                                 background: isActive ? 'rgba(231, 126, 35, 0.1)' : 'transparent',
@@ -47,7 +47,7 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                         >
                             {/* Active dot indicator with smooth fade/slide */}
                             <span
-                                className="absolute -top-1 left-1/2 w-5 h-1 rounded-full transition-all duration-300 ease-out"
+                                className="absolute -top-1 left-1/2 w-5 h-1 rounded-full transition-all duration-200 ease-out"
                                 style={{
                                     background: 'linear-gradient(90deg, #e77e23, #f4a261)',
                                     opacity: isActive ? 1 : 0,
@@ -55,11 +55,11 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                                 }}
                             />
                             <span
-                                className={`material-symbols-outlined transition-all duration-300 ${
+                                className={`material-symbols-outlined transition-colors duration-200 ${
                                     isActive ? 'fill-icon' : ''
                                 }`}
                                 style={{
-                                    transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                                    animation: isActive ? 'iconWave 0.4s ease-out forwards' : 'none',
                                     fontSize: '24px', // Keep base size consistent, use transform for scaling
                                     color: isActive ? '#e77e23' : '#94a3b8',
                                 }}
@@ -67,7 +67,7 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                                 {item.icon}
                             </span>
                             <span
-                                className="transition-all duration-300"
+                                className="transition-all duration-200"
                                 style={{
                                     fontSize: '10px',
                                     fontWeight: 600, // Fixed fontWeight so layout doesn't shift horizontally
