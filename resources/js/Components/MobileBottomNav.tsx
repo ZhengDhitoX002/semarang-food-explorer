@@ -45,22 +45,22 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                                 transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                             }}
                         >
-                            {/* Active dot indicator */}
-                            {isActive && (
-                                <span
-                                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-1 rounded-full"
-                                    style={{
-                                        background: 'linear-gradient(90deg, #e77e23, #f4a261)',
-                                        animation: 'navIndicatorIn 0.3s ease-out',
-                                    }}
-                                />
-                            )}
+                            {/* Active dot indicator with smooth fade/slide */}
+                            <span
+                                className="absolute -top-1 left-1/2 w-5 h-1 rounded-full transition-all duration-300 ease-out"
+                                style={{
+                                    background: 'linear-gradient(90deg, #e77e23, #f4a261)',
+                                    opacity: isActive ? 1 : 0,
+                                    transform: isActive ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(4px)',
+                                }}
+                            />
                             <span
                                 className={`material-symbols-outlined transition-all duration-300 ${
                                     isActive ? 'fill-icon' : ''
                                 }`}
                                 style={{
-                                    fontSize: isActive ? '26px' : '24px',
+                                    transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                                    fontSize: '24px', // Keep base size consistent, use transform for scaling
                                     color: isActive ? '#e77e23' : '#94a3b8',
                                 }}
                             >
@@ -70,9 +70,8 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                                 className="transition-all duration-300"
                                 style={{
                                     fontSize: '10px',
-                                    fontWeight: isActive ? 700 : 500,
+                                    fontWeight: 600, // Fixed fontWeight so layout doesn't shift horizontally
                                     color: isActive ? '#e77e23' : '#94a3b8',
-                                    letterSpacing: isActive ? '0.02em' : '0',
                                 }}
                             >
                                 {item.label}
