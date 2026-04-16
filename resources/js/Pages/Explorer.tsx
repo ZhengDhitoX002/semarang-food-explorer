@@ -91,28 +91,38 @@ export default function Explorer() {
     const categories = ['All', ...Array.from(new Set(spots.map(s => s.category?.name).filter(Boolean))) as string[]];
 
     // Mapper from DB to Component Props
-    const mappedSpots: CulinarySpot[] = filteredSpotsDB.map(spot => ({
-        id: spot.id,
-        name: spot.name,
-        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-        imageAlt: spot.name,
-        rating: spot.average_rating || 0,
-        location: spot.description.substring(0, 30) + '...',
-        tags: [spot.category?.name || 'Local'],
-        priceLevel: Number(spot.price) > 50000 ? '$$$' : '$$',
-        isVerified: spot.is_promoted,
-    }));
+    const mappedSpots: CulinarySpot[] = filteredSpotsDB.map(spot => {
+        const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
+        const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
+        
+        return {
+            id: spot.id,
+            name: spot.name,
+            imageUrl: isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            imageAlt: spot.name,
+            rating: spot.average_rating || 0,
+            location: spot.description.substring(0, 30) + '...',
+            tags: [spot.category?.name || 'Local'],
+            priceLevel: Number(spot.price) > 50000 ? '$$$' : '$$',
+            isVerified: spot.is_promoted,
+        };
+    });
 
-    const promoSpots: PromoSpot[] = spots.filter(s => s.is_promoted).map(spot => ({
-        id: spot.id,
-        name: spot.name,
-        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-        imageAlt: spot.name,
-        rating: 4.8,
-        reviewCount: '1.2k',
-        price: `Rp ${Number(spot.price).toLocaleString('id-ID')}`,
-        badge: 'Featured',
-    }));
+    const promoSpots: PromoSpot[] = spots.filter(s => s.is_promoted).map(spot => {
+        const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
+        const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
+        
+        return {
+            id: spot.id,
+            name: spot.name,
+            imageUrl: isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            imageAlt: spot.name,
+            rating: 4.8,
+            reviewCount: '1.2k',
+            price: `Rp ${Number(spot.price).toLocaleString('id-ID')}`,
+            badge: 'Featured',
+        };
+    });
 
     // Center of Semarang
     const mapCenter: [number, number] = [-6.9932, 110.4203];
@@ -226,7 +236,7 @@ export default function Explorer() {
                                 ))}
                             </div>
                             {/* Feed Content */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+                            <div scroll-region="true" className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
                                 {mappedSpots.length > 0 ? (
                                     mappedSpots.map((spot) => (
                                         <SpotCard key={spot.id} spot={spot} />
@@ -247,6 +257,7 @@ export default function Explorer() {
                                 center={mapCenter}
                                 zoom={13}
                                 scrollWheelZoom={true}
+                                keyboard={false}
                                 style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
                             >
                                 <TileLayer
@@ -274,6 +285,7 @@ export default function Explorer() {
                                 center={mapCenter}
                                 zoom={14}
                                 scrollWheelZoom={true}
+                                keyboard={false}
                                 style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
                             >
                                 <TileLayer

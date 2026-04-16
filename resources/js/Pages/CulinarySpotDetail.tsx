@@ -50,7 +50,14 @@ export default function CulinarySpotDetail() {
     const lat = Number(spot.latitude);
     const lng = Number(spot.longitude);
 
-    const heroImages = [
+    const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
+    const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
+
+    const heroImages = isKnownSpot ? [
+        `/images/merchants/${folderName}/unnamed.webp`,
+        `/images/merchants/${folderName}/unnamed (1).webp`,
+        `/images/merchants/${folderName}/unnamed (2).webp`,
+    ] : [
         'https://lh3.googleusercontent.com/aida-public/AB6AXuCLhWzNxGZHTXERnZjz0e7Qg76YTAM6IEyi_WQyEOTdjLiNPcGuNOs9WQ_H8vOV4TVC_0six0KCLGVmW78xnFYisTrkBh34c7TPu5xqBd4vG1IhuFdu3ugenuS_X3-ZrVnf5Lhx2l3Q5nwhiopQZf0uMzv639VHtS5SmMX0d0AW-Fd7TUGbxPzXWdfxratJF_l8MQbuoyliriK9GMEk9D2yJyilwXODOach5v8i2AGzw1K91_MoqAgpDpaKCWQ3I14xBESbuM35fnFh',
         'https://lh3.googleusercontent.com/aida-public/AB6AXuCuLCx98Fp0qcutnnwP2gcJhNatE8ezSC1w7vjcBl1bL4cndXJTpAvtSNyxhucKS4W7dD892XBL55HK5fBbYO71PE6ENRttf_3hBrUnwWI6wB1NmA0JhXKALRflUijpJFpqXtftwPDUDkflUVbYcmBCL67ZTcBTfHonPPTzJ6r04Y-I7wOYbemqxm9sXX49yinf5gRGdp2k6gYk147V1i03zhouo1c0KeUv789_v9Dmd5928hJSQgEPTfZ2Oebcmu_Xu8Dcn23SRcb9',
         'https://lh3.googleusercontent.com/aida-public/AB6AXuB0RfkrjRd-q5Qm3RvGd82v_n2ksUV51tIEw5yaNlGPZSWVA5U0ms3kgZVBiw-dMdw346cBU4uRwpedL6wT5itNjXEfuuF9uDSIY0e9TCBzLvnHwk1GdPHVYpJTtqxRsPp7h7_SD_64mA1znSoxg_POvixRuHwBTaJwyMBC1MhN5OLBYElEHsKSDy6DHcLBQPOe2zuAdyYoDG7QsxKzSuG0o70P1tNI2Z4kBEtH0nhvmu5mShpClArfq9PydQ4u8QLvhNP9xoJSAJ7k',
@@ -270,7 +277,7 @@ export default function CulinarySpotDetail() {
                                     Lokasi
                                 </h3>
                                 <div className="w-full h-48 rounded-lg overflow-hidden relative mb-4">
-                                    <MapContainer center={[lat, lng]} zoom={16} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+                                    <MapContainer center={[lat, lng]} zoom={16} keyboard={false} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
                                         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OSM" />
                                         <Marker position={[lat, lng]}>
                                             <Popup>{spot.name}</Popup>

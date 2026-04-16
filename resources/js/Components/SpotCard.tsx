@@ -21,15 +21,16 @@ export default function SpotCard({ spot }: SpotCardProps) {
     return (
         <Link
             href={`/spot/${spot.id}`}
-            className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer overflow-hidden block"
+            className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.02] focus-visible:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer overflow-hidden block outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
             <div className="relative h-48 w-full overflow-hidden">
                 <div className="absolute inset-0 shimmer"></div>
                 <img
                     alt={spot.imageAlt}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     src={spot.imageUrl}
                     loading="lazy"
+                    onLoad={(e) => e.currentTarget.classList.add('loaded')}
                 />
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
                     <span className="material-symbols-outlined text-yellow-500 text-sm fill-icon">star</span>

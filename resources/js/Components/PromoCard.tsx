@@ -29,14 +29,15 @@ export default function PromoCard({ spot }: PromoCardProps) {
     return (
         <Link
             href={`/spot/${spot.id}`}
-            className="group overflow-hidden rounded-2xl bg-background-light transition-all hover:shadow-xl block"
+            className="group overflow-hidden rounded-2xl bg-background-light transition-all hover:shadow-xl focus-visible:scale-[1.02] active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 block"
         >
             <div className="relative aspect-video overflow-hidden">
                 <img
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     src={spot.imageUrl}
                     alt={spot.imageAlt}
                     loading="lazy"
+                    onLoad={(e) => e.currentTarget.classList.add('loaded')}
                 />
                 <div
                     className={`absolute top-3 left-3 rounded-full ${
