@@ -6,7 +6,7 @@ export default function Orders() {
     const { auth } = usePage<any>().props;
 
     return (
-        <AppLayout activeTab="orders" showFooter={false}>
+        <>
             <Head title="Orders" />
 
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-20">
@@ -68,6 +68,9 @@ export default function Orders() {
                     </>
                 )}
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Orders.layout = (page: React.ReactNode) => <AppLayout activeTab="orders" showFooter={false}>{page}</AppLayout>;
+

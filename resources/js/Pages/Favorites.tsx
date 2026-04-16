@@ -6,7 +6,7 @@ export default function Favorites() {
     const { auth } = usePage<any>().props;
 
     return (
-        <AppLayout activeTab="favorites" showFooter={false}>
+        <>
             <Head title="Favorites" />
 
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-20">
@@ -69,6 +69,9 @@ export default function Favorites() {
                     </>
                 )}
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Favorites.layout = (page: React.ReactNode) => <AppLayout activeTab="favorites" showFooter={false}>{page}</AppLayout>;
+

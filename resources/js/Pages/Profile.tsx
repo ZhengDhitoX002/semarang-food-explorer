@@ -7,7 +7,7 @@ export default function Profile() {
 
     if (!auth?.user) {
         return (
-            <AppLayout activeTab="profile" showFooter={false}>
+            <>
                 <Head title="Profile" />
                 <div className="flex-1 flex flex-col items-center justify-center px-6 py-20">
                     <div
@@ -41,14 +41,14 @@ export default function Profile() {
                         Login Sekarang
                     </Link>
                 </div>
-            </AppLayout>
+            </>
         );
     }
 
     const user = auth.user;
 
     return (
-        <AppLayout activeTab="profile" showFooter={false}>
+        <>
             <Head title="Profile" />
 
             <div className="flex-1 flex flex-col">
@@ -173,6 +173,9 @@ export default function Profile() {
                     </Link>
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Profile.layout = (page: React.ReactNode) => <AppLayout activeTab="profile" showFooter={false}>{page}</AppLayout>;
+

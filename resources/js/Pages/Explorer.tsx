@@ -128,7 +128,7 @@ export default function Explorer() {
     const mapCenter: [number, number] = [-6.9932, 110.4203];
 
     return (
-        <AppLayout showSearch={false}>
+        <>
             <Head title="Discover Authentic Tastes" />
 
             <div className="flex flex-1 flex-col md:flex-row overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
@@ -389,6 +389,9 @@ export default function Explorer() {
                     <span>{viewMode === 'list' ? 'Map' : 'List'}</span>
                 </button>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+Explorer.layout = (page: React.ReactNode) => <AppLayout showSearch={false} activeTab="explore">{page}</AppLayout>;
+
