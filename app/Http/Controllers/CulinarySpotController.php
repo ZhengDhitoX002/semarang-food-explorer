@@ -13,16 +13,19 @@ class CulinarySpotController extends Controller
      */
     public function index(Request $request)
     {
+        $query = CulinarySpot::with('category');
+
         if ($request->has('search') && $request->search != '') {
-            $spots = CulinarySpot::search($request->search)->query(function ($query) {
-                $query->with('category');
-            })->get();
-        } else {
-            $spots = CulinarySpot::with('category')->get();
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                // Pencarian aman untuk SQLite/PostgreSQL/MySQL tanpa case-sensitive constraints
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(description) LIKE ?', ["%{$search}%"]);
+            });
         }
 
         return Inertia::render('Explorer', [
-            'spots' => $spots,
+            'spots' => $query->get(),
             'filters' => $request->only('search'),
         ]);
     }
