@@ -100,8 +100,8 @@ export default function Dashboard() {
                 const dObj = new Date(date);
                 return {
                     name: dObj.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
-                    Views: analytics.filter(a => a.date === date && a.event_type === 'view').reduce((s, a) => s + a.count, 0),
-                    Clicks: analytics.filter(a => a.date === date && a.event_type === 'click').reduce((s, a) => s + a.count, 0)
+                    Views: analytics.filter(a => a.date === date && a.event_type === 'view').reduce((s, a) => s + Number(a.count), 0),
+                    Clicks: analytics.filter(a => a.date === date && a.event_type === 'click').reduce((s, a) => s + Number(a.count), 0)
                 };
             }).slice(-30);
 
@@ -128,7 +128,7 @@ export default function Dashboard() {
             growth: '+21.2%', trend: 'up', color: 'text-emerald-600', bg: 'bg-emerald-50/50', border: 'border-emerald-100' 
         },
         { 
-            icon: 'star', label: 'Rating Rata-rata', value: avgRating > 0 ? avgRating.toFixed(1) : '4.8', 
+            icon: 'star', label: 'Rating Rata-rata', value: Number(avgRating) > 0 ? Number(avgRating).toFixed(1) : '4.8', 
             growth: '+0.2', trend: 'up', color: 'text-amber-500', bg: 'bg-amber-50/50', border: 'border-amber-100' 
         },
         { 
@@ -162,7 +162,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-6">
                             <div className="hidden md:flex flex-col items-end">
                                 <span className="text-sm font-bold text-slate-900">{auth?.user?.name || 'Merchant Account'}</span>
-                                <span className="text-xs text-slate-500">{auth?.user?.email}</span>
+                                <span className="text-xs text-slate-500">{auth?.user?.email || 'merchant@example.com'}</span>
                             </div>
                             <Link href="/" className="h-10 flex items-center justify-center px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">
                                 Keluar Dashboard
