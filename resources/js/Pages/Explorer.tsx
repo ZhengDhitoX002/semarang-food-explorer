@@ -63,7 +63,8 @@ export default function Explorer() {
 
     // Favorites Logic
     const toggleFavorite = useCallback((e: React.MouseEvent, id: number) => {
-        e.preventDefault(); // Prevent Link navigation
+        e.preventDefault(); // Prevent native navigation
+        e.stopPropagation(); // Prevent Inertia Link bubbling
         if (!auth.user) {
             router.get('/login');
             return;

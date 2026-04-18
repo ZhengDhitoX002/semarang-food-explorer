@@ -42,9 +42,9 @@ export default function SpotCard({ spot, isFavorite = false, onToggleFavorite }:
                     {onToggleFavorite && (
                         <button
                             onClick={(e) => onToggleFavorite(e, spot.id)}
-                            className="bg-white/90 backdrop-blur p-1.5 rounded-full shadow-sm hover:scale-110 active:scale-90 transition-transform"
+                            className="bg-white/90 backdrop-blur w-8 h-8 rounded-full flex items-center justify-center shadow-sm hover:scale-110 active:scale-90 transition-transform"
                         >
-                            <span className={`material-symbols-outlined text-[16px] ${isFavorite ? 'text-red-500 fill-icon' : 'text-slate-400'}`}>
+                            <span className={`material-symbols-outlined text-[18px] ${isFavorite ? 'text-red-500 fill-icon' : 'text-slate-400'}`}>
                                 favorite
                             </span>
                         </button>
