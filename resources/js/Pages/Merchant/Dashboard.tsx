@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Head, usePage, Link } from '@inertiajs/react';
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-    BarChart, Bar, Cell
+    BarChart, Bar, Cell, Legend
 } from 'recharts';
 
 interface AnalyticEntry {
