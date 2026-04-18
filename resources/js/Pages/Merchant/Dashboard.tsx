@@ -49,16 +49,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function Dashboard() {
     const props = usePage<{
-        auth: { user: { name: string, email: string } };
-        spots: SpotEntry[];
-        analytics: AnalyticEntry[];
-        totalViews: number;
-        totalClicks: number;
-        transactions: TransactionEntry[];
-        avgRating: number;
+        auth?: { user?: { name: string, email: string } };
+        spots?: SpotEntry[];
+        analytics?: AnalyticEntry[];
+        totalViews?: number;
+        totalClicks?: number;
+        transactions?: TransactionEntry[];
+        avgRating?: number;
     }>().props;
 
-    const { auth, spots, analytics, totalViews, totalClicks, transactions, avgRating } = props;
+    const { auth, spots = [], analytics = [], totalViews = 0, totalClicks = 0, transactions = [], avgRating = 0 } = props || {};
 
     // Data Processing & Fake Generator (SaaS Mockup Logic)
     const { chartData, revenueData, isFake } = useMemo(() => {
@@ -177,7 +177,7 @@ export default function Dashboard() {
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
                         <div>
                             <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight mb-2">
-                                Selamat datang kembali, <span className="text-primary">{auth?.user?.name.split(' ')[0]}!</span> 👋
+                                Selamat datang kembali, <span className="text-primary">{(auth?.user?.name || 'Merchant').split(' ')[0]}!</span> 👋
                             </h2>
                             <p className="text-slate-500 font-medium">Berikut adalah rangkuman performa bisnis Anda pada <span className="text-slate-900">{todayDate}</span>.</p>
                         </div>
