@@ -27,8 +27,10 @@ interface SpotData {
 }
 
 export default function CulinarySpotDetail() {
-    const { spot, auth } = usePage<{ spot: SpotData; auth: { user?: { id: number; name: string; role: string } } }>().props;
+    const { spot, auth } = usePage<{ spot: SpotData; auth: { user?: { id: number; name: string; role: string }, favorite_spots?: number[] } }>().props;
     const [showReviewForm, setShowReviewForm] = useState(false);
+    
+    const isFavorite = auth.favorite_spots?.includes(spot.id) || false;
 
     const reviewForm = useForm({
         spot_id: spot.id,
@@ -45,6 +47,14 @@ export default function CulinarySpotDetail() {
                 reviewForm.reset('comment', 'rating');
             },
         });
+    };
+
+    const toggleFavorite = () => {
+        if (!auth.user) {
+            window.location.href = '/login';
+            return;
+        }
+        reviewForm.post(`/favorites/${spot.id}`, { preserveScroll: true, preserveState: true });
     };
 
     const lat = Number(spot.latitude);
@@ -130,7 +140,17 @@ export default function CulinarySpotDetail() {
                         <div className="lg:col-span-2">
                             <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                                 <div>
-                                    <h1 className="text-4xl font-bold tracking-tight">{spot.name}</h1>
+                                    <div className="flex items-center gap-3">
+                                        <h1 className="text-4xl font-bold tracking-tight">{spot.name}</h1>
+                                        <button
+                                            onClick={toggleFavorite}
+                                            className="bg-white border text-[24px] border-slate-200 w-12 h-12 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm"
+                                        >
+                                            <span className={`material-symbols-outlined ${isFavorite ? 'text-red-500 fill-icon' : 'text-slate-400'}`}>
+                                                favorite
+                                            </span>
+                                        </button>
+                                    </div>
                                     <div className="flex items-center gap-2 mt-2">
                                         <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">
                                             {spot.category?.name || 'Kuliner'}
@@ -278,7 +298,7 @@ export default function CulinarySpotDetail() {
                                 </h3>
                                 <div className="w-full h-48 rounded-lg overflow-hidden relative mb-4">
                                     <MapContainer center={[lat, lng]} zoom={16} keyboard={false} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-                                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OSM" />
+                                        <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                                         <Marker position={[lat, lng]}>
                                             <Popup>{spot.name}</Popup>
                                         </Marker>

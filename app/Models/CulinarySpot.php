@@ -46,6 +46,11 @@ class CulinarySpot extends Model implements HasMedia
         return $this->hasMany(Analytic::class, 'spot_id');
     }
 
+    public function favoritedBy()
+    {
+        return $this->hasMany(Favorite::class, 'culinary_spot_id');
+    }
+
     /**
      * Computed average rating from reviews.
      */

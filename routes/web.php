@@ -16,9 +16,7 @@ Route::get('/', [CulinarySpotController::class, 'index']);
 Route::get('/spot/{id}', [CulinarySpotController::class, 'show']);
 
 // Navigation pages (Favorites, Orders, Profile)
-Route::get('/favorites', function () {
-    return \Inertia\Inertia::render('Favorites');
-})->name('favorites');
+Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites');
 
 Route::get('/orders', function () {
     return \Inertia\Inertia::render('Orders');
@@ -53,6 +51,9 @@ Route::middleware('auth')->group(function () {
 
     // Transactions (Promoted Culinary)
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+
+    // Favorites
+    Route::post('/favorites/{id}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     // Profile Management
     Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');

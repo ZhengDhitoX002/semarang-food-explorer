@@ -15,9 +15,11 @@ export interface CulinarySpot {
 
 interface SpotCardProps {
     spot: CulinarySpot;
+    isFavorite?: boolean;
+    onToggleFavorite?: (e: React.MouseEvent, id: number) => void;
 }
 
-export default function SpotCard({ spot }: SpotCardProps) {
+export default function SpotCard({ spot, isFavorite = false, onToggleFavorite }: SpotCardProps) {
     return (
         <Link
             href={`/spot/${spot.id}`}
@@ -32,9 +34,21 @@ export default function SpotCard({ spot }: SpotCardProps) {
                     loading="lazy"
                     onLoad={(e) => e.currentTarget.classList.add('loaded')}
                 />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                    <span className="material-symbols-outlined text-yellow-500 text-sm fill-icon">star</span>
-                    <span className="text-xs font-bold">{spot.rating.toFixed(1)}</span>
+                <div className="absolute top-3 right-3 flex items-center justify-center gap-2">
+                    <div className="bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                        <span className="material-symbols-outlined text-yellow-500 text-sm fill-icon">star</span>
+                        <span className="text-xs font-bold">{spot.rating.toFixed(1)}</span>
+                    </div>
+                    {onToggleFavorite && (
+                        <button
+                            onClick={(e) => onToggleFavorite(e, spot.id)}
+                            className="bg-white/90 backdrop-blur p-1.5 rounded-full shadow-sm hover:scale-110 active:scale-90 transition-transform"
+                        >
+                            <span className={`material-symbols-outlined text-[16px] ${isFavorite ? 'text-red-500 fill-icon' : 'text-slate-400'}`}>
+                                favorite
+                            </span>
+                        </button>
+                    )}
                 </div>
             </div>
             <div className="p-4">

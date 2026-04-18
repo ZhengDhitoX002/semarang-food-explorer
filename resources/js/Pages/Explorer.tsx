@@ -51,7 +51,7 @@ const nearbyResults = [
 ];
 
 export default function Explorer() {
-    const { spots, filters, auth } = usePage<{ spots: CulinarySpotDB[], filters: { search?: string }, auth: { user?: { id: number; name: string; role: string } } }>().props;
+    const { spots, filters, auth } = usePage<{ spots: CulinarySpotDB[], filters: { search?: string }, auth: { user?: { id: number; name: string; role: string }, favorite_spots?: number[] } }>().props;
     const filterTabs = ['Semua Kategori', ...Array.from(new Set(spots.map(s => s.category?.name).filter(Boolean))) as string[]];
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [activeFilter, setActiveFilter] = useState('Semua Kategori');
@@ -60,6 +60,16 @@ export default function Explorer() {
     const [maxPrice, setMaxPrice] = useState<number>(300000);
     const [minRating, setMinRating] = useState<number>(0);
     const [showFilters, setShowFilters] = useState(false);
+
+    // Favorites Logic
+    const toggleFavorite = useCallback((e: React.MouseEvent, id: number) => {
+        e.preventDefault(); // Prevent Link navigation
+        if (!auth.user) {
+            router.get('/login');
+            return;
+        }
+        router.post(`/favorites/${id}`, {}, { preserveScroll: true, preserveState: true });
+    }, [auth.user]);
 
     // Search: use local state, only send to server on Enter key
     const [searchInput, setSearchInput] = useState(filters?.search || '');
@@ -239,7 +249,12 @@ export default function Explorer() {
                             <div scroll-region="true" className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
                                 {mappedSpots.length > 0 ? (
                                     mappedSpots.map((spot) => (
-                                        <SpotCard key={spot.id} spot={spot} />
+                                        <SpotCard 
+                                            key={spot.id} 
+                                            spot={spot} 
+                                            isFavorite={auth.favorite_spots?.includes(spot.id)}
+                                            onToggleFavorite={toggleFavorite}
+                                        />
                                     ))
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -261,8 +276,8 @@ export default function Explorer() {
                                 style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
                             >
                                 <TileLayer
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    attribution="&copy; OpenStreetMap contributors"
+                                    url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                                    attribution="&copy; Google Maps"
                                 />
                                 {filteredSpotsDB.map((spot) => (
                                     <Marker key={spot.id} position={[Number(spot.latitude), Number(spot.longitude)]}>
@@ -289,8 +304,8 @@ export default function Explorer() {
                                 style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
                             >
                                 <TileLayer
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    attribution="&copy; OpenStreetMap contributors"
+                                    url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                                    attribution="&copy; Google Maps"
                                 />
                                 {filteredSpotsDB.map((spot) => (
                                     <Marker key={spot.id} position={[Number(spot.latitude), Number(spot.longitude)]}>

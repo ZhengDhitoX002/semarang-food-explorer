@@ -41,6 +41,11 @@ class User extends Authenticatable
         return $this->hasMany(Transaction::class);
     }
 
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
