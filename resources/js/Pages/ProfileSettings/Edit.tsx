@@ -11,7 +11,7 @@ export default function Edit() {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('profile.update'));
+        put('/profile');
     };
 
     return (

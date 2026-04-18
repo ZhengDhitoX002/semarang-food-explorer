@@ -11,7 +11,7 @@ export default function Security() {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('profile.password'), {
+        put('/profile/password', {
             preserveScroll: true,
             onSuccess: () => reset(),
         });

@@ -114,10 +114,10 @@ export default function Profile() {
 
                     {/* Menu Items */}
                     {[
-                        { icon: 'edit', label: 'Edit Profil', desc: 'Ubah nama, email, dan foto profil', href: route('profile.edit') },
-                        { icon: 'lock', label: 'Keamanan', desc: 'Ubah password dan pengaturan keamanan', href: route('profile.security') },
-                        { icon: 'notifications', label: 'Notifikasi', desc: 'Atur preferensi notifikasi', href: route('profile.notifications') },
-                        { icon: 'help', label: 'Bantuan', desc: 'FAQ dan pusat bantuan', href: route('profile.help') },
+                        { icon: 'edit', label: 'Edit Profil', desc: 'Ubah nama, email, dan foto profil', href: '/profile/edit' },
+                        { icon: 'lock', label: 'Keamanan', desc: 'Ubah password dan pengaturan keamanan', href: '/profile/security' },
+                        { icon: 'notifications', label: 'Notifikasi', desc: 'Atur preferensi notifikasi', href: '/profile/notifications' },
+                        { icon: 'help', label: 'Bantuan', desc: 'FAQ dan pusat bantuan', href: '/profile/help' },
                     ].map((item) => (
                         <Link
                             key={item.label}
