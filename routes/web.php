@@ -53,6 +53,14 @@ Route::middleware('auth')->group(function () {
 
     // Transactions (Promoted Culinary)
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+
+    // Profile Management
+    Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/security', [\App\Http\Controllers\ProfileController::class, 'security'])->name('profile.security');
+    Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::get('/profile/notifications', [\App\Http\Controllers\ProfileController::class, 'notifications'])->name('profile.notifications');
+    Route::get('/profile/help', [\App\Http\Controllers\ProfileController::class, 'help'])->name('profile.help');
 });
 
 /*
