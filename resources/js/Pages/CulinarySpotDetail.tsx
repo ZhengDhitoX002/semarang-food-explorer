@@ -1,6 +1,5 @@
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useState, useEffect } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import ReviewItem from '@/Components/ReviewItem';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
 interface Review {
@@ -10,6 +9,11 @@ interface Review {
     comment: string;
     is_verified: boolean;
     created_at: string;
+    media?: {
+        id: number;
+        original_url: string;
+        preview_url?: string;
+    }[];
 }
 
 interface SpotData {
@@ -30,13 +34,42 @@ export default function CulinarySpotDetail() {
     const { spot, auth } = usePage<{ spot: SpotData; auth: { user?: { id: number; name: string; role: string }, favorite_spots?: number[] } }>().props;
     const [showReviewForm, setShowReviewForm] = useState(false);
     
+    // Lightbox State
+    const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+    const [currentLightboxIndex, setCurrentLightboxIndex] = useState(0);
+
     const isFavorite = auth.favorite_spots?.includes(spot.id) || false;
 
     const reviewForm = useForm({
         spot_id: spot.id,
         rating: 5,
         comment: '',
+        photos: [] as File[],
     });
+
+    const [previewImages, setPreviewImages] = useState<string[]>([]);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const filesArray = Array.from(e.target.files);
+            reviewForm.setData('photos', [...reviewForm.data.photos, ...filesArray]);
+            
+            // Create preview URLs
+            const newPreviews = filesArray.map(file => URL.createObjectURL(file));
+            setPreviewImages(prev => [...prev, ...newPreviews]);
+        }
+    };
+
+    const removePhoto = (index: number) => {
+        const newPhotos = [...reviewForm.data.photos];
+        newPhotos.splice(index, 1);
+        reviewForm.setData('photos', newPhotos);
+
+        const newPreviews = [...previewImages];
+        URL.revokeObjectURL(newPreviews[index]); // Free memory
+        newPreviews.splice(index, 1);
+        setPreviewImages(newPreviews);
+    };
 
     const submitReview = (e: FormEvent) => {
         e.preventDefault();
@@ -44,7 +77,9 @@ export default function CulinarySpotDetail() {
             preserveScroll: true,
             onSuccess: () => {
                 setShowReviewForm(false);
-                reviewForm.reset('comment', 'rating');
+                reviewForm.reset('comment', 'rating', 'photos');
+                previewImages.forEach(url => URL.revokeObjectURL(url));
+                setPreviewImages([]);
             },
         });
     };
@@ -56,6 +91,37 @@ export default function CulinarySpotDetail() {
         }
         reviewForm.post(`/favorites/${spot.id}`, { preserveScroll: true, preserveState: true });
     };
+
+    const openLightbox = (images: string[], index: number) => {
+        setLightboxImages(images);
+        setCurrentLightboxIndex(index);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    };
+
+    const closeLightbox = () => {
+        setLightboxImages([]);
+        document.body.style.overflow = 'unset';
+    };
+
+    const nextImage = () => {
+        setCurrentLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
+    };
+
+    const prevImage = () => {
+        setCurrentLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+    };
+
+    // Keyboard support for Lightbox
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (lightboxImages.length === 0) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight') nextImage();
+            if (e.key === 'ArrowLeft') prevImage();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [lightboxImages]);
 
     const lat = Number(spot.latitude);
     const lng = Number(spot.longitude);
@@ -115,21 +181,24 @@ export default function CulinarySpotDetail() {
                     <div className="mb-8">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[300px] md:h-[450px]">
                             <div
-                                className="md:col-span-2 relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center"
+                                className="md:col-span-2 relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center cursor-pointer"
                                 style={{ backgroundImage: `url("${heroImages[0]}")` }}
+                                onClick={() => openLightbox(heroImages, 0)}
                             >
                                 {spot.is_promoted && (
-                                    <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">
+                                    <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
                                         ⭐ Promoted
                                     </div>
                                 )}
                             </div>
                             <div className="hidden md:grid grid-rows-2 gap-4">
-                                <div className="relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center"
+                                <div className="relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center cursor-pointer"
                                     style={{ backgroundImage: `url("${heroImages[1]}")` }}
+                                    onClick={() => openLightbox(heroImages, 1)}
                                 ></div>
-                                <div className="relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center"
+                                <div className="relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center cursor-pointer"
                                     style={{ backgroundImage: `url("${heroImages[2]}")` }}
+                                    onClick={() => openLightbox(heroImages, 2)}
                                 ></div>
                             </div>
                         </div>
@@ -146,7 +215,7 @@ export default function CulinarySpotDetail() {
                                             onClick={toggleFavorite}
                                             className="bg-white border text-[24px] border-slate-200 w-12 h-12 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm"
                                         >
-                                            <span className={`material-symbols-outlined ${isFavorite ? 'text-red-500 fill-icon' : 'text-slate-400'}`}>
+                                            <span className={`material-symbols-outlined leading-none m-0 p-0 ${isFavorite ? 'text-red-500 fill-icon' : 'text-slate-400'}`}>
                                                 favorite
                                             </span>
                                         </button>
@@ -177,7 +246,7 @@ export default function CulinarySpotDetail() {
                             {/* Description */}
                             <div className="mb-12">
                                 <h3 className="text-xl font-bold mb-4">Tentang Tempat Ini</h3>
-                                <p className="text-slate-600 leading-relaxed">{spot.description}</p>
+                                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{spot.description}</p>
                             </div>
 
                             {/* Reviews Section */}
@@ -187,9 +256,10 @@ export default function CulinarySpotDetail() {
                                     {auth.user ? (
                                         <button
                                             onClick={() => setShowReviewForm(!showReviewForm)}
-                                            className="text-primary font-bold flex items-center gap-1 hover:underline"
+                                            className="text-primary font-bold flex items-center gap-1 hover:underline px-4 py-2 rounded-lg hover:bg-primary/5 transition-colors"
                                         >
-                                            Tulis Ulasan <span className="material-symbols-outlined">edit</span>
+                                            <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
+                                            Tulis Ulasan
                                         </button>
                                     ) : (
                                         <Link href="/login" className="text-primary font-bold flex items-center gap-1 hover:underline">
@@ -200,18 +270,24 @@ export default function CulinarySpotDetail() {
 
                                 {/* Review Form */}
                                 {showReviewForm && auth.user && (
-                                    <div className="bg-primary/5 rounded-xl p-6 mb-6 border border-primary/10">
-                                        <form onSubmit={submitReview} className="space-y-4">
+                                    <div className="bg-white rounded-2xl p-6 mb-8 border border-slate-200 shadow-sm mt-4">
+                                        <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+                                            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                                                {auth.user.name.charAt(0)}
+                                            </div>
+                                            Pengalaman Anda di {spot.name}?
+                                        </h4>
+                                        <form onSubmit={submitReview} className="space-y-5">
                                             <div>
-                                                <label className="block text-sm font-bold mb-2">Rating</label>
+                                                <label className="block text-sm font-bold text-slate-700 mb-2">Beri Rating</label>
                                                 <div className="flex gap-2">
                                                     {[1, 2, 3, 4, 5].map((star) => (
                                                         <button
                                                             key={star}
                                                             type="button"
                                                             onClick={() => reviewForm.setData('rating', star)}
-                                                            className={`text-2xl transition-colors ${
-                                                                star <= reviewForm.data.rating ? 'text-yellow-400' : 'text-slate-300'
+                                                            className={`text-3xl transition-transform hover:scale-110 ${
+                                                                star <= reviewForm.data.rating ? 'text-yellow-400' : 'text-slate-200'
                                                             }`}
                                                         >
                                                             ★
@@ -220,29 +296,67 @@ export default function CulinarySpotDetail() {
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold mb-2">Komentar</label>
+                                                <label className="block text-sm font-bold text-slate-700 mb-2">Cerita Anda</label>
                                                 <textarea
                                                     value={reviewForm.data.comment}
                                                     onChange={(e) => reviewForm.setData('comment', e.target.value)}
                                                     rows={4}
-                                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                                                    placeholder="Ceritakan pengalaman Anda di sini..."
+                                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-shadow bg-slate-50 focus:bg-white"
+                                                    placeholder="Bagikan detil makanan, suasana, dan pelayanan toko ini..."
                                                     required
                                                 />
-                                                {reviewForm.errors.comment && <p className="text-red-500 text-xs mt-1">{reviewForm.errors.comment}</p>}
+                                                {reviewForm.errors.comment && <p className="text-red-500 text-xs mt-1 font-medium">{reviewForm.errors.comment}</p>}
                                             </div>
-                                            <div className="flex gap-3">
+
+                                            {/* Photo Upload Section */}
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 mb-2">Tambah Foto</label>
+                                                
+                                                {/* Previews Array */}
+                                                {previewImages.length > 0 && (
+                                                    <div className="flex flex-wrap gap-3 mb-3">
+                                                        {previewImages.map((src, idx) => (
+                                                            <div key={idx} className="relative h-20 w-20 rounded-lg overflow-hidden border border-slate-200 shadow-sm group">
+                                                                <img src={src} alt="preview" className="w-full h-full object-cover" />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removePhoto(idx)}
+                                                                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-white text-[20px]">delete</span>
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <label className="inline-flex items-center gap-2 px-4 py-2 border-2 border-dashed border-primary/30 rounded-lg text-primary hover:bg-primary/5 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 transition-colors cursor-pointer group">
+                                                    <span className="material-symbols-outlined group-hover:scale-110 transition-transform">add_photo_alternate</span>
+                                                    <span className="text-sm font-bold">{previewImages.length > 0 ? 'Tambah Foto Lain' : 'Upload Foto'}</span>
+                                                    <input 
+                                                        type="file" 
+                                                        multiple 
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={handleFileChange}
+                                                    />
+                                                </label>
+                                                {reviewForm.errors.photos && <p className="text-red-500 text-xs mt-1 font-medium">{reviewForm.errors.photos}</p>}
+                                            </div>
+
+                                            <div className="flex gap-3 pt-2">
                                                 <button
                                                     type="submit"
                                                     disabled={reviewForm.processing}
-                                                    className="px-6 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary/90 transition-all disabled:opacity-50"
+                                                    className="px-6 py-2.5 bg-primary text-white rounded-lg font-bold text-sm tracking-wide hover:bg-primary/90 transition-all focus:ring-4 focus:ring-primary/20 disabled:bg-primary/50"
                                                 >
-                                                    {reviewForm.processing ? 'Mengirim...' : 'Kirim Ulasan'}
+                                                    {reviewForm.processing ? 'Mengirim...' : 'Posting Ulasan'}
                                                 </button>
                                                 <button
                                                     type="button"
+                                                    disabled={reviewForm.processing}
                                                     onClick={() => setShowReviewForm(false)}
-                                                    className="px-6 py-2.5 border border-slate-200 rounded-lg font-bold text-sm hover:bg-slate-50 transition-all"
+                                                    className="px-6 py-2.5 border border-slate-200 text-slate-600 rounded-lg font-bold text-sm hover:bg-slate-50 transition-all focus:ring-4 focus:ring-slate-100"
                                                 >
                                                     Batal
                                                 </button>
@@ -255,15 +369,15 @@ export default function CulinarySpotDetail() {
                                 <div className="space-y-6">
                                     {spot.reviews.length > 0 ? (
                                         spot.reviews.map((review) => (
-                                            <div key={review.id} className="bg-white rounded-xl border border-slate-100 p-5">
+                                            <div key={review.id} className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-bold shadow-sm">
                                                             {review.user.name.charAt(0)}
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-sm">{review.user.name}</p>
-                                                            <p className="text-xs text-slate-400">{timeAgo(review.created_at)}</p>
+                                                            <p className="font-bold text-sm text-slate-900">{review.user.name}</p>
+                                                            <p className="text-xs text-slate-400 font-medium">{timeAgo(review.created_at)}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-1">
@@ -271,17 +385,43 @@ export default function CulinarySpotDetail() {
                                                             <span key={i} className={`text-sm ${i < review.rating ? 'text-yellow-400' : 'text-slate-200'}`}>★</span>
                                                         ))}
                                                         {review.is_verified && (
-                                                            <span className="ml-2 text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-bold">Verified</span>
+                                                            <span className="ml-2 text-[10px] bg-green-50 text-green-600 border border-green-200/50 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Terverifikasi</span>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
+                                                <p className="text-slate-600 text-sm leading-relaxed mb-4">{review.comment}</p>
+                                                
+                                                {/* Review Photos */}
+                                                {review.media && review.media.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2 mt-2">
+                                                        {review.media.map((image, idx) => {
+                                                            // We pass the full array to lightbox mapped to their original URLs
+                                                            const allPhotoUrls = review.media!.map(m => m.original_url);
+                                                            return (
+                                                                <button
+                                                                    key={image.id}
+                                                                    onClick={() => openLightbox(allPhotoUrls, idx)}
+                                                                    className="relative h-20 w-20 md:h-24 md:w-24 rounded-lg overflow-hidden border border-slate-200 cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none group bg-slate-50"
+                                                                >
+                                                                    <img 
+                                                                        src={image.original_url} 
+                                                                        alt={`Review photo ${idx + 1}`} 
+                                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                                                        loading="lazy"
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                                                                </button>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="text-center py-10 text-slate-400">
-                                            <span className="material-symbols-outlined text-4xl mb-2 block">rate_review</span>
-                                            <p>Belum ada ulasan. Jadilah yang pertama!</p>
+                                        <div className="text-center py-16 bg-slate-50/50 border border-dashed border-slate-200 rounded-2xl">
+                                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">rate_review</span>
+                                            <p className="text-slate-500 font-medium">Belum ada ulasan untuk tempat ini.</p>
+                                            <p className="text-slate-400 text-sm mt-1">Jadilah yang pertama menceritakan pengalaman Anda!</p>
                                         </div>
                                     )}
                                 </div>
@@ -296,7 +436,7 @@ export default function CulinarySpotDetail() {
                                     <span className="material-symbols-outlined text-primary">location_on</span>
                                     Lokasi
                                 </h3>
-                                <div className="w-full h-48 rounded-lg overflow-hidden relative mb-4">
+                                <div className="w-full h-48 rounded-lg overflow-hidden relative mb-4 border border-slate-200">
                                     <MapContainer center={[lat, lng]} zoom={16} keyboard={false} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
                                         <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                                         <Marker position={[lat, lng]}>
@@ -304,15 +444,15 @@ export default function CulinarySpotDetail() {
                                         </Marker>
                                     </MapContainer>
                                 </div>
-                                <p className="font-bold">{spot.name}</p>
+                                <p className="font-bold text-slate-900">{spot.name}</p>
                                 <p className="text-slate-500 text-sm mb-4">Semarang, Jawa Tengah</p>
                                 <a
                                     href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block w-full py-2.5 bg-slate-100 rounded-lg font-bold text-sm hover:bg-primary hover:text-white transition-all text-center"
+                                    className="block w-full py-2.5 bg-slate-100 rounded-lg font-bold text-slate-700 text-sm hover:bg-primary hover:text-white hover:shadow-md transition-all text-center focus:ring-4 focus:ring-primary/20"
                                 >
-                                    Dapatkan Arah
+                                    Dapatkan Arah Google Maps
                                 </a>
                             </div>
 
@@ -320,21 +460,21 @@ export default function CulinarySpotDetail() {
                             <div className="bg-white rounded-xl border border-primary/10 p-5 shadow-sm">
                                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary">info</span>
-                                    Info
+                                    Info Singkat
                                 </h3>
-                                <div className="space-y-3 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">Kategori</span>
-                                        <span className="font-medium">{spot.category?.name || '-'}</span>
+                                <div className="space-y-4 text-sm">
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                                        <span className="text-slate-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">category</span> Kategori</span>
+                                        <span className="font-bold text-slate-800">{spot.category?.name || '-'}</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">Harga Rata-rata</span>
+                                    <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                                        <span className="text-slate-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">payments</span> Harga Perkiraan</span>
                                         <span className="font-bold text-primary">Rp {Number(spot.price).toLocaleString('id-ID')}</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">Status</span>
-                                        <span className={`font-bold ${spot.is_promoted ? 'text-primary' : 'text-slate-400'}`}>
-                                            {spot.is_promoted ? '⭐ Promoted' : 'Reguler'}
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-slate-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">verified</span> Status</span>
+                                        <span className={`font-bold text-[11px] px-2 py-1 rounded-md uppercase tracking-wider ${spot.is_promoted ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-500'}`}>
+                                            {spot.is_promoted ? 'Promoted' : 'Reguler'}
                                         </span>
                                     </div>
                                 </div>
@@ -357,6 +497,82 @@ export default function CulinarySpotDetail() {
                         </div>
                     </div>
                 </footer>
+
+                {/* Fullscreen Full-width Lightbox overlay */}
+                {lightboxImages.length > 0 && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200">
+                        {/* Close button */}
+                        <button
+                            onClick={closeLightbox}
+                            className="absolute top-4 right-4 md:top-6 md:right-6 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 p-2 rounded-full backdrop-blur-md transition-all z-10"
+                        >
+                            <span className="material-symbols-outlined text-3xl leading-none">close</span>
+                        </button>
+
+                        {/* Image Counter */}
+                        <div className="absolute top-4 left-4 md:top-6 md:left-6 text-white/90 font-medium text-sm bg-black/40 px-4 py-1.5 rounded-full backdrop-blur-md">
+                            {currentLightboxIndex + 1} / {lightboxImages.length}
+                        </div>
+
+                        {/* Prev button */}
+                        {lightboxImages.length > 1 && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                                className="absolute left-2 md:left-8 text-white/50 hover:text-white bg-black/20 hover:bg-black/60 p-3 md:p-4 rounded-full backdrop-blur-md transition-all drop-shadow-lg z-10 hidden md:flex"
+                            >
+                                <span className="material-symbols-outlined text-4xl leading-none">chevron_left</span>
+                            </button>
+                        )}
+
+                        {/* Clickable Image Area container (Click left half for prev, right half for next on mobile) */}
+                        <div 
+                            className="relative w-full h-[85vh] flex items-center justify-center px-0 md:px-24"
+                            onClick={closeLightbox}
+                        >
+                            <img
+                                src={lightboxImages[currentLightboxIndex]}
+                                alt="Galeri Ulasan"
+                                className="max-w-full max-h-full object-contain drop-shadow-2xl select-none animate-in zoom-in-95 duration-300"
+                                onClick={(e) => e.stopPropagation()} // Prevent close when clicking image
+                            />
+
+                            {/* Mobile tap areas for Prev/Next */}
+                            {lightboxImages.length > 1 && (
+                                <>
+                                    <div className="absolute top-0 bottom-0 left-0 w-1/3 z-20 md:hidden" onClick={(e) => { e.stopPropagation(); prevImage(); }}></div>
+                                    <div className="absolute top-0 bottom-0 right-0 w-1/3 z-20 md:hidden" onClick={(e) => { e.stopPropagation(); nextImage(); }}></div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Next button */}
+                        {lightboxImages.length > 1 && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                                className="absolute right-2 md:right-8 text-white/50 hover:text-white bg-black/20 hover:bg-black/60 p-3 md:p-4 rounded-full backdrop-blur-md transition-all drop-shadow-lg z-10 hidden md:flex"
+                            >
+                                <span className="material-symbols-outlined text-4xl leading-none">chevron_right</span>
+                            </button>
+                        )}
+                        
+                        {/* Filmstrip at bottom */}
+                        {lightboxImages.length > 1 && (
+                            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 px-4 overflow-x-auto pb-4">
+                                {lightboxImages.map((src, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={(e) => { e.stopPropagation(); setCurrentLightboxIndex(idx); }}
+                                        className={`relative h-12 w-12 md:h-16 md:w-16 flex-shrink-0 rounded-md overflow-hidden transition-all ${
+                                            idx === currentLightboxIndex ? 'ring-2 ring-white scale-110 shadow-lg opacity-100' : 'opacity-40 hover:opacity-100'
+                                        }`}
+                                    >
+                                        <img src={src} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </>
     );

@@ -35,7 +35,7 @@ class CulinarySpotController extends Controller
      */
     public function show(string $id)
     {
-        $spot = CulinarySpot::with(['category', 'reviews.user', 'media'])->findOrFail($id);
+        $spot = CulinarySpot::with(['category', 'reviews.user', 'reviews.media', 'media'])->findOrFail($id);
 
         return Inertia::render('CulinarySpotDetail', [
             'spot' => $spot,
