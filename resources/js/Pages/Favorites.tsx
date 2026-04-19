@@ -1,18 +1,20 @@
 import React from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import SpotCard from '@/Components/SpotCard';
 
 interface FavoriteSpot {
     id: number;
     name: string;
     description: string;
     price: number;
-    latitude: number;
-    longitude: number;
+    latitude: string;
+    longitude: string;
     category?: { name: string };
     average_rating: number;
     review_count: number;
     media?: any[];
+    is_promoted?: boolean;
 }
 
 export default function Favorites({ favorites = [] }: { favorites: FavoriteSpot[] }) {
@@ -60,36 +62,32 @@ export default function Favorites({ favorites = [] }: { favorites: FavoriteSpot[
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {favorites.map((spot) => (
-                            <Link key={spot.id} href={`/spot/${spot.id}`} className="group relative bg-white border border-slate-200/60 rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-300 transition-all duration-300">
-                                {/* Thumbnail Image */}
-                                <div className="h-40 w-full bg-slate-100 overflow-hidden relative">
-                                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(spot.name)}&background=f8fafc&color=94a3b8`} alt={spot.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                    {/* Unfavorite Button overlay */}
-                                    <button 
-                                        onClick={(e) => toggleFavorite(e, spot.id)}
-                                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                                    >
-                                        <span className="material-symbols-outlined text-[18px] text-red-500 font-[800]">favorite</span>
-                                    </button>
-                                </div>
-                                {/* Content Info */}
-                                <div className="p-4">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <h3 className="font-bold text-slate-900 text-base line-clamp-1">{spot.name}</h3>
-                                        <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded text-amber-600">
-                                            <span className="material-symbols-outlined text-[14px]">star</span>
-                                            <span className="text-xs font-bold">{spot.average_rating}</span>
-                                        </div>
-                                    </div>
-                                    <p className="text-slate-500 text-xs font-medium mb-3">{spot.category?.name || 'Kuliner'}</p>
-                                    <p className="text-primary font-bold text-sm">
-                                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(spot.price)}
-                                    </p>
-                                </div>
-                            </Link>
-                        ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {favorites.map((spot) => {
+                            const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
+                            const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
+                            
+                            const mappedSpot = {
+                                id: spot.id,
+                                name: spot.name,
+                                imageUrl: isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                                imageAlt: spot.name,
+                                rating: spot.average_rating || 0,
+                                location: spot.description ? spot.description.substring(0, 30) + '...' : 'Semarang',
+                                tags: [spot.category?.name || 'Local'],
+                                priceLevel: Number(spot.price) > 50000 ? '$$$' : '$$',
+                                isVerified: spot.is_promoted,
+                            };
+
+                            return (
+                                <SpotCard 
+                                    key={mappedSpot.id} 
+                                    spot={mappedSpot} 
+                                    isFavorite={true}
+                                    onToggleFavorite={toggleFavorite}
+                                />
+                            );
+                        })}
                     </div>
                 )}
             </div>
