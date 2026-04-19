@@ -83,3 +83,9 @@ Homestead.yaml
 # ── Pail (Laravel log viewer) ────────────────────────────────
 /storage/pail
 FOLDER_GAMBAR/
+
+# ── Agent Skills & Internal Docs (JANGAN di-push) ────────────
+/.agents/
+/docs/
+/.gemini/
+test_media.php
