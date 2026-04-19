@@ -61,10 +61,19 @@ export default function Explorer() {
     const [minRating, setMinRating] = useState<number>(0);
     const [showFilters, setShowFilters] = useState(false);
 
+    // Scroll-to-top visibility
+    const [showScrollTop, setShowScrollTop] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setShowScrollTop(window.scrollY > 600);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
     // Favorites Logic
     const toggleFavorite = useCallback((e: React.MouseEvent, id: number) => {
-        e.preventDefault(); // Prevent native navigation
-        e.stopPropagation(); // Prevent Inertia Link bubbling
+        e.preventDefault();
+        e.stopPropagation();
         if (!auth.user) {
             router.get('/login');
             return;
@@ -98,14 +107,11 @@ export default function Explorer() {
         return true;
     });
 
-    // Extract dynamic categories from DB
     const categories = ['All', ...Array.from(new Set(spots.map(s => s.category?.name).filter(Boolean))) as string[]];
 
-    // Mapper from DB to Component Props
     const mappedSpots: CulinarySpot[] = filteredSpotsDB.map(spot => {
         const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
         const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
-        
         return {
             id: spot.id,
             name: spot.name,
@@ -122,7 +128,6 @@ export default function Explorer() {
     const promoSpots: PromoSpot[] = spots.filter(s => s.is_promoted).map(spot => {
         const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
         const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
-        
         return {
             id: spot.id,
             name: spot.name,
@@ -135,19 +140,18 @@ export default function Explorer() {
         };
     });
 
-    // Center of Semarang
     const mapCenter: [number, number] = [-6.9932, 110.4203];
 
     return (
         <>
             <Head title="Discover Authentic Tastes" />
 
-            <div className="flex flex-1 flex-col md:flex-row overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
-                {/* Sidebar / List View */}
-                {viewMode === 'list' && (
-                    <>
-                        <aside className="w-full md:w-[420px] lg:w-[480px] bg-background-light border-r border-slate-100 flex flex-col z-20 overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
-                            {/* Search Box */}
+            {viewMode === 'list' && (
+                <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
+                    {/* Sidebar / List */}
+                    <aside className="w-full md:w-[420px] lg:w-[480px] bg-background-light border-r border-slate-100 flex flex-col z-20 flex-shrink-0">
+                        {/* Search & Filters — sticky on desktop */}
+                        <div className="md:sticky md:top-[64px] z-30 bg-background-light">
                             <div className="px-6 pt-5 pb-2">
                                 <div className="relative flex items-center">
                                     <span className="material-symbols-outlined absolute left-4 text-slate-400" style={{ fontSize: '20px' }}>search</span>
@@ -246,35 +250,38 @@ export default function Explorer() {
                                     </button>
                                 ))}
                             </div>
-                            {/* Feed Content */}
-                            <div scroll-region="true" className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                                {mappedSpots.length > 0 ? (
-                                    mappedSpots.map((spot) => (
-                                        <SpotCard 
-                                            key={spot.id} 
-                                            spot={spot} 
-                                            isFavorite={auth.favorite_spots?.includes(spot.id)}
-                                            onToggleFavorite={toggleFavorite}
-                                        />
-                                    ))
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                                        <span className="material-symbols-outlined text-5xl text-slate-300 mb-3">search_off</span>
-                                        <p className="text-slate-500 font-medium">Tidak ada hasil ditemukan</p>
-                                        <p className="text-slate-400 text-sm mt-1">Coba kata kunci lain</p>
-                                    </div>
-                                )}
-                            </div>
-                        </aside>
+                        </div>
 
-                        {/* Map View (Desktop) */}
-                        <div className="hidden md:block flex-1 relative" style={{ height: 'calc(100vh - 64px)' }}>
+                        {/* Feed Content — scrolls naturally with the page */}
+                        <div className="p-6 space-y-6">
+                            {mappedSpots.length > 0 ? (
+                                mappedSpots.map((spot) => (
+                                    <SpotCard 
+                                        key={spot.id} 
+                                        spot={spot} 
+                                        isFavorite={auth.favorite_spots?.includes(spot.id)}
+                                        onToggleFavorite={toggleFavorite}
+                                    />
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <span className="material-symbols-outlined text-5xl text-slate-300 mb-3">search_off</span>
+                                    <p className="text-slate-500 font-medium">Tidak ada hasil ditemukan</p>
+                                    <p className="text-slate-400 text-sm mt-1">Coba kata kunci lain</p>
+                                </div>
+                            )}
+                        </div>
+                    </aside>
+
+                    {/* Map View (Desktop) — sticky so it stays visible while user scrolls the card list */}
+                    <div className="hidden md:block flex-1 relative">
+                        <div className="sticky top-[64px]" style={{ height: 'calc(100vh - 64px)' }}>
                             <MapContainer
                                 center={mapCenter}
                                 zoom={13}
                                 scrollWheelZoom={true}
                                 keyboard={false}
-                                style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
+                                style={{ height: '100%', width: '100%' }}
                             >
                                 <TileLayer
                                     url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
@@ -290,77 +297,73 @@ export default function Explorer() {
                                 ))}
                             </MapContainer>
                         </div>
-                    </>
-                )}
+                    </div>
+                </div>
+            )}
 
-                {/* Mobile/Full Map View */}
-                {viewMode === 'map' && (
-                    <>
-                        <div className="flex-1 relative" style={{ height: 'calc(100vh - 64px)' }}>
-                            <MapContainer
-                                center={mapCenter}
-                                zoom={14}
-                                scrollWheelZoom={true}
-                                keyboard={false}
-                                style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
-                            >
-                                <TileLayer
-                                    url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-                                    attribution="&copy; Google Maps"
-                                />
-                                {filteredSpotsDB.map((spot) => (
-                                    <Marker key={spot.id} position={[Number(spot.latitude), Number(spot.longitude)]}>
-                                        <Popup>
-                                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{spot.name}</div>
-                                            <div style={{ fontSize: '12px', color: '#64748b' }}>{spot.category?.name}</div>
-                                        </Popup>
-                                    </Marker>
-                                ))}
-                            </MapContainer>
-                        </div>
+            {/* Mobile/Full Map View */}
+            {viewMode === 'map' && (
+                <>
+                    <div className="flex-1 relative" style={{ height: 'calc(100vh - 64px)' }}>
+                        <MapContainer
+                            center={mapCenter}
+                            zoom={14}
+                            scrollWheelZoom={true}
+                            keyboard={false}
+                            style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
+                        >
+                            <TileLayer
+                                url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                                attribution="&copy; Google Maps"
+                            />
+                            {filteredSpotsDB.map((spot) => (
+                                <Marker key={spot.id} position={[Number(spot.latitude), Number(spot.longitude)]}>
+                                    <Popup>
+                                        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{spot.name}</div>
+                                        <div style={{ fontSize: '12px', color: '#64748b' }}>{spot.category?.name}</div>
+                                    </Popup>
+                                </Marker>
+                            ))}
+                        </MapContainer>
+                    </div>
 
-                        {/* Filter Sidebar overlay on map for mobile/desktop layout switch */}
-                        <aside className="w-full border-l border-primary/10 bg-white md:w-80 lg:w-96 flex flex-col overflow-hidden hidden md:flex">
-                            <FilterSidebar categories={categories} />
-                            {/* Nearby Results */}
-                            <div className="px-6 pb-6 space-y-4">
-                                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-                                    Nearby Results
-                                </h2>
-                                {nearbyResults.map((result) => (
-                                    <div
-                                        key={result.name}
-                                        className="group flex cursor-pointer gap-4 rounded-xl border border-transparent p-2 transition-all hover:border-primary/20 hover:bg-primary/5"
-                                    >
-                                        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-200">
-                                            <img
-                                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                                src={result.imageUrl}
-                                                alt={result.name}
-                                                loading="lazy"
-                                            />
+                    <aside className="w-full border-l border-primary/10 bg-white md:w-80 lg:w-96 flex flex-col overflow-hidden hidden md:flex">
+                        <FilterSidebar categories={categories} />
+                        <div className="px-6 pb-6 space-y-4">
+                            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+                                Nearby Results
+                            </h2>
+                            {nearbyResults.map((result) => (
+                                <div
+                                    key={result.name}
+                                    className="group flex cursor-pointer gap-4 rounded-xl border border-transparent p-2 transition-all hover:border-primary/20 hover:bg-primary/5"
+                                >
+                                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-200">
+                                        <img
+                                            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                            src={result.imageUrl}
+                                            alt={result.name}
+                                            loading="lazy"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col justify-between py-1">
+                                        <div>
+                                            <h3 className="font-bold text-slate-900">{result.name}</h3>
+                                            <p className="text-xs text-slate-500">{result.area}</p>
                                         </div>
-                                        <div className="flex flex-col justify-between py-1">
-                                            <div>
-                                                <h3 className="font-bold text-slate-900">{result.name}</h3>
-                                                <p className="text-xs text-slate-500">{result.area}</p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="flex items-center text-xs font-bold text-primary">
-                                                    <span className="material-symbols-outlined text-xs mr-0.5">
-                                                        star
-                                                    </span>
-                                                    {result.rating}
-                                                </span>
-                                            </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="flex items-center text-xs font-bold text-primary">
+                                                <span className="material-symbols-outlined text-xs mr-0.5">star</span>
+                                                {result.rating}
+                                            </span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </aside>
-                    </>
-                )}
-            </div>
+                                </div>
+                            ))}
+                        </div>
+                    </aside>
+                </>
+            )}
 
             {/* Promoted Culinary Section */}
             <section className="border-t border-primary/10 bg-white p-8">
@@ -384,7 +387,7 @@ export default function Explorer() {
                 </div>
             </section>
 
-            {/* Floating View Toggle — positioned at bottom-right above the nav bar for easy thumb access without blocking scroll */}
+            {/* Floating View Toggle (Mobile) */}
             <div className="md:hidden fixed bottom-[84px] right-4 z-40">
                 <button
                     onClick={() => {
@@ -408,9 +411,19 @@ export default function Explorer() {
                     <span>{viewMode === 'list' ? 'Map' : 'List'}</span>
                 </button>
             </div>
+
+            {/* Scroll to Top FAB */}
+            <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className={`fixed bottom-[84px] md:bottom-8 left-4 z-40 h-12 w-12 rounded-full bg-white border border-slate-200 shadow-lg flex items-center justify-center text-slate-600 hover:text-primary hover:border-primary/30 transition-all duration-300 ${
+                    showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+                }`}
+                aria-label="Scroll to top"
+            >
+                <span className="material-symbols-outlined">keyboard_arrow_up</span>
+            </button>
         </>
     );
 }
 
 Explorer.layout = (page: React.ReactNode) => <AppLayout showSearch={false} activeTab="explore">{page}</AppLayout>;
-
