@@ -70,13 +70,25 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:merchant,admin'])->prefix('merchant')->group(function () {
+    // Dashboard
     Route::get('/dashboard', [MerchantDashboardController::class, 'index'])->name('merchant.dashboard');
-    Route::get('/promotion', function () {
-        $spots = \App\Models\CulinarySpot::select('id', 'name')->get();
-        return \Inertia\Inertia::render('Merchant/Promotion', [
-            'spots' => $spots
-        ]);
-    })->name('merchant.promotion');
+
+    // My Shops
+    Route::get('/shops', [MerchantDashboardController::class, 'shops'])->name('merchant.shops');
+
+    // Register New Shop
+    Route::get('/shop/create', [MerchantDashboardController::class, 'createShop'])->name('merchant.shop.create');
+    Route::post('/shop', [MerchantDashboardController::class, 'storeShop'])->name('merchant.shop.store');
+
+    // Edit Shop
+    Route::get('/shop/{id}/edit', [MerchantDashboardController::class, 'editShop'])->name('merchant.shop.edit');
+    Route::put('/shop/{id}', [MerchantDashboardController::class, 'updateShop'])->name('merchant.shop.update');
+
+    // Promotion
+    Route::get('/promotion', [MerchantDashboardController::class, 'promotion'])->name('merchant.promotion');
+
+    // Payments History
+    Route::get('/payments', [MerchantDashboardController::class, 'payments'])->name('merchant.payments');
 });
 
 /*

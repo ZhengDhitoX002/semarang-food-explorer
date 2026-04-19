@@ -46,6 +46,11 @@ class User extends Authenticatable
         return $this->hasMany(Favorite::class);
     }
 
+    public function shops()
+    {
+        return $this->hasMany(CulinarySpot::class, 'owner_id');
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

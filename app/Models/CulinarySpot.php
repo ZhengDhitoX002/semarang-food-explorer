@@ -51,6 +51,11 @@ class CulinarySpot extends Model implements HasMedia
         return $this->hasMany(Favorite::class, 'culinary_spot_id');
     }
 
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
     /**
      * Computed average rating from reviews.
      */
