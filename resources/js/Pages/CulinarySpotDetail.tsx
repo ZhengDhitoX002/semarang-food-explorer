@@ -1,4 +1,4 @@
-import React, { FormEvent, useState, useEffect } from 'react';
+import React, { FormEvent, useState, useEffect, useCallback } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
@@ -92,26 +92,27 @@ export default function CulinarySpotDetail() {
         reviewForm.post(`/favorites/${spot.id}`, { preserveScroll: true, preserveState: true });
     };
 
-    const openLightbox = (images: string[], index: number) => {
+    const openLightbox = useCallback((images: string[], index: number) => {
         setLightboxImages(images);
         setCurrentLightboxIndex(index);
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    };
+        document.body.style.overflow = 'hidden';
+    }, []);
 
-    const closeLightbox = () => {
+    const closeLightbox = useCallback(() => {
         setLightboxImages([]);
-        document.body.style.overflow = 'auto'; // Fix scrolling frozen issue
-    };
+        setCurrentLightboxIndex(0);
+        document.body.style.removeProperty('overflow');
+    }, []);
 
-    const nextImage = (e?: React.MouseEvent) => {
+    const nextImage = useCallback((e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
         setCurrentLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
-    };
+    }, [lightboxImages.length]);
 
-    const prevImage = (e?: React.MouseEvent) => {
+    const prevImage = useCallback((e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
         setCurrentLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
-    };
+    }, [lightboxImages.length]);
 
     // Keyboard support for Lightbox
     useEffect(() => {
@@ -123,7 +124,14 @@ export default function CulinarySpotDetail() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [lightboxImages]);
+    }, [lightboxImages, closeLightbox, nextImage, prevImage]);
+
+    // Safety net: always restore scroll when component unmounts
+    useEffect(() => {
+        return () => {
+            document.body.style.removeProperty('overflow');
+        };
+    }, []);
 
     const lat = Number(spot.latitude);
     const lng = Number(spot.longitude);
@@ -141,10 +149,9 @@ export default function CulinarySpotDetail() {
         'https://lh3.googleusercontent.com/aida-public/AB6AXuB0RfkrjRd-q5Qm3RvGd82v_n2ksUV51tIEw5yaNlGPZSWVA5U0ms3kgZVBiw-dMdw346cBU4uRwpedL6wT5itNjXEfuuF9uDSIY0e9TCBzLvnHwk1GdPHVYpJTtqxRsPp7h7_SD_64mA1znSoxg_POvixRuHwBTaJwyMBC1MhN5OLBYElEHsKSDy6DHcLBQPOe2zuAdyYoDG7QsxKzSuG0o70P1tNI2Z4kBEtH0nhvmu5mShpClArfq9PydQ4u8QLvhNP9xoJSAJ7k',
     ];
 
-    // Fix for absolute URLs from Spatie generating wrong domain
-    const getMediaUrl = (url: string) => {
-        if (!url) return '';
-        return url.replace(/^https?:\/\/[^\/]+/, '');
+    // Use the original URL from Spatie directly — APP_URL on VPS is correctly set
+    const getMediaUrl = (url: string): string => {
+        return url || '';
     };
 
     const timeAgo = (dateStr: string) => {
@@ -401,27 +408,28 @@ export default function CulinarySpotDetail() {
                                                 
                                                 {/* Review Photos */}
                                                 {review.media && review.media.length > 0 && (
-                                                    <div className="flex flex-wrap gap-2 mt-2">
-                                                        {review.media.map((image, idx) => {
-                                                            const fixedUrl = getMediaUrl(image.original_url);
-                                                            // We pass the full array to lightbox mapped to their original URLs
-                                                            const allPhotoUrls = review.media!.map(m => getMediaUrl(m.original_url));
+                                                    <div className="flex flex-wrap gap-2 mt-3">
+                                                        {review.media.map((image: any, idx: number) => {
+                                                            const photoUrl = image.original_url || '';
+                                                            const allPhotoUrls = review.media!.map((m: any) => m.original_url || '');
                                                             return (
                                                                 <button
                                                                     key={image.id}
                                                                     type="button"
                                                                     onClick={() => openLightbox(allPhotoUrls, idx)}
-                                                                    className="relative h-20 w-20 md:h-24 md:w-24 rounded-lg overflow-hidden border border-slate-200 cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none group bg-slate-50"
+                                                                    className="relative h-24 w-24 md:h-28 md:w-28 rounded-xl overflow-hidden border-2 border-slate-200/60 cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none group bg-slate-100 shadow-sm hover:shadow-md transition-all"
                                                                 >
                                                                     <img 
-                                                                        src={fixedUrl} 
-                                                                        alt={`Review photo ${idx + 1}`} 
-                                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                                                                        loading="lazy"
+                                                                        src={photoUrl}
+                                                                        alt={`Foto ulasan ${idx + 1}`}
+                                                                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                                     />
-                                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                                    <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <span className="material-symbols-outlined text-white text-[16px] drop-shadow-lg">zoom_in</span>
+                                                                    </div>
                                                                 </button>
-                                                            )
+                                                            );
                                                         })}
                                                     </div>
                                                 )}
