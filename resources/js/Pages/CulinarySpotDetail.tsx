@@ -100,14 +100,16 @@ export default function CulinarySpotDetail() {
 
     const closeLightbox = () => {
         setLightboxImages([]);
-        document.body.style.overflow = 'unset';
+        document.body.style.overflow = 'auto'; // Fix scrolling frozen issue
     };
 
-    const nextImage = () => {
+    const nextImage = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
         setCurrentLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
     };
 
-    const prevImage = () => {
+    const prevImage = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
         setCurrentLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
     };
 
@@ -138,6 +140,12 @@ export default function CulinarySpotDetail() {
         'https://lh3.googleusercontent.com/aida-public/AB6AXuCuLCx98Fp0qcutnnwP2gcJhNatE8ezSC1w7vjcBl1bL4cndXJTpAvtSNyxhucKS4W7dD892XBL55HK5fBbYO71PE6ENRttf_3hBrUnwWI6wB1NmA0JhXKALRflUijpJFpqXtftwPDUDkflUVbYcmBCL67ZTcBTfHonPPTzJ6r04Y-I7wOYbemqxm9sXX49yinf5gRGdp2k6gYk147V1i03zhouo1c0KeUv789_v9Dmd5928hJSQgEPTfZ2Oebcmu_Xu8Dcn23SRcb9',
         'https://lh3.googleusercontent.com/aida-public/AB6AXuB0RfkrjRd-q5Qm3RvGd82v_n2ksUV51tIEw5yaNlGPZSWVA5U0ms3kgZVBiw-dMdw346cBU4uRwpedL6wT5itNjXEfuuF9uDSIY0e9TCBzLvnHwk1GdPHVYpJTtqxRsPp7h7_SD_64mA1znSoxg_POvixRuHwBTaJwyMBC1MhN5OLBYElEHsKSDy6DHcLBQPOe2zuAdyYoDG7QsxKzSuG0o70P1tNI2Z4kBEtH0nhvmu5mShpClArfq9PydQ4u8QLvhNP9xoJSAJ7k',
     ];
+
+    // Fix for absolute URLs from Spatie generating wrong domain
+    const getMediaUrl = (url: string) => {
+        if (!url) return '';
+        return url.replace(/^https?:\/\/[^\/]+/, '');
+    };
 
     const timeAgo = (dateStr: string) => {
         const diff = Date.now() - new Date(dateStr).getTime();
@@ -395,16 +403,18 @@ export default function CulinarySpotDetail() {
                                                 {review.media && review.media.length > 0 && (
                                                     <div className="flex flex-wrap gap-2 mt-2">
                                                         {review.media.map((image, idx) => {
+                                                            const fixedUrl = getMediaUrl(image.original_url);
                                                             // We pass the full array to lightbox mapped to their original URLs
-                                                            const allPhotoUrls = review.media!.map(m => m.original_url);
+                                                            const allPhotoUrls = review.media!.map(m => getMediaUrl(m.original_url));
                                                             return (
                                                                 <button
                                                                     key={image.id}
+                                                                    type="button"
                                                                     onClick={() => openLightbox(allPhotoUrls, idx)}
                                                                     className="relative h-20 w-20 md:h-24 md:w-24 rounded-lg overflow-hidden border border-slate-200 cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none group bg-slate-50"
                                                                 >
                                                                     <img 
-                                                                        src={image.original_url} 
+                                                                        src={fixedUrl} 
                                                                         alt={`Review photo ${idx + 1}`} 
                                                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                                                                         loading="lazy"
@@ -517,8 +527,8 @@ export default function CulinarySpotDetail() {
                         {/* Prev button */}
                         {lightboxImages.length > 1 && (
                             <button
-                                onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                                className="absolute left-2 md:left-8 text-white/50 hover:text-white bg-black/20 hover:bg-black/60 p-3 md:p-4 rounded-full backdrop-blur-md transition-all drop-shadow-lg z-10 hidden md:flex"
+                                onClick={prevImage}
+                                className="absolute left-2 md:left-8 text-white/50 hover:text-white bg-black/20 hover:bg-black/60 p-3 md:p-4 rounded-full backdrop-blur-md transition-all drop-shadow-lg z-[110] hidden md:flex"
                             >
                                 <span className="material-symbols-outlined text-4xl leading-none">chevron_left</span>
                             </button>
@@ -533,14 +543,23 @@ export default function CulinarySpotDetail() {
                                 src={lightboxImages[currentLightboxIndex]}
                                 alt="Galeri Ulasan"
                                 className="max-w-full max-h-full object-contain drop-shadow-2xl select-none animate-in zoom-in-95 duration-300"
-                                onClick={(e) => e.stopPropagation()} // Prevent close when clicking image
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent close on image click
+                                    if (lightboxImages.length > 1) {
+                                        // Allow clicking right half of image to go next
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const x = e.clientX - rect.left;
+                                        if (x > rect.width / 2) nextImage(e);
+                                        else prevImage(e);
+                                    }
+                                }} 
                             />
 
                             {/* Mobile tap areas for Prev/Next */}
                             {lightboxImages.length > 1 && (
                                 <>
-                                    <div className="absolute top-0 bottom-0 left-0 w-1/3 z-20 md:hidden" onClick={(e) => { e.stopPropagation(); prevImage(); }}></div>
-                                    <div className="absolute top-0 bottom-0 right-0 w-1/3 z-20 md:hidden" onClick={(e) => { e.stopPropagation(); nextImage(); }}></div>
+                                    <div className="absolute top-0 bottom-0 left-0 w-1/3 z-20 md:hidden" onClick={prevImage}></div>
+                                    <div className="absolute top-0 bottom-0 right-0 w-1/3 z-20 md:hidden" onClick={nextImage}></div>
                                 </>
                             )}
                         </div>
@@ -548,8 +567,8 @@ export default function CulinarySpotDetail() {
                         {/* Next button */}
                         {lightboxImages.length > 1 && (
                             <button
-                                onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                                className="absolute right-2 md:right-8 text-white/50 hover:text-white bg-black/20 hover:bg-black/60 p-3 md:p-4 rounded-full backdrop-blur-md transition-all drop-shadow-lg z-10 hidden md:flex"
+                                onClick={nextImage}
+                                className="absolute right-2 md:right-8 text-white/50 hover:text-white bg-black/20 hover:bg-black/60 p-3 md:p-4 rounded-full backdrop-blur-md transition-all drop-shadow-lg z-[110] hidden md:flex"
                             >
                                 <span className="material-symbols-outlined text-4xl leading-none">chevron_right</span>
                             </button>
