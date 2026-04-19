@@ -49,6 +49,8 @@ export default function Header({ showSearch = true, activeTab = 'explore' }: Hea
                             <Link
                                 key={item.id}
                                 href={item.href}
+                                prefetch
+                                preserveState
                                 className="relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 style={{
                                     color: isActive ? '#e77e23' : '#64748b',

@@ -17,7 +17,6 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-            {/* Frosted glass background */}
             <div
                 style={{
                     background: 'rgba(255, 255, 255, 0.92)',
@@ -30,7 +29,6 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
             >
                 {navItems.map((item) => {
                     const isActive = activeTab === item.id;
-                    // For profile, redirect to login if not authenticated
                     const profileNeedsAuth = item.id === 'profile' && !auth?.user;
                     const href = profileNeedsAuth ? '/login' : item.href;
 
@@ -38,6 +36,8 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                         <Link
                             key={item.id}
                             href={href}
+                            prefetch
+                            preserveState
                             className="relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-2xl transition-all duration-200"
                             style={{
                                 minWidth: '64px',
@@ -45,7 +45,6 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                                 transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                             }}
                         >
-                            {/* Active dot indicator with smooth fade/slide */}
                             <span
                                 className="absolute -top-1 left-1/2 w-5 h-1 rounded-full transition-all duration-200 ease-out"
                                 style={{
@@ -55,12 +54,9 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                                 }}
                             />
                             <span
-                                className={`material-symbols-outlined transition-colors duration-200 ${
-                                    isActive ? 'fill-icon' : ''
-                                }`}
+                                className={`material-symbols-outlined transition-colors duration-200 ${isActive ? 'fill-icon' : ''}`}
                                 style={{
-                                    animation: isActive ? 'iconWave 0.4s ease-out forwards' : 'none',
-                                    fontSize: '24px', // Keep base size consistent, use transform for scaling
+                                    fontSize: '24px',
                                     color: isActive ? '#e77e23' : '#94a3b8',
                                 }}
                             >
@@ -70,7 +66,7 @@ export default function MobileBottomNav({ activeTab = 'explore' }: MobileBottomN
                                 className="transition-all duration-200"
                                 style={{
                                     fontSize: '10px',
-                                    fontWeight: 600, // Fixed fontWeight so layout doesn't shift horizontally
+                                    fontWeight: 600,
                                     color: isActive ? '#e77e23' : '#94a3b8',
                                 }}
                             >
