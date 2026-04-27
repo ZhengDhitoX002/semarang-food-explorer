@@ -13,6 +13,8 @@ class Review extends Model implements HasMedia
 
     protected $guarded = [];
 
+    protected $appends = ['is_editable'];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -21,6 +23,19 @@ class Review extends Model implements HasMedia
     public function culinarySpot()
     {
         return $this->belongsTo(CulinarySpot::class, 'spot_id');
+    }
+
+    /**
+     * Check if review can still be edited (within 24 hours).
+     */
+    public function isEditable(): bool
+    {
+        return $this->created_at->diffInHours(now()) < 24;
+    }
+
+    public function getIsEditableAttribute(): bool
+    {
+        return $this->isEditable();
     }
 
     /**

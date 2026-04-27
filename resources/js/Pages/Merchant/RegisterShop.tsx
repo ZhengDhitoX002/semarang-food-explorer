@@ -7,6 +7,12 @@ interface Category {
     name: string;
 }
 
+interface Tag {
+    id: number;
+    name: string;
+    slug: string;
+}
+
 const steps = [
     { id: 1, title: 'Info Dasar', icon: 'info' },
     { id: 2, title: 'Lokasi', icon: 'location_on' },
@@ -15,23 +21,33 @@ const steps = [
 ];
 
 export default function RegisterShop() {
-    const { categories } = usePage<{ categories: Category[] }>().props;
+    const { categories, tags, shop } = usePage<{ categories: Category[]; tags: Tag[]; shop?: any }>().props;
     const [step, setStep] = useState(1);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { data, setData, post, processing, errors } = useForm({
-        name: '',
-        description: '',
-        category_id: '',
-        latitude: '-6.9932',
-        longitude: '110.4203',
-        price: '',
-        address: '',
-        operating_hours: '',
-        phone: '',
+    const { data, setData, post, put, processing, errors } = useForm({
+        name: shop?.name || '',
+        description: shop?.description || '',
+        category_id: shop?.category_id?.toString() || '',
+        latitude: shop?.latitude?.toString() || '-6.9932',
+        longitude: shop?.longitude?.toString() || '110.4203',
+        price: shop?.price?.toString() || '',
+        address: shop?.address || '',
+        operating_hours: shop?.operating_hours || '',
+        phone: shop?.phone || '',
         photo: null as File | null,
+        tags: (shop?.tags?.map((t: Tag) => t.id) || []) as number[],
     });
+
+    const handleTagToggle = (tagId: number) => {
+        const current = data.tags;
+        if (current.includes(tagId)) {
+            setData('tags', current.filter(id => id !== tagId));
+        } else {
+            setData('tags', [...current, tagId]);
+        }
+    };
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -45,9 +61,11 @@ export default function RegisterShop() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/merchant/shop', {
-            forceFormData: true,
-        });
+        if (shop) {
+            put(`/merchant/shop/${shop.id}`, { forceFormData: true });
+        } else {
+            post('/merchant/shop', { forceFormData: true });
+        }
     };
 
     const canProceed = () => {
@@ -228,6 +246,29 @@ export default function RegisterShop() {
                                 </div>
                                 <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
                             </div>
+
+                            {/* Tags */}
+                            {tags && tags.length > 0 && (
+                                <div>
+                                    <label className={labelClass}>Tags (opsional)</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {tags.map(tag => (
+                                            <button
+                                                key={tag.id}
+                                                type="button"
+                                                onClick={() => handleTagToggle(tag.id)}
+                                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                                                    data.tags.includes(tag.id)
+                                                        ? 'bg-primary/10 border-primary text-primary font-bold'
+                                                        : 'bg-white border-slate-200 text-slate-500 hover:border-primary/40'
+                                                }`}
+                                            >
+                                                {tag.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

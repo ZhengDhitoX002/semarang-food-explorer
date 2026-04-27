@@ -8,6 +8,7 @@ interface Review {
     rating: number;
     comment: string;
     is_verified: boolean;
+    is_editable: boolean;
     created_at: string;
     media?: {
         id: number;
@@ -26,13 +27,21 @@ interface SpotData {
     is_promoted: boolean;
     average_rating: number;
     review_count: number;
+    status?: string;
+    closed_reason?: string;
     category?: { id: number; name: string };
+    tags?: { id: number; name: string; slug: string }[];
     reviews: Review[];
 }
 
 export default function CulinarySpotDetail() {
     const { spot, auth } = usePage<{ spot: SpotData; auth: { user?: { id: number; name: string; role: string }, favorite_spots?: number[] } }>().props;
     const [showReviewForm, setShowReviewForm] = useState(false);
+    
+    // Edit Review State
+    const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
+    const [editRating, setEditRating] = useState(5);
+    const [editComment, setEditComment] = useState('');
     
     // Lightbox State
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
@@ -45,6 +54,11 @@ export default function CulinarySpotDetail() {
         rating: 5,
         comment: '',
         photos: [] as File[],
+    });
+
+    const editForm = useForm({
+        rating: 5,
+        comment: '',
     });
 
     const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -90,6 +104,22 @@ export default function CulinarySpotDetail() {
             return;
         }
         reviewForm.post(`/favorites/${spot.id}`, { preserveScroll: true, preserveState: true });
+    };
+
+    const startEditReview = (review: Review) => {
+        setEditingReviewId(review.id);
+        setEditRating(review.rating);
+        setEditComment(review.comment);
+        editForm.setData({ rating: review.rating, comment: review.comment });
+    };
+
+    const submitEditReview = (e: FormEvent) => {
+        e.preventDefault();
+        if (editingReviewId === null) return;
+        editForm.put(`/reviews/${editingReviewId}`, {
+            preserveScroll: true,
+            onSuccess: () => setEditingReviewId(null),
+        });
     };
 
     const openLightbox = useCallback((images: string[], index: number) => {
@@ -226,6 +256,11 @@ export default function CulinarySpotDetail() {
                                 <div>
                                     <div className="flex items-center gap-3">
                                         <h1 className="text-4xl font-bold tracking-tight">{spot.name}</h1>
+                                        {spot.status === 'closed' && (
+                                            <span className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">
+                                                🚫 Tutup Permanen
+                                            </span>
+                                        )}
                                         <button
                                             onClick={toggleFavorite}
                                             className="bg-white border text-[24px] border-slate-200 w-12 h-12 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm"
@@ -235,10 +270,18 @@ export default function CulinarySpotDetail() {
                                             </span>
                                         </button>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-2">
+                                    {spot.status === 'closed' && spot.closed_reason && (
+                                        <p className="text-sm text-red-500 mt-1">Alasan: {spot.closed_reason}</p>
+                                    )}
+                                    <div className="flex flex-wrap items-center gap-2 mt-2">
                                         <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">
                                             {spot.category?.name || 'Kuliner'}
                                         </span>
+                                        {spot.tags && spot.tags.map(tag => (
+                                            <span key={tag.id} className="bg-amber-50 text-amber-600 text-xs font-medium px-2.5 py-1 rounded-full border border-amber-200">
+                                                {tag.name}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -405,6 +448,45 @@ export default function CulinarySpotDetail() {
                                                     </div>
                                                 </div>
                                                 <p className="text-slate-600 text-sm leading-relaxed mb-4">{review.comment}</p>
+
+                                                {/* Edit Review Button & Form */}
+                                                {auth.user && auth.user.id === review.user.id && review.is_editable && (
+                                                    editingReviewId === review.id ? (
+                                                        <form onSubmit={submitEditReview} className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+                                                            <div className="flex items-center gap-1 mb-3">
+                                                                {[1, 2, 3, 4, 5].map(star => (
+                                                                    <button
+                                                                        key={star}
+                                                                        type="button"
+                                                                        onClick={() => editForm.setData('rating', star)}
+                                                                        className={`text-lg ${star <= editForm.data.rating ? 'text-yellow-400' : 'text-slate-200'}`}
+                                                                    >★</button>
+                                                                ))}
+                                                            </div>
+                                                            <textarea
+                                                                value={editForm.data.comment}
+                                                                onChange={e => editForm.setData('comment', e.target.value)}
+                                                                className="w-full p-3 text-sm border border-slate-200 rounded-lg resize-none"
+                                                                rows={3}
+                                                            />
+                                                            <div className="flex gap-2 mt-2">
+                                                                <button type="submit" disabled={editForm.processing} className="px-4 py-2 text-xs font-bold bg-primary text-white rounded-lg">
+                                                                    {editForm.processing ? '⏳...' : '💾 Simpan'}
+                                                                </button>
+                                                                <button type="button" onClick={() => setEditingReviewId(null)} className="px-4 py-2 text-xs font-bold bg-slate-200 text-slate-600 rounded-lg">
+                                                                    Batal
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => startEditReview(review)}
+                                                            className="text-xs text-blue-500 font-medium hover:underline mb-4"
+                                                        >
+                                                            ✏️ Edit Review (tersedia 24 jam)
+                                                        </button>
+                                                    )
+                                                )}
                                                 
                                                 {/* Review Photos */}
                                                 {review.media && review.media.length > 0 && (

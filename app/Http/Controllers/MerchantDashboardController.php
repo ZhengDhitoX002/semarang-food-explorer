@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Analytic;
 use App\Models\Category;
 use App\Models\CulinarySpot;
+use App\Models\Tag;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,6 +71,7 @@ class MerchantDashboardController extends Controller
     {
         return Inertia::render('Merchant/RegisterShop', [
             'categories' => Category::all(['id', 'name']),
+            'tags' => Tag::all(['id', 'name', 'slug']),
         ]);
     }
 
@@ -89,6 +91,8 @@ class MerchantDashboardController extends Controller
             'operating_hours' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
             'photo' => 'nullable|image|max:5120',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
         ]);
 
         $spot = CulinarySpot::create([
@@ -102,10 +106,14 @@ class MerchantDashboardController extends Controller
             'is_promoted' => false,
         ]);
 
-        // Upload photo if provided
         if ($request->hasFile('photo')) {
             $spot->addMediaFromRequest('photo')
                 ->toMediaCollection('photos');
+        }
+
+        // Sync tags
+        if ($request->has('tags')) {
+            $spot->tags()->sync($request->tags);
         }
 
         return redirect()->route('merchant.shops')->with('success', 'Toko berhasil didaftarkan!');
@@ -122,7 +130,8 @@ class MerchantDashboardController extends Controller
 
         return Inertia::render('Merchant/RegisterShop', [
             'categories' => Category::all(['id', 'name']),
-            'shop' => $spot,
+            'tags' => Tag::all(['id', 'name', 'slug']),
+            'shop' => $spot->load('tags'),
         ]);
     }
 
@@ -146,6 +155,8 @@ class MerchantDashboardController extends Controller
             'operating_hours' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
             'photo' => 'nullable|image|max:5120',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
         ]);
 
         $spot->update([
@@ -161,6 +172,11 @@ class MerchantDashboardController extends Controller
             $spot->clearMediaCollection('photos');
             $spot->addMediaFromRequest('photo')
                 ->toMediaCollection('photos');
+        }
+
+        // Sync tags
+        if ($request->has('tags')) {
+            $spot->tags()->sync($request->tags);
         }
 
         return redirect()->route('merchant.shops')->with('success', 'Toko berhasil diperbarui!');

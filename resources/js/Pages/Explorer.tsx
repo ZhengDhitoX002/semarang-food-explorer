@@ -20,6 +20,12 @@ interface Category {
     name: string;
 }
 
+interface TagData {
+    id: number;
+    name: string;
+    slug: string;
+}
+
 interface CulinarySpotDB {
     id: number;
     name: string;
@@ -31,6 +37,16 @@ interface CulinarySpotDB {
     average_rating: number;
     review_count: number;
     category?: Category;
+    tags?: TagData[];
+}
+
+interface PaginatedData {
+    data: CulinarySpotDB[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: { url: string | null; label: string; active: boolean }[];
 }
 
 const nearbyResults = [
@@ -51,8 +67,9 @@ const nearbyResults = [
 ];
 
 export default function Explorer() {
-    const { spots, filters, auth } = usePage<{ spots: CulinarySpotDB[], filters: { search?: string }, auth: { user?: { id: number; name: string; role: string }, favorite_spots?: number[] } }>().props;
-    const filterTabs = ['Semua Kategori', ...Array.from(new Set(spots.map(s => s.category?.name).filter(Boolean))) as string[]];
+    const { spots, filters, auth, categories: serverCategories, availableTags } = usePage<{ spots: PaginatedData, filters: { search?: string; category?: string; tags?: string; min_rating?: string }, auth: { user?: { id: number; name: string; role: string }, favorite_spots?: number[] }, categories: Category[], availableTags: TagData[] }>().props;
+    const spotsData = spots.data || [];
+    const filterTabs = ['Semua Kategori', ...serverCategories.map(c => c.name)];
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [activeFilter, setActiveFilter] = useState('Semua Kategori');
 
@@ -100,14 +117,12 @@ export default function Explorer() {
         }
     };
 
-    const filteredSpotsDB = spots.filter(spot => {
+    const filteredSpotsDB = spotsData.filter(spot => {
         if (activeFilter !== 'Semua Kategori' && spot.category?.name !== activeFilter) return false;
         if (Number(spot.price) > maxPrice) return false;
         if ((spot.average_rating || 0) < minRating) return false;
         return true;
     });
-
-    const categories = ['All', ...Array.from(new Set(spots.map(s => s.category?.name).filter(Boolean))) as string[]];
 
     const mappedSpots: CulinarySpot[] = filteredSpotsDB.map(spot => {
         const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
@@ -118,14 +133,14 @@ export default function Explorer() {
             imageUrl: isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
             imageAlt: spot.name,
             rating: spot.average_rating || 0,
-            location: spot.description.substring(0, 30) + '...',
-            tags: [spot.category?.name || 'Local'],
+            location: spot.description?.substring(0, 30) + '...',
+            tags: [spot.category?.name || 'Local', ...(spot.tags?.map(t => t.name) || [])],
             priceLevel: Number(spot.price) > 50000 ? '$$$' : '$$',
             isVerified: spot.is_promoted,
         };
     });
 
-    const promoSpots: PromoSpot[] = spots.filter(s => s.is_promoted).map(spot => {
+    const promoSpots: PromoSpot[] = spotsData.filter(s => s.is_promoted).map(spot => {
         const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
         const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
         return {
@@ -252,6 +267,24 @@ export default function Explorer() {
                             </div>
                         </div>
 
+                        {/* Submit Spot Button */}
+                        {auth.user && (
+                            <div className="px-6 pt-3">
+                                <a
+                                    href="/spot/submit"
+                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold transition-all"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                        color: '#fff',
+                                        textDecoration: 'none',
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add_location</span>
+                                    Submit Tempat Kuliner
+                                </a>
+                            </div>
+                        )}
+
                         {/* Feed Content — scrolls naturally with the page */}
                         <div className="p-6 space-y-6">
                             {mappedSpots.length > 0 ? (
@@ -270,6 +303,30 @@ export default function Explorer() {
                                     <p className="text-slate-400 text-sm mt-1">Coba kata kunci lain</p>
                                 </div>
                             )}
+
+                            {/* Pagination */}
+                            {spots.last_page > 1 && (
+                                <div className="flex items-center justify-center gap-2 pt-4 pb-2">
+                                    {spots.links.map((link, idx) => (
+                                        <button
+                                            key={idx}
+                                            disabled={!link.url}
+                                            onClick={() => link.url && router.get(link.url, {}, { preserveState: true, preserveScroll: true })}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                link.active
+                                                    ? 'bg-primary text-white shadow-md'
+                                                    : link.url
+                                                        ? 'bg-slate-100 text-slate-600 hover:bg-primary/10'
+                                                        : 'text-slate-300 cursor-not-allowed'
+                                            }`}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            <p className="text-center text-xs text-slate-400">
+                                Menampilkan {spotsData.length} dari {spots.total} tempat kuliner
+                            </p>
                         </div>
                     </aside>
 
@@ -328,7 +385,13 @@ export default function Explorer() {
                     </div>
 
                     <aside className="w-full border-l border-primary/10 bg-white md:w-80 lg:w-96 flex flex-col overflow-hidden hidden md:flex">
-                        <FilterSidebar categories={categories} />
+                        <FilterSidebar
+                            categories={serverCategories}
+                            tags={availableTags || []}
+                            activeCategory={filters?.category || ''}
+                            activeRating={filters?.min_rating ? filters.min_rating + '+' : ''}
+                            activeTags={filters?.tags ? filters.tags.split(',') : []}
+                        />
                         <div className="px-6 pb-6 space-y-4">
                             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
                                 Nearby Results

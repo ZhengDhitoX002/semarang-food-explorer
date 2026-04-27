@@ -152,7 +152,15 @@ export default function Header({ showSearch = true, activeTab = 'explore' }: Hea
                                             <Link href="/merchant/dashboard" className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg transition-colors">
                                                 <span className="inline-flex items-center gap-2">
                                                     <span className="material-symbols-outlined text-base">dashboard</span>
-                                                    Dashboard
+                                                    Merchant Dashboard
+                                                </span>
+                                            </Link>
+                                        )}
+                                        {auth.user.role === 'admin' && (
+                                            <Link href="/admin/dashboard" className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg transition-colors">
+                                                <span className="inline-flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-base">shield</span>
+                                                    Admin Panel
                                                 </span>
                                             </Link>
                                         )}

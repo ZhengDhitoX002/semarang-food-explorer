@@ -2,31 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\CulinarySpot;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CulinarySpotController extends Controller
 {
     /**
-     * Homepage: List all spots with search.
+     * Homepage: List all approved spots with search, filters, and pagination.
      */
     public function index(Request $request)
     {
-        $query = CulinarySpot::with('category');
+        $query = CulinarySpot::with(['category', 'tags', 'media'])->approved()->active();
 
+        // Search by name or description
         if ($request->has('search') && $request->search != '') {
             $search = strtolower($request->search);
             $query->where(function($q) use ($search) {
-                // Pencarian aman untuk SQLite/PostgreSQL/MySQL tanpa case-sensitive constraints
                 $q->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
                   ->orWhereRaw('LOWER(description) LIKE ?', ["%{$search}%"]);
             });
         }
 
+        // Filter by category
+        if ($request->has('category') && $request->category != '') {
+            $query->whereHas('category', function($q) use ($request) {
+                $q->where('name', $request->category);
+            });
+        }
+
+        // Filter by tags
+        if ($request->has('tags') && !empty($request->tags)) {
+            $tagSlugs = is_array($request->tags) ? $request->tags : explode(',', $request->tags);
+            $query->whereHas('tags', function($q) use ($tagSlugs) {
+                $q->whereIn('slug', $tagSlugs);
+            });
+        }
+
+        // Filter by minimum rating
+        if ($request->has('min_rating') && $request->min_rating != '') {
+            $minRating = (float) $request->min_rating;
+            $query->withAvg('reviews', 'rating')
+                ->having('reviews_avg_rating', '>=', $minRating);
+        }
+
         return Inertia::render('Explorer', [
-            'spots' => $query->get(),
-            'filters' => $request->only('search'),
+            'spots' => $query->paginate(12)->withQueryString(),
+            'filters' => $request->only('search', 'category', 'tags', 'min_rating'),
+            'categories' => Category::all(['id', 'name']),
+            'availableTags' => Tag::all(['id', 'name', 'slug']),
         ]);
     }
 
@@ -35,11 +61,65 @@ class CulinarySpotController extends Controller
      */
     public function show(string $id)
     {
-        $spot = CulinarySpot::with(['category', 'reviews.user', 'reviews.media', 'media'])->findOrFail($id);
+        $spot = CulinarySpot::with(['category', 'tags', 'reviews.user', 'reviews.media', 'media'])->findOrFail($id);
 
         return Inertia::render('CulinarySpotDetail', [
             'spot' => $spot,
         ]);
+    }
+
+    /**
+     * Show spot submission form for users.
+     */
+    public function createSubmission()
+    {
+        return Inertia::render('SubmitSpot', [
+            'categories' => Category::all(['id', 'name']),
+            'tags' => Tag::all(['id', 'name', 'slug']),
+        ]);
+    }
+
+    /**
+     * Store a user-submitted spot (pending approval).
+     */
+    public function submit(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['exists:tags,id'],
+            'photos.*' => ['nullable', 'image', 'max:5120'],
+        ]);
+
+        $spot = CulinarySpot::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'category_id' => $validated['category_id'],
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'price' => $validated['price'],
+            'status' => 'pending',
+            'submitted_by' => $request->user()->id,
+        ]);
+
+        // Sync tags
+        if (!empty($validated['tags'])) {
+            $spot->tags()->sync($validated['tags']);
+        }
+
+        // Upload photos
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                $spot->addMedia($photo)->toMediaCollection('photos');
+            }
+        }
+
+        return redirect('/')->with('success', 'Tempat berhasil disubmit! Menunggu persetujuan admin.');
     }
 
     /**
@@ -54,10 +134,20 @@ class CulinarySpotController extends Controller
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'price' => ['required', 'numeric', 'min:0'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['exists:tags,id'],
             'photos.*' => ['nullable', 'image', 'max:5120'], // 5MB max per photo
         ]);
 
-        $spot = CulinarySpot::create($validated);
+        $spot = CulinarySpot::create([
+            ...$validated,
+            'status' => 'approved',
+        ]);
+
+        // Sync tags
+        if (!empty($validated['tags'])) {
+            $spot->tags()->sync($validated['tags']);
+        }
 
         // Spatie Media: upload photos if provided
         if ($request->hasFile('photos')) {
@@ -83,9 +173,16 @@ class CulinarySpotController extends Controller
             'latitude' => ['sometimes', 'numeric', 'between:-90,90'],
             'longitude' => ['sometimes', 'numeric', 'between:-180,180'],
             'price' => ['sometimes', 'numeric', 'min:0'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['exists:tags,id'],
         ]);
 
         $spot->update($validated);
+
+        // Sync tags
+        if (isset($validated['tags'])) {
+            $spot->tags()->sync($validated['tags']);
+        }
 
         return redirect()->back()->with('success', 'Spot kuliner berhasil diperbarui!');
     }

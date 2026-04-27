@@ -37,4 +37,25 @@ class ReviewController extends Controller
 
         return redirect()->back()->with('success', 'Ulasan berhasil ditambahkan!');
     }
+
+    /**
+     * Update a review (only within 24 hours of creation).
+     */
+    public function update(Request $request, int $id)
+    {
+        $review = Review::where('user_id', $request->user()->id)->findOrFail($id);
+
+        if (!$review->isEditable()) {
+            return redirect()->back()->with('error', 'Review hanya bisa diedit dalam 24 jam pertama.');
+        }
+
+        $validated = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $review->update($validated);
+
+        return redirect()->back()->with('success', 'Ulasan berhasil diperbarui!');
+    }
 }

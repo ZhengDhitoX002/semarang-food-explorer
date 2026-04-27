@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CulinarySpotController;
 use App\Http\Controllers\MerchantDashboardController;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [CulinarySpotController::class, 'index']);
+Route::get('/spot/submit', [CulinarySpotController::class, 'createSubmission'])->middleware('auth')->name('spot.submit');
 Route::get('/spot/{id}', [CulinarySpotController::class, 'show']);
 
 // Navigation pages (Favorites, Orders, Profile)
@@ -48,6 +50,10 @@ Route::middleware('auth')->group(function () {
 
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::put('/reviews/{id}', [ReviewController::class, 'update'])->name('reviews.update');
+
+    // Submit Spot (User Contribution)
+    Route::post('/spot/submit', [CulinarySpotController::class, 'submit'])->name('spot.submit.store');
 
     // Transactions (Promoted Culinary)
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
@@ -97,6 +103,14 @@ Route::middleware(['auth', 'role:merchant,admin'])->prefix('merchant')->group(fu
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    // Admin Dashboard & Moderation
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::post('/spots/{id}/approve', [AdminController::class, 'approveSpot'])->name('admin.spots.approve');
+    Route::post('/spots/{id}/reject', [AdminController::class, 'rejectSpot'])->name('admin.spots.reject');
+    Route::post('/spots/{id}/close', [AdminController::class, 'markClosed'])->name('admin.spots.close');
+    Route::delete('/reviews/{id}', [AdminController::class, 'deleteReview'])->name('admin.reviews.delete');
+
+    // Legacy admin CRUD
     Route::post('/spots', [CulinarySpotController::class, 'store'])->name('admin.spots.store');
     Route::put('/spots/{id}', [CulinarySpotController::class, 'update'])->name('admin.spots.update');
 });

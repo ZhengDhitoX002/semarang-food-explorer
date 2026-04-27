@@ -31,6 +31,11 @@ class CulinarySpot extends Model implements HasMedia
         return $this->belongsTo(Category::class);
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
     public function reviews()
     {
         return $this->hasMany(Review::class, 'spot_id');
@@ -54,6 +59,27 @@ class CulinarySpot extends Model implements HasMedia
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function submittedBy()
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
+    }
+
+    /**
+     * Scope: only approved spots.
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
+
+    /**
+     * Scope: exclude closed spots.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', '!=', 'closed');
     }
 
     /**
