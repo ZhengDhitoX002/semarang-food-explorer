@@ -42,7 +42,7 @@ export default function Register() {
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="Nama Anda"
                                     required
                                 />
@@ -56,7 +56,7 @@ export default function Register() {
                                     type="email"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="contoh@email.com"
                                     required
                                 />
@@ -70,7 +70,7 @@ export default function Register() {
                                     type="password"
                                     value={data.password}
                                     onChange={(e) => setData('password', e.target.value)}
-                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="Minimal 8 karakter"
                                     required
                                 />
@@ -84,7 +84,7 @@ export default function Register() {
                                     type="password"
                                     value={data.password_confirmation}
                                     onChange={(e) => setData('password_confirmation', e.target.value)}
-                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="Ulangi password"
                                     required
                                 />
@@ -94,7 +94,7 @@ export default function Register() {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="w-full py-3.5 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                                className="w-full py-3.5 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/90 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:transform-none"
                             >
                                 {processing ? 'Memproses...' : 'Daftar'}
                             </button>

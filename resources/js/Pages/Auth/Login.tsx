@@ -41,7 +41,7 @@ export default function Login() {
                                     type="email"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="contoh@email.com"
                                     required
                                 />
@@ -55,7 +55,7 @@ export default function Login() {
                                     type="password"
                                     value={data.password}
                                     onChange={(e) => setData('password', e.target.value)}
-                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -79,7 +79,7 @@ export default function Login() {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="w-full py-3.5 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                                className="w-full py-3.5 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/90 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:transform-none"
                             >
                                 {processing ? 'Memproses...' : 'Masuk'}
                             </button>
