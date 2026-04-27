@@ -42,7 +42,7 @@ export default function Register() {
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary focus:ring-offset-0 appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="Nama Anda"
                                     required
                                 />
@@ -56,7 +56,7 @@ export default function Register() {
                                     type="email"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary focus:ring-offset-0 appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="contoh@email.com"
                                     required
                                 />
@@ -70,7 +70,7 @@ export default function Register() {
                                     type="password"
                                     value={data.password}
                                     onChange={(e) => setData('password', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary focus:ring-offset-0 appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="Minimal 8 karakter"
                                     required
                                 />
@@ -84,7 +84,7 @@ export default function Register() {
                                     type="password"
                                     value={data.password_confirmation}
                                     onChange={(e) => setData('password_confirmation', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary focus:ring-offset-0 appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="Ulangi password"
                                     required
                                 />

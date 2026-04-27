@@ -41,7 +41,7 @@ export default function Login() {
                                     type="email"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary focus:ring-offset-0 appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="contoh@email.com"
                                     required
                                 />
@@ -55,7 +55,7 @@ export default function Login() {
                                     type="password"
                                     value={data.password}
                                     onChange={(e) => setData('password', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/15 focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary focus:ring-offset-0 appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
                                     placeholder="••••••••"
                                     required
                                 />
