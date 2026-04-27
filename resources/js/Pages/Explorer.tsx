@@ -212,42 +212,43 @@ export default function Explorer() {
                                         </button>
                                     </div>
                                 )}
-                                <div className="mt-2">
+                                <div className="mt-4 flex items-center justify-between">
+                                    <span className="text-sm font-bold text-slate-700">Kategori</span>
                                     <button 
                                         onClick={() => setShowFilters(!showFilters)}
-                                        className="flex items-center gap-1 text-sm text-slate-500 font-bold hover:text-primary transition-colors"
+                                        className="flex items-center gap-1 text-xs text-primary font-bold hover:text-primary/80 transition-colors bg-primary/10 px-2 py-1 rounded-md"
                                     >
-                                        <span className="material-symbols-outlined text-[16px]">tune</span>
-                                        {showFilters ? 'Sembunyikan Filter Harga & Rating' : 'Filter Harga & Rating'}
+                                        <span className="material-symbols-outlined text-[14px]">tune</span>
+                                        {showFilters ? 'Tutup Filter' : 'Filter Harga'}
                                     </button>
-                                    
-                                    {showFilters && (
-                                        <div className="mt-3 p-4 bg-slate-50 border border-slate-100 rounded-xl flex flex-col gap-4">
-                                            <div className="flex flex-col gap-2">
-                                                <label className="text-xs font-bold text-slate-700 flex justify-between">
-                                                    <span>Harga Maks:</span>
-                                                    <span className="text-primary">Rp {maxPrice.toLocaleString('id-ID')}</span>
-                                                </label>
-                                                <input 
-                                                    type="range" min="0" max="300000" step="5000" 
-                                                    value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))}
-                                                    className="w-full accent-primary cursor-pointer border hover:shadow-sm"
-                                                />
-                                            </div>
-                                            <div className="flex flex-col gap-2">
-                                                <label className="text-xs font-bold text-slate-700 flex justify-between">
-                                                    <span>Min Rating:</span>
-                                                    <span className="text-primary flex items-center"><span className="material-symbols-outlined text-[14px]">star</span> {minRating.toFixed(1)}</span>
-                                                </label>
-                                                <input 
-                                                    type="range" min="0" max="5" step="0.5" 
-                                                    value={minRating} onChange={e => setMinRating(Number(e.target.value))}
-                                                    className="w-full accent-primary cursor-pointer"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
+                                    
+                                {showFilters && (
+                                    <div className="mt-3 p-4 bg-slate-50 border border-slate-100 rounded-xl flex flex-col gap-4">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-xs font-bold text-slate-700 flex justify-between">
+                                                <span>Harga Maks:</span>
+                                                <span className="text-primary">Rp {maxPrice.toLocaleString('id-ID')}</span>
+                                            </label>
+                                            <input 
+                                                type="range" min="0" max="300000" step="5000" 
+                                                value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))}
+                                                className="w-full accent-primary cursor-pointer border hover:shadow-sm"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-xs font-bold text-slate-700 flex justify-between">
+                                                <span>Min Rating:</span>
+                                                <span className="text-primary flex items-center"><span className="material-symbols-outlined text-[14px]">star</span> {minRating.toFixed(1)}</span>
+                                            </label>
+                                            <input 
+                                                type="range" min="0" max="5" step="0.5" 
+                                                value={minRating} onChange={e => setMinRating(Number(e.target.value))}
+                                                className="w-full accent-primary cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             {/* Filter Tabs */}
                             <div className="px-6 py-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-slate-100">

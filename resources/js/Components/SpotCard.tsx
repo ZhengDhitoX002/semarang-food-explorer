@@ -37,7 +37,7 @@ export default function SpotCard({ spot, isFavorite = false, onToggleFavorite }:
                 <div className="absolute top-3 right-3 flex items-center justify-center gap-2">
                     <div className="bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
                         <span className="material-symbols-outlined text-yellow-500 text-sm fill-icon">star</span>
-                        <span className="text-xs font-bold">{spot.rating.toFixed(1)}</span>
+                        <span className="text-xs font-bold">{spot.rating > 0 ? spot.rating.toFixed(1) : 'Baru'}</span>
                     </div>
                     {onToggleFavorite && (
                         <button

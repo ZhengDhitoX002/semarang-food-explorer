@@ -17,16 +17,7 @@ Route::get('/', [CulinarySpotController::class, 'index']);
 Route::get('/spot/submit', [CulinarySpotController::class, 'createSubmission'])->middleware('auth')->name('spot.submit');
 Route::get('/spot/{id}', [CulinarySpotController::class, 'show']);
 
-// Navigation pages (Favorites, Orders, Profile)
-Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites');
-
-Route::get('/orders', function () {
-    return \Inertia\Inertia::render('Orders');
-})->name('orders');
-
-Route::get('/profile', function () {
-    return \Inertia\Inertia::render('Profile');
-})->name('profile');
+// Navigation pages moved to auth group
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +38,17 @@ Route::middleware('guest')->group(function () {
 */
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Navigation pages (Favorites, Orders, Profile)
+    Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites');
+
+    Route::get('/orders', function () {
+        return \Inertia\Inertia::render('Orders');
+    })->name('orders');
+
+    Route::get('/profile', function () {
+        return \Inertia\Inertia::render('Profile');
+    })->name('profile');
 
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
