@@ -263,20 +263,42 @@ export default function SubmitSpot() {
                     {/* Photos */}
                     <div style={{ marginBottom: 28 }}>
                         <label style={labelStyle}>Foto (max 3)</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleFileChange}
-                            style={{ fontSize: 13, color: '#94a3b8' }}
-                        />
+                        
                         {previewImages.length > 0 && (
-                            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                                {previewImages.map((src, i) => (
-                                    <img key={i} src={src} alt={`preview-${i}`} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                                {previewImages.map((src, idx) => (
+                                    <div key={idx} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid #334155' }}>
+                                        <img src={src} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
                                 ))}
                             </div>
                         )}
+
+                        <label style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 8,
+                            padding: '16px',
+                            border: '2px dashed rgba(231, 126, 35, 0.5)',
+                            borderRadius: 12,
+                            color: '#e77e23',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            background: 'rgba(231, 126, 35, 0.05)'
+                        }}>
+                            <span className="material-symbols-outlined">add_photo_alternate</span>
+                            <span style={{ fontSize: 14, fontWeight: 700 }}>
+                                {previewImages.length > 0 ? 'Ganti Foto' : 'Pilih Foto dari Galeri'}
+                            </span>
+                            <input 
+                                type="file" 
+                                multiple 
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={handleFileChange}
+                            />
+                        </label>
                     </div>
 
                     {/* Submit */}
