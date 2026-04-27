@@ -440,7 +440,7 @@ export default function CulinarySpotDetail() {
                                                     </div>
                                                     <div className="flex items-center gap-1">
                                                         {[...Array(5)].map((_, i) => (
-                                                            <span key={i} className={`text-sm ${i < review.rating ? 'text-yellow-400' : 'text-slate-200'}`}>★</span>
+                                                            <span key={i} className={`text-lg md:text-xl leading-none ${i < review.rating ? 'text-yellow-400' : 'text-slate-200'}`}>★</span>
                                                         ))}
                                                         {review.is_verified && (
                                                             <span className="ml-2 text-[10px] bg-green-50 text-green-600 border border-green-200/50 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Terverifikasi</span>
