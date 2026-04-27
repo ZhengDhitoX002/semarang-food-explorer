@@ -33,7 +33,7 @@ export default function Register() {
                     </div>
 
                     {/* Form Card */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/50 p-8">
+                    <div className="bg-white rounded-[24px] border border-slate-100 shadow-xl shadow-slate-200/50 p-8">
                         <form onSubmit={submit} className="space-y-5">
                             {/* Name */}
                             <div>
@@ -42,7 +42,7 @@ export default function Register() {
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
                                     placeholder="Nama Anda"
                                     required
                                 />
@@ -56,7 +56,7 @@ export default function Register() {
                                     type="email"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
                                     placeholder="contoh@email.com"
                                     required
                                 />
@@ -70,7 +70,7 @@ export default function Register() {
                                     type="password"
                                     value={data.password}
                                     onChange={(e) => setData('password', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
                                     placeholder="Minimal 8 karakter"
                                     required
                                 />
@@ -84,7 +84,7 @@ export default function Register() {
                                     type="password"
                                     value={data.password_confirmation}
                                     onChange={(e) => setData('password_confirmation', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                    className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
                                     placeholder="Ulangi password"
                                     required
                                 />
@@ -94,7 +94,7 @@ export default function Register() {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                                className="w-full py-3.5 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                             >
                                 {processing ? 'Memproses...' : 'Daftar'}
                             </button>
