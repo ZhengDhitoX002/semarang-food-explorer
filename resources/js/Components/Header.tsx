@@ -119,9 +119,15 @@ export default function Header({ showSearch = true, activeTab = 'explore' }: Hea
                         <div className="relative group cursor-pointer">
                             <Link
                                 href="/profile"
-                                className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold hover:bg-primary/20 transition-colors"
+                                className="h-10 w-10 rounded-full flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-primary/30 transition-all"
                             >
-                                {auth.user.name.charAt(0).toUpperCase()}
+                                {auth.user.avatar_url ? (
+                                    <img src={auth.user.avatar_url} alt={auth.user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                        {auth.user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
                             </Link>
                             <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                                 <div className="bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden">
