@@ -47,113 +47,151 @@ export default function Profile() {
 
     const user = auth.user;
 
+    const menuItems = [
+        { icon: 'edit', label: 'Edit Profil', desc: 'Ubah nama, email, dan foto profil', href: '/profile/edit' },
+        { icon: 'lock', label: 'Keamanan', desc: 'Ubah password dan pengaturan keamanan', href: '/profile/security' },
+        { icon: 'notifications', label: 'Notifikasi', desc: 'Atur preferensi notifikasi', href: '/profile/notifications' },
+        { icon: 'help', label: 'Bantuan', desc: 'FAQ dan pusat bantuan', href: '/profile/help' },
+    ];
+
+    const stats = [
+        { icon: 'favorite', label: 'Favorit', value: '0' },
+        { icon: 'receipt_long', label: 'Pesanan', value: '0' },
+        { icon: 'rate_review', label: 'Ulasan', value: '0' },
+    ];
+
     return (
         <>
             <Head title="Profile" />
 
             <div className="flex-1 flex flex-col">
-                {/* Profile Header */}
-                <div
-                    className="relative px-6 pt-10 pb-8"
-                    style={{
-                        background: 'linear-gradient(135deg, #e77e23 0%, #f4a261 60%, #fcd9b6 100%)',
-                    }}
-                >
-                    <div className="max-w-2xl mx-auto flex flex-col items-center text-center">
-                        {/* Avatar */}
-                        <div
-                            className="w-24 h-24 rounded-3xl flex items-center justify-center text-white font-bold text-3xl mb-4 shadow-lg"
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.25)',
-                                backdropFilter: 'blur(10px)',
-                                border: '2px solid rgba(255, 255, 255, 0.3)',
-                            }}
-                        >
-                            {user.name.charAt(0).toUpperCase()}
-                        </div>
-                        <h2 className="text-2xl font-bold text-white mb-1" style={{ letterSpacing: '-0.02em' }}>
-                            {user.name}
-                        </h2>
-                        <p className="text-white/80 text-sm">{user.email}</p>
-                        <span
-                            className="mt-3 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold"
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.25)',
-                                color: '#fff',
-                                backdropFilter: 'blur(4px)',
-                            }}
-                        >
-                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
-                                {user.role === 'admin' ? 'admin_panel_settings' : user.role === 'merchant' ? 'storefront' : 'person'}
+                {/* Profile Header — refined gradient */}
+                <div className="relative overflow-hidden">
+                    {/* Background with subtle pattern */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: 'linear-gradient(160deg, #d4710e 0%, #e77e23 40%, #f0a050 100%)',
+                        }}
+                    />
+                    {/* Soft decorative shapes */}
+                    <div
+                        className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-10"
+                        style={{ background: 'radial-gradient(circle, #fff 0%, transparent 70%)' }}
+                    />
+                    <div
+                        className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full opacity-8"
+                        style={{ background: 'radial-gradient(circle, #fff 0%, transparent 70%)' }}
+                    />
+
+                    <div className="relative px-6 pt-12 pb-10">
+                        <div className="max-w-2xl mx-auto flex flex-col items-center text-center">
+                            {/* Avatar — circle with white border */}
+                            <div className="relative mb-5">
+                                {user.avatar_url ? (
+                                    <img
+                                        src={user.avatar_url}
+                                        alt={user.name}
+                                        className="w-24 h-24 rounded-full object-cover"
+                                        style={{
+                                            border: '3px solid rgba(255,255,255,0.9)',
+                                            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                                        }}
+                                    />
+                                ) : (
+                                    <div
+                                        className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-3xl"
+                                        style={{
+                                            background: 'rgba(255,255,255,0.2)',
+                                            border: '3px solid rgba(255,255,255,0.9)',
+                                            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                                            backdropFilter: 'blur(8px)',
+                                        }}
+                                    >
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+
+                            <h2
+                                className="text-xl font-bold text-white mb-1"
+                                style={{ letterSpacing: '-0.01em' }}
+                            >
+                                {user.name}
+                            </h2>
+                            <p className="text-white/75 text-sm mb-3">{user.email}</p>
+                            <span
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    color: '#fff',
+                                    backdropFilter: 'blur(4px)',
+                                }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>
+                                    {user.role === 'admin' ? 'admin_panel_settings' : user.role === 'merchant' ? 'storefront' : 'person'}
+                                </span>
+                                {user.role === 'admin' ? 'Administrator' : user.role === 'merchant' ? 'Merchant' : 'Food Explorer'}
                             </span>
-                            {user.role === 'admin' ? 'Administrator' : user.role === 'merchant' ? 'Merchant' : 'Food Explorer'}
-                        </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Profile Menu */}
-                <div className="max-w-2xl w-full mx-auto px-6 py-6 space-y-3">
+                {/* Content */}
+                <div className="max-w-2xl w-full mx-auto px-6 py-6 space-y-4">
                     {/* Quick Stats */}
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                        {[
-                            { icon: 'favorite', label: 'Favorit', value: '0' },
-                            { icon: 'receipt_long', label: 'Pesanan', value: '0' },
-                            { icon: 'rate_review', label: 'Ulasan', value: '0' },
-                        ].map((stat) => (
+                    <div className="grid grid-cols-3 gap-3 mb-2">
+                        {stats.map((stat) => (
                             <div
                                 key={stat.label}
-                                className="flex flex-col items-center p-4 rounded-2xl border border-slate-100"
-                                style={{ background: 'rgba(248, 247, 246, 0.8)' }}
+                                className="flex flex-col items-center py-4 px-2 rounded-2xl bg-white border border-slate-100 shadow-sm"
                             >
-                                <span className="material-symbols-outlined text-primary mb-1" style={{ fontSize: '24px' }}>{stat.icon}</span>
-                                <span className="text-xl font-bold text-slate-900">{stat.value}</span>
-                                <span className="text-xs text-slate-500 font-medium">{stat.label}</span>
+                                <span className="material-symbols-outlined text-primary mb-1.5" style={{ fontSize: '22px' }}>{stat.icon}</span>
+                                <span className="text-lg font-bold text-slate-900">{stat.value}</span>
+                                <span className="text-[11px] text-slate-400 font-medium tracking-wide uppercase">{stat.label}</span>
                             </div>
                         ))}
                     </div>
 
                     {/* Menu Items */}
-                    {[
-                        { icon: 'edit', label: 'Edit Profil', desc: 'Ubah nama, email, dan foto profil', href: '/profile/edit' },
-                        { icon: 'lock', label: 'Keamanan', desc: 'Ubah password dan pengaturan keamanan', href: '/profile/security' },
-                        { icon: 'notifications', label: 'Notifikasi', desc: 'Atur preferensi notifikasi', href: '/profile/notifications' },
-                        { icon: 'help', label: 'Bantuan', desc: 'FAQ dan pusat bantuan', href: '/profile/help' },
-                    ].map((item) => (
-                        <Link
-                            key={item.label}
-                            href={item.href}
-                            className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-primary/20 hover:bg-primary/5 transition-all duration-300 group"
-                        >
-                            <div
-                                className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-primary/15 transition-colors"
-                                style={{ background: 'rgba(231, 126, 35, 0.08)' }}
+                    <div className="space-y-2">
+                        {menuItems.map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 hover:shadow-sm transition-all duration-200 group"
                             >
-                                <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>{item.icon}</span>
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm font-bold text-slate-900">{item.label}</p>
-                                <p className="text-xs text-slate-500">{item.desc}</p>
-                            </div>
-                            <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" style={{ fontSize: '20px' }}>
-                                chevron_right
-                            </span>
-                        </Link>
-                    ))}
+                                <div
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors group-hover:bg-primary/10"
+                                    style={{ background: 'rgba(231, 126, 35, 0.07)' }}
+                                >
+                                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>{item.icon}</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-slate-800">{item.label}</p>
+                                    <p className="text-xs text-slate-400 truncate">{item.desc}</p>
+                                </div>
+                                <span className="material-symbols-outlined text-slate-300 group-hover:text-primary/60 transition-colors shrink-0" style={{ fontSize: '18px' }}>
+                                    chevron_right
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
 
                     {/* Merchant Dashboard Link */}
                     {(user.role === 'admin' || user.role === 'merchant') && (
                         <Link
                             href="/merchant/dashboard"
-                            className="flex items-center gap-4 p-4 rounded-2xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all duration-300 group"
+                            className="flex items-center gap-4 px-4 py-3.5 rounded-2xl border border-primary/15 bg-primary/[0.03] hover:bg-primary/[0.06] transition-all duration-200 group"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>dashboard</span>
                             </div>
-                            <div className="flex-1">
-                                <p className="text-sm font-bold text-primary">Dashboard Merchant</p>
-                                <p className="text-xs text-slate-500">Kelola tempat kuliner kamu</p>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-primary">Dashboard Merchant</p>
+                                <p className="text-xs text-slate-400">Kelola tempat kuliner kamu</p>
                             </div>
-                            <span className="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors" style={{ fontSize: '20px' }}>
+                            <span className="material-symbols-outlined text-primary/30 group-hover:text-primary/60 transition-colors shrink-0" style={{ fontSize: '18px' }}>
                                 chevron_right
                             </span>
                         </Link>
@@ -164,12 +202,12 @@ export default function Profile() {
                         href="/logout"
                         method="post"
                         as="button"
-                        className="w-full flex items-center gap-4 p-4 rounded-2xl border border-red-100 hover:bg-red-50/80 transition-all duration-300 group mt-4"
+                        className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl border border-red-100 hover:bg-red-50/60 transition-all duration-200 group mt-2"
                     >
-                        <div className="w-10 h-10 rounded-xl bg-red-50 group-hover:bg-red-100 flex items-center justify-center transition-colors">
+                        <div className="w-10 h-10 rounded-xl bg-red-50 group-hover:bg-red-100 flex items-center justify-center transition-colors shrink-0">
                             <span className="material-symbols-outlined text-red-500" style={{ fontSize: '20px' }}>logout</span>
                         </div>
-                        <p className="text-sm font-bold text-red-600">Keluar dari Akun</p>
+                        <p className="text-sm font-semibold text-red-600">Keluar dari Akun</p>
                     </Link>
                 </div>
             </div>
@@ -178,4 +216,3 @@ export default function Profile() {
 }
 
 Profile.layout = (page: React.ReactNode) => <AppLayout activeTab="profile" showFooter={false}>{page}</AppLayout>;
-

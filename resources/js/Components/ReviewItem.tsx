@@ -16,14 +16,24 @@ interface ReviewItemProps {
 }
 
 export default function ReviewItem({ review }: ReviewItemProps) {
+    const hasAvatar = review.avatarUrl && review.avatarUrl.length > 0;
+    const initials = review.name?.charAt(0)?.toUpperCase() || '?';
+
     return (
         <div className="bg-white p-6 rounded-xl border border-primary/10">
             <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-3">
-                    <div
-                        className="w-12 h-12 rounded-full bg-slate-200 bg-cover bg-center"
-                        style={{ backgroundImage: `url("${review.avatarUrl}")` }}
-                    ></div>
+                    {hasAvatar ? (
+                        <img
+                            src={review.avatarUrl}
+                            alt={review.name}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-slate-100"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-slate-100 flex items-center justify-center">
+                            <span className="text-sm font-bold text-primary">{initials}</span>
+                        </div>
+                    )}
                     <div>
                         <p className="font-bold text-slate-900">{review.name}</p>
                         <div className="flex text-primary">
