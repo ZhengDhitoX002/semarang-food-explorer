@@ -132,7 +132,7 @@ export default function Dashboard() {
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
-                            Selamat datang, <span className="text-primary">{(auth?.user?.name || 'Merchant').split(' ')[0]}!</span> 👋
+                            Welcome, <span className="text-primary">{(auth?.user?.name || 'Merchant').split(' ')[0]}!</span> 👋
                         </h2>
                         <p className="text-slate-500 font-medium text-sm">Rangkuman bisnis Anda — {todayDate}</p>
                     </div>
