@@ -184,9 +184,18 @@ img.loaded {
 }
 
 /* Clean, visible focus states for keyboard/tab navigation */
-:focus-visible {
+/* Exclude form elements – they use their own Tailwind focus styles */
+:focus-visible:not(input):not(select):not(textarea):not(button) {
     outline: none;
     box-shadow: 0 0 0 2px var(--color-background-light), 0 0 0 4px var(--color-primary);
     transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Form elements: single clean border transition, no double ring */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+    outline: none;
 }
 

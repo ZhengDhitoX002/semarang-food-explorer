@@ -1,0 +1,68 @@
+erDiagram
+    USERS {
+        bigint id PK
+        string name
+        string email
+        string role "admin, merchant, user"
+        string password
+    }
+    CATEGORIES {
+        bigint id PK
+        string name
+        string slug
+    }
+    CULINARY_SPOTS {
+        bigint id PK
+        bigint owner_id FK "References USERS"
+        bigint category_id FK "References CATEGORIES"
+        string name
+        string slug
+        string status "pending, approved, rejected, closed"
+    }
+    REVIEWS {
+        bigint id PK
+        bigint user_id FK
+        bigint culinary_spot_id FK
+        int rating
+        text comment
+    }
+    TAGS {
+        bigint id PK
+        string name
+        string slug
+    }
+    CULINARY_SPOT_TAG {
+        bigint culinary_spot_id FK
+        bigint tag_id FK
+    }
+    FAVORITES {
+        bigint id PK
+        bigint user_id FK
+        bigint culinary_spot_id FK
+    }
+    MEDIA {
+        bigint id PK
+        bigint culinary_spot_id FK
+        string file_path
+    }
+    TRANSACTIONS {
+        bigint id PK
+        bigint user_id FK
+        bigint culinary_spot_id FK
+        decimal amount
+    }
+
+    USERS ||--o{ CULINARY_SPOTS : "memiliki (owner_id)"
+    USERS ||--o{ REVIEWS : "menulis (user_id)"
+    USERS ||--o{ FAVORITES : "menyimpan (user_id)"
+    USERS ||--o{ TRANSACTIONS : "melakukan (user_id)"
+    
+    CATEGORIES ||--o{ CULINARY_SPOTS : "mengelompokkan"
+    
+    CULINARY_SPOTS ||--o{ REVIEWS : "menerima"
+    CULINARY_SPOTS ||--o{ FAVORITES : "disimpan di"
+    CULINARY_SPOTS ||--o{ MEDIA : "berisi foto"
+    CULINARY_SPOTS ||--o{ TRANSACTIONS : "dipromosikan via"
+    
+    CULINARY_SPOTS ||--o{ CULINARY_SPOT_TAG : "memiliki tag"
+    TAGS ||--o{ CULINARY_SPOT_TAG : "disematkan ke"
