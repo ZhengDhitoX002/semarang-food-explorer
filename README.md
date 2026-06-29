@@ -1,12 +1,12 @@
-# 🍜 Semarang Food Explorer
+# Semarang Food Explorer
 
 **Platform eksplorasi kuliner kota Semarang** — Membantu wisatawan dan warga lokal menemukan tempat kuliner terbaik di Semarang melalui peta interaktif, ulasan pengguna, dan rekomendasi berbasis AI.
 
-> 📌 Project ini dibuat sebagai tugas mata kuliah **Pemrograman Web Lanjut (PWL)** — Universitas Dian Nuswantoro
+> Project ini dibuat sebagai tugas mata kuliah **Pemrograman Web Lanjut (PWL)** — Universitas Dian Nuswantoro
 
 ---
 
-## 📋 Daftar Isi
+## Daftar Isi
 
 - [Fitur Utama](#-fitur-utama)
 - [Tech Stack](#-tech-stack)
@@ -20,27 +20,27 @@
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
-### 🌐 Public (Tanpa Login)
+### Public (Tanpa Login)
 - **Explorer** — Jelajahi kuliner Semarang dengan peta interaktif (Leaflet.js)
 - **Detail Spot** — Lihat info lengkap, foto, rating, dan ulasan tempat kuliner
 - **Search** — Pencarian cepat dengan Meilisearch full-text search
 
-### 👤 User (Login)
+### User (Login)
 - **Review & Rating** — Beri ulasan dan rating pada tempat kuliner
 - **Rekomendasi AI** — Dapatkan rekomendasi kuliner berdasarkan preferensi (Collaborative Filtering)
 - **Transaksi Promosi** — Promosikan tempat kuliner favorit
 
-### 🏪 Merchant
+### Merchant
 - **Dashboard** — Statistik penjualan, ulasan, dan analitik pengunjung (Recharts)
 - **Promosi** — Kelola promosi tempat kuliner
 
-### 🛡️ Admin
+### Admin
 - **Manajemen Spot** — CRUD tempat kuliner
 - **Akses Merchant** — Semua fitur merchant
 
-### 🔧 Fitur Teknis
+### Fitur Teknis
 - **Geocoding** — Reverse geocode menggunakan Nominatim API
 - **Geofencing** — Cari kuliner terdekat dengan Haversine Formula
 - **PWA** — Progressive Web App support dengan Service Worker
@@ -49,7 +49,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Teknologi |
 |-------|-----------|
@@ -70,7 +70,7 @@
 
 ---
 
-## 🏗️ Arsitektur
+## Arsitektur
 
 ```
 semarang-food-explorer/
@@ -101,7 +101,7 @@ semarang-food-explorer/
 
 ---
 
-## 💻 Persyaratan Sistem
+## Persyaratan Sistem
 
 - **PHP** >= 8.3
 - **Composer** >= 2.x
@@ -112,7 +112,7 @@ semarang-food-explorer/
 
 ---
 
-## 🚀 Cara Instalasi
+## Cara Instalasi
 
 ### 1. Clone Repository
 
@@ -188,7 +188,7 @@ Buka browser dan akses: **http://localhost:8000**
 
 ---
 
-## ⚙️ Konfigurasi .env
+## Konfigurasi .env
 
 | Variable | Deskripsi | Contoh |
 |----------|-----------|--------|
@@ -206,7 +206,7 @@ Buka browser dan akses: **http://localhost:8000**
 
 ---
 
-## 👤 Akun Demo
+## Akun Demo
 
 Setelah menjalankan `php artisan migrate --seed`, akun berikut tersedia:
 
@@ -232,7 +232,7 @@ Setelah menjalankan `php artisan migrate --seed`, akun berikut tersedia:
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Auth | Deskripsi |
 |--------|----------|------|-----------|
@@ -252,7 +252,7 @@ Setelah menjalankan `php artisan migrate --seed`, akun berikut tersedia:
 
 ---
 
-## 🗂️ Entity Relationship Diagram (ERD)
+## Entity Relationship Diagram (ERD)
 
 > **ERD interaktif lengkap** tersedia di [`docs/ERD.html`](docs/ERD.html) — buka di browser untuk melihat diagram penuh dengan tipe data dan relasi.
 
@@ -354,7 +354,7 @@ erDiagram
 
 ---
 
-## 📸 Screenshot
+## Screenshot
 
 > Berikut adalah tampilan antarmuka dari aplikasi Semarang Food Explorer:
 
@@ -380,6 +380,6 @@ erDiagram
 
 ---
 
-## 📄 Lisensi
+## Lisensi
 
 Project ini dibuat untuk keperluan akademik mata kuliah Pemrograman Web Lanjut (PWL) — Universitas Dian Nuswantoro.
