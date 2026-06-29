@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, usePage, useForm, router } from '@inertiajs/react';
 import MerchantLayout from '@/Layouts/MerchantLayout';
 import axios from 'axios';
@@ -66,10 +66,22 @@ const paymentMethods = [
     { id: 'card', name: 'Kartu Kredit / Debit', detail: 'Visa, Mastercard, JCB', icon: 'credit_card', iconColor: 'text-indigo-600', iconBg: 'bg-indigo-50' },
 ];
 
+declare global {
+    interface Window {
+        snap: any;
+    }
+}
+
 export default function Promotion() {
     const { spots, flash, auth } = usePage<{
         spots: SpotEntry[],
-        flash: { success?: string, payment_url?: string },
+        flash: { 
+            success?: string; 
+            payment_url?: string; 
+            snap_token?: string; 
+            midtrans_client_key?: string; 
+            midtrans_is_production?: boolean;
+        },
         auth: { user: { name: string, role: string } }
     }>().props;
 
@@ -90,15 +102,49 @@ export default function Promotion() {
         post('/transactions');
     };
 
-    const simulatePayment = async () => {
-        if (!flash.payment_url) return;
-        setSimulating(true);
-        try {
-            await axios.get(flash.payment_url);
-            router.get('/merchant/dashboard');
-        } catch {
-            alert('Simulasi gagal');
-            setSimulating(false);
+    useEffect(() => {
+        if (flash.snap_token && flash.midtrans_client_key && flash.snap_token !== 'mock_snap_token') {
+            const script = document.createElement('script');
+            const isProduction = flash.midtrans_is_production;
+            script.src = isProduction ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js';
+            script.setAttribute('data-client-key', flash.midtrans_client_key || '');
+            script.async = true;
+            document.head.appendChild(script);
+
+            return () => {
+                document.head.removeChild(script);
+            }
+        }
+    }, [flash.snap_token, flash.midtrans_client_key, flash.midtrans_is_production]);
+
+    const handlePayment = async () => {
+        if (flash.snap_token && flash.snap_token !== 'mock_snap_token' && window.snap) {
+            window.snap.pay(flash.snap_token, {
+                onSuccess: async function(result: any) {
+                    if (flash.payment_url) {
+                        try { await axios.get(flash.payment_url); } catch (e) {}
+                    }
+                    router.get('/merchant/dashboard');
+                },
+                onPending: function(result: any) {
+                    router.get('/merchant/dashboard');
+                },
+                onError: function(result: any) {
+                    alert('Pembayaran gagal!');
+                },
+                onClose: function() {
+                    console.log('User closed the popup');
+                }
+            });
+        } else if (flash.payment_url) {
+            setSimulating(true);
+            try {
+                await axios.get(flash.payment_url);
+                router.get('/merchant/dashboard');
+            } catch {
+                alert('Simulasi gagal');
+                setSimulating(false);
+            }
         }
     };
 
@@ -120,9 +166,9 @@ export default function Promotion() {
                                 <span className="material-symbols-outlined text-3xl">payment</span>
                             </div>
                             <h3 className="text-xl font-bold mb-2">Pembayaran Siap</h3>
-                            <p className="text-slate-500 text-sm mb-6">Pesanan berhasil dibuat! Klik untuk simulasi pembayaran Sandbox.</p>
-                            <button onClick={simulatePayment} disabled={simulating} className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
-                                {simulating ? 'Memproses...' : 'Simulasi Pembayaran'}
+                            <p className="text-slate-500 text-sm mb-6">Pesanan berhasil dibuat! Lanjutkan pembayaran.</p>
+                            <button onClick={handlePayment} disabled={simulating} className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all disabled:opacity-50">
+                                {simulating ? 'Memproses...' : (flash.snap_token && flash.snap_token !== 'mock_snap_token' ? 'Bayar Sekarang (Midtrans)' : 'Simulasi Pembayaran')}
                             </button>
                             <button onClick={() => router.get('/merchant/dashboard')} className="w-full py-3 text-slate-500 text-sm font-bold hover:text-slate-700 mt-2">
                                 Bayar Nanti

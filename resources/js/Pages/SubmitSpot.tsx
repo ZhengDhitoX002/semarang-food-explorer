@@ -20,6 +20,7 @@ export default function SubmitSpot() {
         name: '',
         description: '',
         category_id: '',
+        address: '',
         latitude: '',
         longitude: '',
         price: '',
@@ -53,15 +54,15 @@ export default function SubmitSpot() {
         setGeocodeLoading(true);
         try {
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addressInput + ' Semarang')}&format=json&limit=1`,
-                { headers: { 'User-Agent': 'SemarangFoodExplorer/1.0' } }
+                `/api/geocode/search?q=${encodeURIComponent(addressInput + ' Semarang')}`
             );
-            const results = await response.json();
-            if (results.length > 0) {
+            const res = await response.json();
+            if (res.success && res.data) {
                 setData(prev => ({
                     ...prev,
-                    latitude: results[0].lat,
-                    longitude: results[0].lon,
+                    latitude: String(res.data.latitude),
+                    longitude: String(res.data.longitude),
+                    address: addressInput,
                 }));
             } else {
                 alert('Alamat tidak ditemukan. Coba lebih spesifik.');

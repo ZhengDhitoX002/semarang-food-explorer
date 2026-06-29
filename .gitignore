@@ -84,8 +84,9 @@ Homestead.yaml
 /storage/pail
 FOLDER_GAMBAR/
 
-# ── Agent Skills & Internal Docs (JANGAN di-push) ────────────
+# ── Agent Skills & Internal Scripts (JANGAN di-push) ────────────
 /.agents/
-/docs/
 /.gemini/
+*.bat
+trigger.php
 test_media.php

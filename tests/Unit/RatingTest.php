@@ -26,14 +26,14 @@ test('average rating and review count is computed correctly', function () {
         'spot_id' => $spot->id,
         'user_id' => $user1->id,
         'rating' => 4,
-        'content' => 'Great!',
+        'comment' => 'Great!',
     ]);
 
     Review::create([
         'spot_id' => $spot->id,
         'user_id' => $user2->id,
         'rating' => 5,
-        'content' => 'Perfect!',
+        'comment' => 'Perfect!',
     ]);
 
     $spot->refresh();

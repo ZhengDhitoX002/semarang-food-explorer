@@ -10,6 +10,7 @@ interface Spot {
     closed_reason?: string;
     created_at: string;
     category?: { id: number; name: string };
+    submitted_by?: { id: number; name: string };
     submitted_by_user?: { id: number; name: string };
     tags?: { id: number; name: string }[];
 }
@@ -23,6 +24,16 @@ interface ReviewData {
     culinary_spot?: { id: number; name: string };
 }
 
+interface Category {
+    id: number;
+    name: string;
+}
+
+interface Tag {
+    id: number;
+    name: string;
+}
+
 interface Props {
     stats: {
         totalUsers: number;
@@ -33,14 +44,23 @@ interface Props {
     pendingSpots: Spot[];
     recentReviews: ReviewData[];
     allSpots: Spot[];
+    categories: Category[];
+    tags: Tag[];
+    closureReports: Spot[];
     tab: string;
 }
 
 export default function Dashboard() {
-    const { stats, pendingSpots, recentReviews, allSpots, tab } = usePage<{ props: Props }>().props as unknown as Props;
+    const { stats, pendingSpots, recentReviews, allSpots, categories, tags, closureReports, tab } = usePage<{ props: Props }>().props as unknown as Props;
     const [activeTab, setActiveTab] = useState(tab || 'overview');
     const [closeReason, setCloseReason] = useState('');
     const [closingSpotId, setClosingSpotId] = useState<number | null>(null);
+
+    // Categories & Tags local states
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [newTagName, setNewTagName] = useState('');
+    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+    const [editingCategoryName, setEditingCategoryName] = useState('');
 
     const statCards = [
         { label: 'Total Users', value: stats.totalUsers, icon: '👤', color: '#3b82f6' },
@@ -80,6 +100,42 @@ export default function Dashboard() {
         transition: 'all 0.2s',
     });
 
+    const inputStyle: React.CSSProperties = {
+        padding: '8px 12px',
+        fontSize: 14,
+        borderRadius: 8,
+        border: '1px solid #475569',
+        background: '#0f172a',
+        color: '#e2e8f0',
+        outline: 'none',
+    };
+
+    const handleAddCategory = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newCategoryName.trim()) return;
+        router.post('/admin/categories', { name: newCategoryName }, {
+            onSuccess: () => setNewCategoryName(''),
+        });
+    };
+
+    const handleUpdateCategory = (id: number) => {
+        if (!editingCategoryName.trim()) return;
+        router.put(`/admin/categories/${id}`, { name: editingCategoryName }, {
+            onSuccess: () => {
+                setEditingCategoryId(null);
+                setEditingCategoryName('');
+            },
+        });
+    };
+
+    const handleAddTag = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newTagName.trim()) return;
+        router.post('/admin/tags', { name: newTagName }, {
+            onSuccess: () => setNewTagName(''),
+        });
+    };
+
     return (
         <AdminLayout>
             <Head title="Admin Dashboard" />
@@ -102,12 +158,14 @@ export default function Dashboard() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #334155', marginBottom: 24 }}>
+            <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #334155', marginBottom: 24, overflowX: 'auto' }}>
                 {[
                     { key: 'overview', label: '📊 Overview' },
                     { key: 'pending', label: `⏳ Pending (${pendingSpots.length})` },
                     { key: 'reviews', label: '💬 Moderasi Review' },
                     { key: 'spots', label: '📍 Semua Spot' },
+                    { key: 'categories-tags', label: '🏷️ Kategori & Tag' },
+                    { key: 'closures', label: `🚫 Laporan Tutup (${closureReports.length})` },
                 ].map((t) => (
                     <button key={t.key} onClick={() => setActiveTab(t.key)} style={tabStyle(activeTab === t.key)}>
                         {t.label}
@@ -123,7 +181,9 @@ export default function Dashboard() {
                         Gunakan tab di atas untuk mengelola platform:<br/>
                         • <strong>Pending</strong> — Setujui atau tolak submission tempat baru dari user<br/>
                         • <strong>Moderasi Review</strong> — Hapus review yang tidak pantas<br/>
-                        • <strong>Semua Spot</strong> — Kelola semua tempat kuliner, tandai tutup permanen
+                        • <strong>Semua Spot</strong> — Kelola semua tempat kuliner, tandai tutup permanen<br/>
+                        • <strong>Kategori & Tag</strong> — Tambah, edit, dan hapus kategori atau tag kuliner<br/>
+                        • <strong>Laporan Tutup</strong> — Setujui atau tolak laporan kuliner tutup permanen dari kontributor
                     </p>
                 </div>
             )}
@@ -222,10 +282,12 @@ export default function Dashboard() {
                                         fontSize: 10, padding: '2px 8px', borderRadius: 12, fontWeight: 600,
                                         background: spot.status === 'approved' ? 'rgba(16, 185, 129, 0.15)' :
                                                     spot.status === 'closed' ? 'rgba(239, 68, 68, 0.15)' :
-                                                    spot.status === 'pending' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(100,100,100,0.15)',
+                                                    spot.status === 'pending' ? 'rgba(245, 158, 11, 0.15)' :
+                                                    spot.status === 'pending_close' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(100,100,100,0.15)',
                                         color: spot.status === 'approved' ? '#10b981' :
                                                spot.status === 'closed' ? '#ef4444' :
-                                               spot.status === 'pending' ? '#f59e0b' : '#94a3b8',
+                                               spot.status === 'pending' ? '#f59e0b' :
+                                               spot.status === 'pending_close' ? '#f59e0b' : '#94a3b8',
                                     }}>
                                         {spot.status.toUpperCase()}
                                     </span>
@@ -271,6 +333,141 @@ export default function Dashboard() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {activeTab === 'categories-tags' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                    {/* Categories Panel */}
+                    <div style={cardStyle}>
+                        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#f4a261' }}>🏷️ Kelola Kategori</h2>
+                        <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                            <input
+                                type="text"
+                                placeholder="Nama kategori baru..."
+                                value={newCategoryName}
+                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                style={{ ...inputStyle, flex: 1 }}
+                            />
+                            <button type="submit" style={btnStyle('#f4a261')}>+ Tambah</button>
+                        </form>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {categories.map((category) => (
+                                <div key={category.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: 8, background: '#0f172a', border: '1px solid #334155' }}>
+                                    {editingCategoryId === category.id ? (
+                                        <div style={{ display: 'flex', gap: 6, flex: 1 }}>
+                                            <input
+                                                type="text"
+                                                value={editingCategoryName}
+                                                onChange={(e) => setEditingCategoryName(e.target.value)}
+                                                style={{ ...inputStyle, flex: 1 }}
+                                            />
+                                            <button onClick={() => handleUpdateCategory(category.id)} style={btnStyle('#10b981')}>Simpan</button>
+                                            <button onClick={() => setEditingCategoryId(null)} style={btnStyle('#475569')}>Batal</button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <span style={{ fontSize: 14, fontWeight: 600 }}>{category.name}</span>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingCategoryId(category.id);
+                                                        setEditingCategoryName(category.name);
+                                                    }}
+                                                    style={btnStyle('#3b82f6')}
+                                                >
+                                                    ✏️ Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm(`Yakin ingin menghapus kategori "${category.name}"?`)) {
+                                                            router.delete(`/admin/categories/${category.id}`);
+                                                        }
+                                                    }}
+                                                    style={btnStyle('#ef4444')}
+                                                >
+                                                    🗑️ Hapus
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Tags Panel */}
+                    <div style={cardStyle}>
+                        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#f4a261' }}>🏷️ Kelola Tag</h2>
+                        <form onSubmit={handleAddTag} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                            <input
+                                type="text"
+                                placeholder="Nama tag baru..."
+                                value={newTagName}
+                                onChange={(e) => setNewTagName(e.target.value)}
+                                style={{ ...inputStyle, flex: 1 }}
+                            />
+                            <button type="submit" style={btnStyle('#f4a261')}>+ Tambah</button>
+                        </form>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {tags.map((tag) => (
+                                <div key={tag.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 20, background: '#0f172a', border: '1px solid #334155' }}>
+                                    <span style={{ fontSize: 13, fontWeight: 600 }}>{tag.name}</span>
+                                    <button
+                                        onClick={() => {
+                                            if (confirm(`Yakin ingin menghapus tag "${tag.name}"?`)) {
+                                                router.delete(`/admin/tags/${tag.id}`);
+                                            }
+                                        }}
+                                        style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 12, padding: 0 }}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'closures' && (
+                <div>
+                    {closureReports.length === 0 ? (
+                        <div style={{ ...cardStyle, textAlign: 'center', padding: 48 }}>
+                            <p style={{ fontSize: 48, marginBottom: 12 }}>✅</p>
+                            <p style={{ color: '#94a3b8' }}>Tidak ada laporan penutupan yang menunggu tindakan.</p>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {closureReports.map((spot) => (
+                                <div key={spot.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: '#f4a261' }}>{spot.name}</h3>
+                                        <p style={{ fontSize: 13, color: '#64748b' }}>
+                                            {spot.category?.name} • Dilaporkan oleh: {spot.submitted_by?.name || spot.submitted_by_user?.name || 'Kontributor'}
+                                        </p>
+                                        <p style={{ fontSize: 13, color: '#ef4444', fontWeight: 600, marginTop: 4 }}>
+                                            Alasan penutupan: "{spot.closed_reason}"
+                                        </p>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                                        <button
+                                            onClick={() => router.post(`/admin/spots/${spot.id}/close`, { reason: spot.closed_reason })}
+                                            style={btnStyle('#ef4444')}
+                                        >
+                                            🚫 Setujui Tutup
+                                        </button>
+                                        <button
+                                            onClick={() => router.post(`/admin/spots/${spot.id}/approve`)}
+                                            style={btnStyle('#475569')}
+                                        >
+                                            ✅ Tolak Laporan
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </AdminLayout>

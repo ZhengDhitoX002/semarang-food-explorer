@@ -32,19 +32,20 @@ class GeofenceController extends Controller
 
         /**
          * Haversine query to calculate distances.
-         * Earth's radius in meters ~ 6371000
          */
-        $haversine = "(6371000 * acos(cos(radians($lat)) 
-            * cos(radians(latitude)) 
-            * cos(radians(longitude) - radians($lng)) 
-            + sin(radians($lat)) 
-            * sin(radians(latitude))))";
+        $haversine = \App\Libraries\GeofenceLibrary::getHaversineSql($lat, $lng);
 
         $spots = CulinarySpot::select('*')
             ->selectRaw("{$haversine} AS distance")
             ->whereRaw("{$haversine} < ?", [$radius])
             ->orderBy('distance')
             ->get();
+
+        // Use helper to format distance
+        $spots->transform(function ($spot) {
+            $spot->formatted_distance = \App\Helpers\FormatHelper::distance($spot->distance);
+            return $spot;
+        });
 
         return response()->json([
             'success' => true,

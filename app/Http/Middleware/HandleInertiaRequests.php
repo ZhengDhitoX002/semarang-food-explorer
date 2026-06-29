@@ -38,6 +38,9 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'payment_url' => $request->session()->get('payment_url'),
+                'snap_token' => $request->session()->get('snap_token'),
+                'midtrans_client_key' => $request->session()->get('midtrans_client_key'),
+                'midtrans_is_production' => $request->session()->get('midtrans_is_production'),
             ],
         ];
     }

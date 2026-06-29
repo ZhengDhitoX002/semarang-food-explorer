@@ -88,6 +88,7 @@ class CulinarySpotController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
+            'address' => ['nullable', 'string', 'max:255'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -100,6 +101,7 @@ class CulinarySpotController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'],
             'category_id' => $validated['category_id'],
+            'address' => $validated['address'] ?? null,
             'latitude' => $validated['latitude'],
             'longitude' => $validated['longitude'],
             'price' => $validated['price'],
@@ -131,6 +133,7 @@ class CulinarySpotController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
+            'address' => ['nullable', 'string', 'max:255'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -170,6 +173,7 @@ class CulinarySpotController extends Controller
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'string'],
             'category_id' => ['sometimes', 'exists:categories,id'],
+            'address' => ['nullable', 'string', 'max:255'],
             'latitude' => ['sometimes', 'numeric', 'between:-90,90'],
             'longitude' => ['sometimes', 'numeric', 'between:-180,180'],
             'price' => ['sometimes', 'numeric', 'min:0'],
@@ -185,5 +189,24 @@ class CulinarySpotController extends Controller
         }
 
         return redirect()->back()->with('success', 'Spot kuliner berhasil diperbarui!');
+    }
+
+    /**
+     * Report a spot as closed (Contributor contribution).
+     */
+    public function reportClose(Request $request, string $id)
+    {
+        $spot = CulinarySpot::findOrFail($id);
+        
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:5', 'max:255'],
+        ]);
+
+        $spot->update([
+            'status' => 'pending_close',
+            'closed_reason' => $validated['reason'],
+        ]);
+
+        return redirect()->back()->with('success', 'Laporan penutupan berhasil dikirim! Menunggu konfirmasi admin.');
     }
 }

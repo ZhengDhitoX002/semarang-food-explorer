@@ -73,6 +73,40 @@ export default function Explorer() {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [activeFilter, setActiveFilter] = useState('Semua Kategori');
 
+    // Geolocation and Proximity States
+    const [nearbySpots, setNearbySpots] = useState<any[]>([]);
+    const [userCoords, setUserCoords] = useState<{ lat: number; lng: number }>({ lat: -6.9822, lng: 110.4091 });
+
+    useEffect(() => {
+        const fetchNearby = async (lat: number, lng: number) => {
+            try {
+                const response = await fetch(`/api/nearby?lat=${lat}&lng=${lng}&radius=2000`);
+                const res = await response.json();
+                if (res.success) {
+                    setNearbySpots(res.data || []);
+                }
+            } catch (err) {
+                console.error("Gagal mengambil data nearby:", err);
+            }
+        };
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    setUserCoords({ lat, lng });
+                    fetchNearby(lat, lng);
+                },
+                () => {
+                    fetchNearby(-6.9822, 110.4091);
+                }
+            );
+        } else {
+            fetchNearby(-6.9822, 110.4091);
+        }
+    }, []);
+
     // Filter states
     const [maxPrice, setMaxPrice] = useState<number>(300000);
     const [minRating, setMinRating] = useState<number>(0);
@@ -155,7 +189,7 @@ export default function Explorer() {
         };
     });
 
-    const mapCenter: [number, number] = [-6.9932, 110.4203];
+    const mapCenter: [number, number] = [userCoords.lat, userCoords.lng];
 
     return (
         <>
@@ -393,37 +427,50 @@ export default function Explorer() {
                             activeRating={filters?.min_rating ? filters.min_rating + '+' : ''}
                             activeTags={filters?.tags ? filters.tags.split(',') : []}
                         />
-                        <div className="px-6 pb-6 space-y-4">
+                        <div className="px-6 pb-6 space-y-4 overflow-y-auto max-h-[calc(100vh-320px)]">
                             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-                                Nearby Results
+                                Nearby Results (Radius 2km)
                             </h2>
-                            {nearbyResults.map((result) => (
-                                <div
-                                    key={result.name}
-                                    className="group flex cursor-pointer gap-4 rounded-xl border border-transparent p-2 transition-all hover:border-primary/20 hover:bg-primary/5"
-                                >
-                                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-200">
-                                        <img
-                                            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                            src={result.imageUrl}
-                                            alt={result.name}
-                                            loading="lazy"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col justify-between py-1">
-                                        <div>
-                                            <h3 className="font-bold text-slate-900">{result.name}</h3>
-                                            <p className="text-xs text-slate-500">{result.area}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="flex items-center text-xs font-bold text-primary">
-                                                <span className="material-symbols-outlined text-xs mr-0.5">star</span>
-                                                {result.rating}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                            {nearbySpots.length > 0 ? (
+                                nearbySpots.map((spot) => {
+                                    const distanceKm = (spot.distance / 1000).toFixed(1);
+                                    const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
+                                    const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
+                                    const imageUrl = isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+                                    
+                                    return (
+                                        <a
+                                            key={spot.id}
+                                            href={`/spot/${spot.id}`}
+                                            className="group flex cursor-pointer gap-4 rounded-xl border border-transparent p-2 transition-all hover:border-primary/20 hover:bg-primary/5 text-decoration-none text-left"
+                                        >
+                                            <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-200">
+                                                <img
+                                                    className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                                    src={imageUrl}
+                                                    alt={spot.name}
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col justify-between py-1">
+                                                <div>
+                                                    <h3 className="font-bold text-slate-900 text-sm">{spot.name}</h3>
+                                                    <p className="text-xs text-slate-500">{spot.address || 'Semarang'}</p>
+                                                    <p className="text-[11px] text-primary font-bold">{distanceKm} km dari lokasi Anda</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="flex items-center text-xs font-bold text-primary">
+                                                        <span className="material-symbols-outlined text-xs mr-0.5">payments</span>
+                                                        Rp {Number(spot.price).toLocaleString('id-ID')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    );
+                                })
+                            ) : (
+                                <p className="text-xs text-slate-400 text-center py-4">Tidak ada tempat kuliner dalam radius 2 km.</p>
+                            )}
                         </div>
                     </aside>
                 </>

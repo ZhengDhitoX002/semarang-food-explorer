@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
 
     // Submit Spot (User Contribution)
     Route::post('/spot/submit', [CulinarySpotController::class, 'submit'])->name('spot.submit.store');
+    Route::post('/spot/{id}/report-close', [CulinarySpotController::class, 'reportClose'])->name('spot.report-close');
 
     // Transactions (Promoted Culinary)
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
@@ -115,4 +116,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Legacy admin CRUD
     Route::post('/spots', [CulinarySpotController::class, 'store'])->name('admin.spots.store');
     Route::put('/spots/{id}', [CulinarySpotController::class, 'update'])->name('admin.spots.update');
+
+    // Admin Categories & Tags CRUD
+    Route::post('/categories', [\App\Http\Controllers\AdminCategoryController::class, 'store'])->name('admin.categories.store');
+    Route::put('/categories/{id}', [\App\Http\Controllers\AdminCategoryController::class, 'update'])->name('admin.categories.update');
+    Route::delete('/categories/{id}', [\App\Http\Controllers\AdminCategoryController::class, 'destroy'])->name('admin.categories.destroy');
+
+    Route::post('/tags', [\App\Http\Controllers\AdminTagController::class, 'store'])->name('admin.tags.store');
+    Route::delete('/tags/{id}', [\App\Http\Controllers\AdminTagController::class, 'destroy'])->name('admin.tags.destroy');
 });

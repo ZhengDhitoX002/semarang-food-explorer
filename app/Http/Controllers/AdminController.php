@@ -36,6 +36,11 @@ class AdminController extends Controller
             'allSpots' => CulinarySpot::with(['category', 'tags'])
                 ->orderByDesc('created_at')
                 ->get(),
+            'categories' => \App\Models\Category::all(),
+            'tags' => \App\Models\Tag::all(),
+            'closureReports' => CulinarySpot::where('status', 'pending_close')
+                ->with(['category', 'submittedBy'])
+                ->get(),
             'tab' => $tab,
         ]);
     }
@@ -45,7 +50,7 @@ class AdminController extends Controller
      */
     public function approveSpot(int $id)
     {
-        $spot = CulinarySpot::where('status', 'pending')->findOrFail($id);
+        $spot = CulinarySpot::whereIn('status', ['pending', 'pending_close'])->findOrFail($id);
         $spot->update(['status' => 'approved']);
 
         return redirect()->back()->with('success', 'Tempat kuliner berhasil disetujui!');

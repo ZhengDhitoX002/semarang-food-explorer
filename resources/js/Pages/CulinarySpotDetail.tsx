@@ -1,5 +1,5 @@
 import React, { FormEvent, useState, useEffect, useCallback } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
 interface Review {
@@ -46,6 +46,10 @@ export default function CulinarySpotDetail() {
     // Lightbox State
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
     const [currentLightboxIndex, setCurrentLightboxIndex] = useState(0);
+
+    // Closure Report State
+    const [isReportingClose, setIsReportingClose] = useState(false);
+    const [reportReason, setReportReason] = useState('');
 
     const isFavorite = auth.favorite_spots?.includes(spot.id) || false;
 
@@ -104,6 +108,17 @@ export default function CulinarySpotDetail() {
             return;
         }
         reviewForm.post(`/favorites/${spot.id}`, { preserveScroll: true, preserveState: true });
+    };
+
+    const handleReportCloseSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        router.post(`/spot/${spot.id}/report-close`, { reason: reportReason }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsReportingClose(false);
+                setReportReason('');
+            }
+        });
     };
 
     const startEditReview = (review: Review) => {
@@ -579,6 +594,65 @@ export default function CulinarySpotDetail() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Laporkan Tutup Card */}
+                            {spot.status !== 'closed' && spot.status !== 'pending_close' && (
+                                <div className="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
+                                    <h3 className="font-bold text-lg mb-2 flex items-center gap-2 text-red-600">
+                                        <span className="material-symbols-outlined">report</span>
+                                        Toko Tutup Permanen?
+                                    </h3>
+                                    <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                                        Jika Anda mengetahui bahwa tempat kuliner ini sudah tutup secara permanen, harap laporkan agar kami dapat memverifikasi.
+                                    </p>
+                                    {auth.user ? (
+                                        isReportingClose ? (
+                                            <form onSubmit={handleReportCloseSubmit} className="space-y-3">
+                                                <textarea
+                                                    value={reportReason}
+                                                    onChange={e => setReportReason(e.target.value)}
+                                                    placeholder="Alasan penutupan (misal: Ruko disewakan / pindah kota)..."
+                                                    rows={3}
+                                                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-red-500"
+                                                    required
+                                                />
+                                                <div className="flex gap-2">
+                                                    <button type="submit" style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, borderRadius: 8, background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                                                        Kirim Laporan
+                                                    </button>
+                                                    <button type="button" onClick={() => setIsReportingClose(false)} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, borderRadius: 8, background: '#e2e8f0', color: '#475569', border: 'none', cursor: 'pointer' }}>
+                                                        Batal
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        ) : (
+                                            <button
+                                                onClick={() => setIsReportingClose(true)}
+                                                className="w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg font-bold text-xs transition-all text-center"
+                                            >
+                                                🚫 Laporkan Tutup Permanen
+                                            </button>
+                                        )
+                                    ) : (
+                                        <Link
+                                            href="/login"
+                                            className="block w-full py-2 bg-slate-50 text-slate-500 border border-slate-200 rounded-lg font-semibold text-xs text-center text-decoration-none"
+                                        >
+                                            Login untuk melaporkan tutup
+                                        </Link>
+                                    )}
+                                </div>
+                            )}
+
+                            {spot.status === 'pending_close' && (
+                                <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 text-center">
+                                    <span className="material-symbols-outlined text-orange-500 text-3xl mb-2">hourglass_empty</span>
+                                    <h4 className="font-bold text-orange-800 text-sm mb-1">Laporan Penutupan Diproses</h4>
+                                    <p className="text-xs text-orange-600 leading-relaxed">
+                                        Tempat ini telah dilaporkan tutup permanen. Tim admin sedang memverifikasi laporan ini.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </main>

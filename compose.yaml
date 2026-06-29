@@ -92,6 +92,17 @@ services:
             - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
         networks:
             - sail
+    pgadmin:
+        image: 'dpage/pgadmin4:latest'
+        ports:
+            - '${FORWARD_PGADMIN_PORT:-5050}:80'
+        environment:
+            PGADMIN_DEFAULT_EMAIL: '${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}'
+            PGADMIN_DEFAULT_PASSWORD: '${PGADMIN_DEFAULT_PASSWORD:-admin}'
+        networks:
+            - sail
+        depends_on:
+            - pgsql
 networks:
     sail:
         driver: bridge
