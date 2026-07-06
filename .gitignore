@@ -87,6 +87,14 @@ FOLDER_GAMBAR/
 # ── Agent Skills & Internal Scripts (JANGAN di-push) ────────────
 /.agents/
 /.gemini/
+/.claude/
+/.codex/
 *.bat
 trigger.php
 test_media.php
+
+# ── Generated analysis artifacts (regenerable, not source) ──────
+/graphify-out/
+
+# ── Local DB dumps/backups (never commit database contents) ─────
+/backup/
