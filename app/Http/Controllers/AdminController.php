@@ -33,7 +33,7 @@ class AdminController extends Controller
                 ->orderByDesc('created_at')
                 ->limit(50)
                 ->get(),
-            'allSpots' => CulinarySpot::with(['category', 'tags'])
+            'allSpots' => CulinarySpot::with(['category', 'tags', 'media'])
                 ->orderByDesc('created_at')
                 ->get(),
             'categories' => \App\Models\Category::all(),

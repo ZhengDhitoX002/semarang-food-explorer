@@ -36,6 +36,9 @@ class GeofenceController extends Controller
         $haversine = \App\Libraries\GeofenceLibrary::getHaversineSql($lat, $lng);
 
         $spots = CulinarySpot::select('*')
+            ->with(['media', 'category'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->selectRaw("{$haversine} AS distance")
             ->whereRaw("{$haversine} < ?", [$radius])
             ->orderBy('distance')
@@ -44,6 +47,8 @@ class GeofenceController extends Controller
         // Use helper to format distance
         $spots->transform(function ($spot) {
             $spot->formatted_distance = \App\Helpers\FormatHelper::distance($spot->distance);
+            $spot->average_rating = round($spot->reviews_avg_rating ?? 0, 1);
+            $spot->review_count = $spot->reviews_count ?? 0;
             return $spot;
         });
 

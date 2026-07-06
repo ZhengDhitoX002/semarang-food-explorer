@@ -76,17 +76,27 @@ class TransactionController extends Controller
             'snap_token' => $snapToken,
             'midtrans_client_key' => config('services.midtrans.client_key'),
             'midtrans_is_production' => $isProduction,
-            'payment_url' => '/api/webhook/payment/simulate/' . $transaction->order_id, // For mock simulation if Midtrans is skipped
+            'payment_url' => '/transactions/' . $transaction->order_id . '/simulate-paid', // For mock simulation if Midtrans is skipped
         ]);
     }
 
     /**
-     * Simulate payment webhook (mock for development).
-     * In production, this would be called by Midtrans/Xendit.
+     * Simulate payment webhook (sandbox/dev testing shortcut - marks a
+     * transaction paid without a real Midtrans callback).
+     *
+     * Locked down three ways so it can never be used to fake a real payment:
+     * only works while Midtrans is in sandbox mode, requires the caller to
+     * be logged in, and only lets a user "pay" their own transaction.
      */
-    public function webhookSimulate(string $orderId)
+    public function webhookSimulate(Request $request, string $orderId)
     {
-        $transaction = Transaction::where('order_id', $orderId)->firstOrFail();
+        if (config('services.midtrans.is_production')) {
+            abort(404);
+        }
+
+        $transaction = Transaction::where('order_id', $orderId)
+            ->where('user_id', $request->user()?->id)
+            ->firstOrFail();
 
         if ($transaction->status === 'paid') {
             return response()->json(['message' => 'Already paid'], 200);
@@ -163,12 +173,12 @@ class TransactionController extends Controller
             $spotName = $transaction->culinarySpot->name ?? 'Unknown Spot';
             $amountFormatted = number_format($transaction->amount, 0, ',', '.');
             $message = "🔔 <b>Pembayaran Sukses!</b>\n\n"
-                     . "🏷️ <b>Order ID:</b> <code>{$transaction->order_id}</code>\n"
-                     . "🏪 <b>Kuliner:</b> {$spotName}\n"
-                     . "💰 <b>Jumlah:</b> Rp {$amountFormatted}\n"
-                     . "👤 <b>User:</b> " . ($transaction->user->name ?? 'Unknown') . "\n"
-                     . "📅 <b>Tanggal:</b> " . now()->format('Y-m-d H:i:s') . " WIB\n\n"
-                     . "Status promosi toko ini telah diaktifkan menjadi ⭐ <b>Promoted</b>!";
+                    . "🏷️ <b>Order ID:</b> <code>{$transaction->order_id}</code>\n"
+                    . "🏪 <b>Kuliner:</b> {$spotName}\n"
+                    . "💰 <b>Jumlah:</b> Rp {$amountFormatted}\n"
+                    . "👤 <b>User:</b> " . ($transaction->user->name ?? 'Unknown') . "\n"
+                    . "📅 <b>Tanggal:</b> " . now()->format('Y-m-d H:i:s') . " WIB\n\n"
+                    . "Status promosi toko ini telah diaktifkan menjadi ⭐ <b>Promoted</b>!";
 
             try {
                 Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [

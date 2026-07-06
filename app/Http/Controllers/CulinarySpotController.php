@@ -181,14 +181,53 @@ class CulinarySpotController extends Controller
             'tags.*' => ['exists:tags,id'],
         ]);
 
-        $spot->update($validated);
+        // 'tags' isn't a real culinary_spots column - it must never reach
+        // update()/create() directly (CulinarySpot::$guarded is empty, so
+        // Eloquent would try to write it as a column and throw a
+        // "column not found" SQL error). Sync it via the pivot instead.
+        $spot->update(collect($validated)->except('tags')->all());
 
-        // Sync tags
         if (isset($validated['tags'])) {
             $spot->tags()->sync($validated['tags']);
         }
 
         return redirect()->back()->with('success', 'Spot kuliner berhasil diperbarui!');
+    }
+
+    /**
+     * Append photos to a spot's gallery (admin only), capped at 5 total.
+     */
+    public function addPhotos(Request $request, string $id)
+    {
+        $spot = CulinarySpot::findOrFail($id);
+
+        $slotsLeft = max(0, 5 - $spot->getMedia('photos')->count());
+
+        $request->validate([
+            'photos' => ['required', 'array', 'min:1', 'max:' . max($slotsLeft, 1)],
+            'photos.*' => ['image', 'max:5120'],
+        ]);
+
+        if ($slotsLeft === 0) {
+            return redirect()->back()->withErrors(['photos' => 'Maksimal 5 foto per tempat. Hapus foto lama dulu untuk menambah yang baru.']);
+        }
+
+        foreach (array_slice($request->file('photos'), 0, $slotsLeft) as $photo) {
+            $spot->addMedia($photo)->toMediaCollection('photos');
+        }
+
+        return redirect()->back()->with('success', 'Foto berhasil ditambahkan!');
+    }
+
+    /**
+     * Remove a single photo from a spot's gallery (admin only).
+     */
+    public function deletePhoto(string $id, int $mediaId)
+    {
+        $spot = CulinarySpot::findOrFail($id);
+        $spot->getMedia('photos')->firstWhere('id', $mediaId)?->delete();
+
+        return redirect()->back()->with('success', 'Foto berhasil dihapus!');
     }
 
     /**

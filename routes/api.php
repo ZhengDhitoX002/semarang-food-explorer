@@ -21,10 +21,7 @@ Route::middleware('throttle:api')->group(function () {
     // Geofencing (Haversine Formula)
     Route::get('/nearby', [\App\Http\Controllers\Api\GeofenceController::class, 'nearby']);
 
-    // Payment webhook simulation (mock)
-    Route::get('/webhook/payment/simulate/{orderId}', [TransactionController::class, 'webhookSimulate']);
-
-    // Midtrans Payment webhook (real)
+    // Midtrans Payment webhook (real) - signature-verified inside the controller
     Route::post('/webhook/payment/midtrans', [TransactionController::class, 'webhookMidtrans']);
 });
 

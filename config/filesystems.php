@@ -40,7 +40,12 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            // On hosts where storage:link's symlink() is blocked (e.g. CageFS/
+            // CloudLinux shared hosting), set PUBLIC_DISK_ROOT to an absolute
+            // path inside the web root (e.g. a sibling public_html/storage)
+            // so uploaded files are written directly there instead of relying
+            // on a symlink from storage/app/public.
+            'root' => env('PUBLIC_DISK_ROOT', storage_path('app/public')),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,

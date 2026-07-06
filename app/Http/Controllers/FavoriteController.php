@@ -13,7 +13,7 @@ class FavoriteController extends Controller
     {
         $favorites = $request->user()->favorites()
             ->with(['culinarySpot' => function($query) {
-                $query->with('category')->withAvg('reviews', 'rating')->withCount('reviews');
+                $query->with(['category', 'media'])->withAvg('reviews', 'rating')->withCount('reviews');
             }])
             ->get()
             ->map(function($favorite) {
@@ -23,8 +23,24 @@ class FavoriteController extends Controller
                 return $spot;
             });
 
+        $suggestions = [];
+        if ($favorites->isEmpty()) {
+            $suggestions = CulinarySpot::with('category')
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
+                ->orderByDesc('reviews_count')
+                ->limit(2)
+                ->get()
+                ->map(function ($spot) {
+                    $spot->average_rating = round($spot->reviews_avg_rating ?? 0, 1);
+                    $spot->review_count = $spot->reviews_count ?? 0;
+                    return $spot;
+                });
+        }
+
         return Inertia::render('Favorites', [
-            'favorites' => $favorites
+            'favorites' => $favorites,
+            'suggestions' => $suggestions,
         ]);
     }
 

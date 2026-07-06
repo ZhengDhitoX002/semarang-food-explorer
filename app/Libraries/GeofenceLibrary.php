@@ -38,10 +38,17 @@ class GeofenceLibrary
      */
     public static function getHaversineSql($lat, $lng)
     {
-        return "(6371000 * acos(cos(radians($lat)) 
-            * cos(radians(latitude)) 
-            * cos(radians(longitude) - radians($lng)) 
-            + sin(radians($lat)) 
+        // Cast to float before interpolating into raw SQL - callers are
+        // expected to validate these as numeric first, but casting here
+        // means a non-numeric value can never reach the query string even
+        // if that upstream validation is ever missed.
+        $lat = (float) $lat;
+        $lng = (float) $lng;
+
+        return "(6371000 * acos(cos(radians($lat))
+            * cos(radians(latitude))
+            * cos(radians(longitude) - radians($lng))
+            + sin(radians($lat))
             * sin(radians(latitude))))";
     }
 }

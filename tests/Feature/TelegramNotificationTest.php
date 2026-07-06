@@ -47,8 +47,9 @@ class TelegramNotificationTest extends TestCase
             'amount' => 150000,
         ]);
 
-        // Trigger the simulation webhook
-        $response = $this->get("/api/webhook/payment/simulate/SFE-TESTING");
+        // Trigger the simulation webhook as the transaction's owner
+        // (this endpoint now requires auth + ownership + sandbox mode).
+        $response = $this->actingAs($merchant)->get("/transactions/SFE-TESTING/simulate-paid");
         $response->assertStatus(200);
 
         // Verify HTTP fake recorded a request to Telegram API

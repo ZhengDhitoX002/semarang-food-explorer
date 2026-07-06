@@ -26,9 +26,9 @@ Route::get('/spot/{id}', [CulinarySpotController::class, 'show']);
 */
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
 });
 
 /*
@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
 
     // Transactions (Promoted Culinary)
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+    Route::get('/transactions/{orderId}/simulate-paid', [TransactionController::class, 'webhookSimulate'])->name('transactions.simulate-paid');
 
     // Favorites
     Route::post('/favorites/{id}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
@@ -116,6 +117,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Legacy admin CRUD
     Route::post('/spots', [CulinarySpotController::class, 'store'])->name('admin.spots.store');
     Route::put('/spots/{id}', [CulinarySpotController::class, 'update'])->name('admin.spots.update');
+    Route::post('/spots/{id}/photos', [CulinarySpotController::class, 'addPhotos'])->name('admin.spots.photos.add');
+    Route::delete('/spots/{id}/photos/{mediaId}', [CulinarySpotController::class, 'deletePhoto'])->name('admin.spots.photos.delete');
 
     // Admin Categories & Tags CRUD
     Route::post('/categories', [\App\Http\Controllers\AdminCategoryController::class, 'store'])->name('admin.categories.store');
