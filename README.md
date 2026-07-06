@@ -271,104 +271,11 @@ Setelah menjalankan `php artisan migrate --seed`, akun berikut tersedia:
 
 ## Entity Relationship Diagram (ERD)
 
-> **ERD interaktif lengkap** tersedia di [`docs/ERD.html`](docs/ERD.html) — buka di browser untuk melihat diagram penuh dengan tipe data dan relasi.
+<p align="center">
+  <img src="docs/screenshots/erd.png" width="900" alt="Entity Relationship Diagram Semarang Food Explorer">
+</p>
 
-```mermaid
-erDiagram
-    users ||--o{ culinary_spots : "owns (owner_id)"
-    users ||--o{ culinary_spots : "submits (submitted_by)"
-    users ||--o{ reviews : "writes"
-    users ||--o{ transactions : "makes"
-    users ||--o{ favorites : "saves"
-    users ||--o{ notifications : "receives"
-    categories ||--o{ culinary_spots : "categorizes"
-    culinary_spots ||--o{ reviews : "has"
-    culinary_spots ||--o{ transactions : "promoted via"
-    culinary_spots ||--o{ analytics : "tracked by"
-    culinary_spots ||--o{ favorites : "favorited in"
-    culinary_spots }o--o{ tags : "tagged with"
-    culinary_spots ||--o{ media : "has photos"
-    reviews ||--o{ media : "has photos"
-
-    users {
-        bigint id PK
-        varchar name
-        varchar email UK
-        varchar avatar
-        varchar role
-        varchar password
-        timestamp created_at
-    }
-    categories {
-        bigint id PK
-        varchar name
-    }
-    culinary_spots {
-        bigint id PK
-        bigint owner_id FK
-        bigint category_id FK
-        varchar name
-        text description
-        varchar address
-        decimal latitude
-        decimal longitude
-        decimal price
-        boolean is_promoted
-        varchar status
-        varchar closed_reason
-        bigint submitted_by FK
-    }
-    reviews {
-        bigint id PK
-        bigint user_id FK
-        bigint spot_id FK
-        tinyint rating
-        text comment
-        boolean is_verified
-    }
-    transactions {
-        bigint id PK
-        bigint user_id FK
-        bigint spot_id FK
-        varchar order_id UK
-        varchar status
-        decimal amount
-        timestamp paid_at
-    }
-    tags {
-        bigint id PK
-        varchar name
-        varchar slug UK
-    }
-    favorites {
-        bigint id PK
-        bigint user_id FK
-        bigint culinary_spot_id FK
-    }
-    analytics {
-        bigint id PK
-        bigint spot_id FK
-        varchar event_type
-        varchar ip_address
-    }
-    media {
-        bigint id PK
-        varchar model_type
-        bigint model_id
-        varchar collection_name
-        varchar file_name
-        varchar disk
-        bigint size
-    }
-    notifications {
-        uuid id PK
-        varchar type
-        varchar notifiable_type
-        bigint notifiable_id
-        text data
-        timestamp read_at
-    }
-```
+> Sumber diagram di atas ada di [`docs/ERD.html`](docs/ERD.html) — GitHub tidak bisa menjalankan file HTML langsung di halaman README, jadi kalau mau versi yang bisa di-zoom/interaktif, unduh file itu lalu buka di browser.
 
 ---
 
