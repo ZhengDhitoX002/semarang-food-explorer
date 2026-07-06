@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..0&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e9e4da;font-family:'Hanken Grotesk',system-ui,sans-serif}
+  *{box-sizing:border-box}
+  .dv-turn{padding:44px 48px 40px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+  .dv-thd{display:flex;align-items:baseline;gap:12px;margin:0 0 6px}
+  .dv-tid{font:700 10px ui-monospace,Menlo,monospace;padding:4px 8px;background:#1a1512;color:#fff;border-radius:5px;text-decoration:none}
+  .dv-tname{font:700 15px/1.2 'Schibsted Grotesk',sans-serif;color:#1a1512}
+  .dv-intro{max-width:720px;margin:0 0 28px;font:400 13.5px/1.6 'Hanken Grotesk',sans-serif;color:rgba(26,21,18,.62)}
+  .dv-intro b{color:#1a1512;font-weight:700}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+  .oh{display:flex;flex-direction:column;gap:9px}
+  .oh-top{display:flex;align-items:center;gap:9px}
+  .dv-oid{font:700 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.09);color:#1a1512;border-radius:6px;text-decoration:none}
+  .dv-opt:target .dv-oid{background:#c8451f;color:#fff}
+  .oh-name{font:800 19px/1 'Schibsted Grotesk',sans-serif;color:#1a1512;letter-spacing:-.01em}
+  .oh-tag{font:600 11px/1 ui-monospace,monospace;color:rgba(26,21,18,.5);text-transform:uppercase;letter-spacing:.08em}
+  .oh-desc{font:400 12.5px/1.5 'Hanken Grotesk',sans-serif;color:rgba(26,21,18,.6);max-width:384px}
+  .oh-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .sw{display:flex;gap:5px}
+  .sw i{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+  .oh-font{font:600 10.5px/1 ui-monospace,monospace;color:rgba(26,21,18,.45)}
+  .dv-next{margin:26px 0 0;font:13px/1.6 'Hanken Grotesk',sans-serif;color:rgba(26,21,18,.55);max-width:760px}
+  .dv-next a{color:#c8451f;text-decoration:none;font-weight:600}
+
+  /* ---------- phone shell ---------- */
+  .phone{width:384px;height:812px;position:relative;overflow:hidden;border-radius:46px;
+    background:var(--bg);color:var(--ink);font-family:var(--font);
+    box-shadow:0 34px 70px -26px rgba(30,18,8,.5),0 0 0 11px #0d0a08,0 0 0 13px #2b2320,inset 0 0 0 1px rgba(255,255,255,.04)}
+  .isl{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:98px;height:27px;background:#0b0807;border-radius:16px;z-index:40}
+  .material-symbols-rounded{font-variation-settings:'opsz' 24,'wght' 400,'FILL' 0,'GRAD' 0;line-height:1;user-select:none}
+
+  /* status bar */
+  .sb{position:absolute;top:0;left:0;right:0;height:52px;z-index:30;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px;color:var(--ink)}
+  .sb-time{font:700 15px/1 var(--font);letter-spacing:.02em}
+  .sb-r{display:flex;align-items:center;gap:7px}
+  .bars{display:flex;gap:2px;align-items:flex-end;height:12px}
+  .bars i{width:3px;background:currentColor;border-radius:1px}
+  .sb-5g{font:700 12px/1 var(--font)}
+  .batt{width:23px;height:12px;border:1.5px solid currentColor;border-radius:3.5px;position:relative;opacity:.9}
+  .batt b{position:absolute;inset:2px;right:7px;background:currentColor;border-radius:1px}
+  .batt::after{content:"";position:absolute;right:-3px;top:3.5px;width:2px;height:5px;background:currentColor;border-radius:0 2px 2px 0}
+
+  /* map */
+  .map{position:absolute;inset:0;background:var(--map);overflow:hidden}
+  .road{position:absolute;background:var(--road);border-radius:8px}
+  .road.maj{background:var(--roadmaj);box-shadow:0 0 0 1px var(--roadedge)}
+  .water{position:absolute;background:var(--water);border-radius:44% 56% 52% 48%/48% 44% 56% 52%}
+  .park{position:absolute;background:var(--park);border-radius:52% 48% 46% 54%}
+  .mlabel{position:absolute;font:700 9px/1 var(--font);letter-spacing:.14em;color:var(--mut);opacity:.75;text-transform:uppercase}
+  .scrim-t{position:absolute;top:0;left:0;right:0;height:120px;z-index:20;background:linear-gradient(var(--scrim),transparent);pointer-events:none}
+
+  /* pins */
+  .pin{position:absolute;z-index:22;transform:translate(-50%,-50%)}
+  .pin-price{background:var(--surf);color:var(--ink);font:700 11px/1 var(--font);padding:6px 9px;border-radius:20px;box-shadow:0 6px 16px -4px rgba(20,12,4,.4);display:flex;align-items:center;gap:5px;white-space:nowrap;border:1px solid var(--line)}
+  .pin-price .dot{width:7px;height:7px;border-radius:50%;background:var(--acc2)}
+  .pin-dot{width:15px;height:15px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 4px var(--dotring),0 4px 10px -2px rgba(0,0,0,.4)}
+  .mini{position:absolute;z-index:25;transform:translate(-50%,-100%);width:210px;background:var(--surf);border-radius:16px;padding:8px;display:flex;gap:9px;align-items:center;box-shadow:0 16px 34px -12px rgba(20,12,4,.5);border:1px solid var(--line)}
+  .mini::after{content:"";position:absolute;left:50%;bottom:-6px;width:14px;height:14px;background:var(--surf);transform:translateX(-50%) rotate(45deg);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .mini .mimg{width:48px;height:48px;border-radius:11px;flex:none}
+  .mini .mname{font:700 12.5px/1.15 var(--disp);letter-spacing:-.01em}
+  .mini .mrow{display:flex;align-items:center;gap:5px;margin-top:5px;font:600 10.5px/1 var(--font);color:var(--mut);white-space:nowrap}
+  .mini .mrow .st{color:var(--acc2);font-variation-settings:'FILL' 1;font-size:13px}
+
+  /* floating controls */
+  .fab{position:absolute;right:16px;bottom:472px;z-index:26;width:46px;height:46px;border-radius:15px;background:var(--surf);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);box-shadow:0 8px 20px -6px rgba(20,12,4,.4)}
+  .fab .material-symbols-rounded{font-size:23px}
+  .toggle{position:absolute;left:50%;transform:translateX(-50%);bottom:474px;z-index:26;background:var(--ink);color:var(--bg);font:700 12.5px/1 var(--font);padding:11px 16px;border-radius:22px;display:flex;align-items:center;gap:7px;box-shadow:0 10px 24px -8px rgba(20,12,4,.5)}
+  .toggle .material-symbols-rounded{font-size:18px}
+
+  /* top search */
+  .top{position:absolute;top:56px;left:0;right:0;z-index:24;padding:0 16px}
+  .search{height:50px;background:var(--surf);border:1px solid var(--line);border-radius:var(--rs);display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;box-shadow:0 10px 26px -12px rgba(20,12,4,.35)}
+  .search .lead{font-size:22px;color:var(--mut)}
+  .search .ph-txt{flex:1;font:500 14px/1 var(--font);color:var(--mut)}
+  .search .tune{width:36px;height:36px;border-radius:calc(var(--rs) - 5px);background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .cats{display:flex;gap:8px;margin-top:12px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .cat{flex:none;font:600 12.5px/1 var(--font);padding:9px 14px;border-radius:20px;background:var(--surf);border:1px solid var(--line);color:var(--ink);box-shadow:0 4px 12px -6px rgba(20,12,4,.3)}
+  .cat.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+  /* bottom sheet */
+  .sheet{position:absolute;left:0;right:0;bottom:82px;height:276px;z-index:28;background:var(--surf);border-radius:26px 26px 0 0;box-shadow:0 -14px 40px -18px rgba(20,12,4,.35);border-top:1px solid var(--line);padding:0 0 8px}
+  .handle{width:40px;height:5px;border-radius:5px;background:var(--line);margin:9px auto 0}
+  .sheet-h{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 12px}
+  .sh-title{font:800 18px/1 var(--disp);letter-spacing:-.02em}
+  .sh-sub{font:500 11.5px/1 var(--font);color:var(--mut);margin-top:6px}
+  .see{font:700 12px/1 var(--font);color:var(--acc)}
+  .cardrow{display:flex;gap:13px;padding:2px 18px 14px;overflow:hidden}
+  .spot{flex:none;width:210px;background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+  .spot-img{height:112px;position:relative}
+  .spot-rate{position:absolute;top:9px;left:9px;background:var(--surf);color:var(--ink);font:700 11px/1 var(--font);padding:5px 8px;border-radius:14px;display:flex;align-items:center;gap:4px;box-shadow:0 3px 8px -3px rgba(0,0,0,.35)}
+  .spot-rate .st{color:var(--acc2);font-variation-settings:'FILL' 1;font-size:13px}
+  .spot-heart{position:absolute;top:9px;right:9px;width:30px;height:30px;border-radius:50%;background:var(--surf);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:17px;box-shadow:0 3px 8px -3px rgba(0,0,0,.35)}
+  .spot-heart .material-symbols-rounded{font-variation-settings:'FILL' 1}
+  .promo-badge{position:absolute;bottom:9px;left:9px;font:700 9.5px/1 var(--font);letter-spacing:.05em;text-transform:uppercase;padding:5px 8px;border-radius:8px;background:var(--acc2);color:#241a06}
+  .spot-body{padding:11px 12px 13px}
+  .spot-name{font:700 14.5px/1.15 var(--disp);letter-spacing:-.01em}
+  .spot-loc{display:flex;align-items:center;gap:4px;margin-top:6px;font:500 11px/1 var(--font);color:var(--mut)}
+  .spot-loc .material-symbols-rounded{font-size:14px}
+  .tags{display:flex;gap:6px;margin-top:10px}
+  .tag{font:600 10px/1 var(--font);padding:5px 8px;border-radius:7px;background:var(--chip);color:var(--chipink)}
+  .spot-foot{display:flex;align-items:center;justify-content:space-between;margin-top:11px}
+  .price{font:700 12.5px/1 var(--font);color:var(--ink)}
+  .price small{font-weight:500;color:var(--mut)}
+
+  /* bottom nav */
+  .nav{position:absolute;left:0;right:0;bottom:0;height:82px;z-index:32;background:var(--navbg);border-top:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-around;padding:12px 8px 0;backdrop-filter:blur(12px)}
+  .nav-i{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--mut);font:600 10px/1 var(--font)}
+  .nav-i .material-symbols-rounded{font-size:25px}
+  .nav-i.active{color:var(--acc)}
+  .nav-i.active .material-symbols-rounded{font-variation-settings:'FILL' 1}
+
+  /* placeholder photos */
+  .ph{background-image:repeating-linear-gradient(135deg,var(--ph1) 0 11px,var(--ph2) 11px 22px);position:relative}
+  .ph::after{content:attr(data-cap);position:absolute;left:8px;bottom:7px;font:600 8.5px/1 ui-monospace,Menlo,monospace;color:var(--mut);opacity:.85;letter-spacing:.02em}
+
+  /* =========== D1 · SAJIAN (editorial premium) =========== */
+  .d1{--bg:#f4eee1;--surf:#fffdf7;--card:#fffdf7;--ink:#2a2118;--mut:#96876f;--line:#e6dcc7;
+    --acc:#c8451f;--acc2:#dc9a2b;--font:'Schibsted Grotesk',sans-serif;--disp:'Schibsted Grotesk',sans-serif;
+    --rs:16px;--map:#ecefe4;--road:#fbf9f2;--roadmaj:#f4d9a8;--roadedge:#eecf97;
+    --water:#c9dde0;--park:#dbe6c6;--scrim:rgba(244,238,225,.9);--dotring:rgba(255,253,247,.9);
+    --chip:#f1 e9d7;--chip:#f2ecdd;--chipink:#8a6a3a;--navbg:rgba(255,253,247,.86)}
+  .d1 .oh-name,.d1 .sh-title,.d1 .spot-name{letter-spacing:-.02em}
+
+  /* =========== D2 · KAKI LIMA (bold street, dark) =========== */
+  .d2{--bg:#161210;--surf:#221b16;--card:#221b16;--ink:#f6ecdc;--mut:#a2917c;--line:#352a21;
+    --acc:#ff4d2e;--acc2:#f5b301;--font:'Hanken Grotesk',sans-serif;--disp:'Space Grotesk',sans-serif;
+    --rs:14px;--map:#1c1712;--road:#2b231c;--roadmaj:#3c2f22;--roadedge:#4a3a2a;
+    --water:#153036;--park:#1f2d1a;--scrim:rgba(22,18,16,.92);--dotring:rgba(34,27,22,.95);
+    --chip:#2e251e;--chipink:#e3b877;--navbg:rgba(22,18,16,.9)}
+  .d2 .spot-name,.d2 .sh-title{text-transform:uppercase;letter-spacing:.01em;font-weight:700}
+  .d2 .oh-name{text-transform:uppercase;letter-spacing:.02em}
+  .d2 .search{background:rgba(255,255,255,.05);backdrop-filter:blur(8px)}
+  .d2 .promo-badge{background:var(--acc);color:#fff;transform:rotate(-3deg)}
+  .d2 .cat.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+  .d2 .pin-dot{background:var(--acc2)}
+  .d2 .toggle{background:var(--acc);color:#fff}
+
+  /* =========== D3 · REMPAH (warm craft) =========== */
+  .d3{--bg:#ede0cd;--surf:#faf3e5;--card:#faf3e5;--ink:#3a2b21;--mut:#98836c;--line:#e2d2b7;
+    --acc:#b5471f;--acc2:#7d8a3e;--font:'Hanken Grotesk',sans-serif;--disp:'Bricolage Grotesque',sans-serif;
+    --rs:22px;--map:#e7dac1;--road:#f4ead6;--roadmaj:#e9c99a;--roadedge:#dcb884;
+    --water:#bcccb4;--park:#d4d9a6;--scrim:rgba(237,224,205,.9);--dotring:rgba(250,243,229,.95);
+    --chip:#ece0c9;--chipink:#8a6a3a;--navbg:rgba(250,243,229,.9)}
+  .d3 .sheet{background-image:radial-gradient(circle at 1px 1px,rgba(58,43,33,.05) 1px,transparent 0);background-size:15px 15px}
+  .d3 .spot,.d3 .search,.d3 .cat,.d3 .fab{border-width:1.5px}
+  .d3 .spot-name,.d3 .sh-title,.d3 .oh-name{font-weight:700}
+  .d3 .tag{border:1px solid var(--line);background:transparent}
+
+  /* photo-placeholder stripe colors (were missing) */
+  .d1{--ph1:#ece2cf;--ph2:#e4d8c0}
+  .d2{--ph1:#2a231c;--ph2:#31281f}
+  .d3{--ph1:#e7dabf;--ph2:#ddceac}
+
+  /* dark admin theme */
+  .adm{--bg:#171b21;--surf:#212831;--card:#212831;--ink:#eef2f6;--mut:#8896a3;--line:#2d353f;
+    --acc:#e08a3e;--acc2:#e0b23e;--font:'Hanken Grotesk',sans-serif;--disp:'Space Grotesk',sans-serif;
+    --chip:#2b333d;--chipink:#e0b76e;--ph1:#242c35;--ph2:#2b333d}
+
+  /* ===== shared new controls ===== */
+  .iconbtn{width:40px;height:40px;border-radius:13px;background:var(--surf);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:21px;flex:none}
+  .card{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:15px}
+  .card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+  .card-h b{font:700 14px/1 var(--disp)}
+  .card-h .lnk{font:600 11px/1 var(--font);color:var(--acc)}
+
+  /* ===== spot detail ===== */
+  .dt-hero{position:absolute;top:0;left:0;right:0;height:344px;z-index:1}
+  .dt-hero .ph{position:absolute;inset:0}
+  .dt-scr{position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,20,12,.32),transparent 26%,transparent 62%,rgba(30,20,12,.28))}
+  .dt-top{position:absolute;top:52px;left:0;right:0;z-index:6;display:flex;justify-content:space-between;padding:6px 16px 0}
+  .dt-top .iconbtn{background:rgba(250,243,229,.92);backdrop-filter:blur(6px);color:#3a2b21}
+  .dt-top .grp{display:flex;gap:9px}
+  .dt-count{position:absolute;right:16px;top:300px;z-index:5;background:rgba(20,12,4,.5);color:#fff;font:600 11px/1 var(--font);padding:6px 10px;border-radius:20px;backdrop-filter:blur(4px)}
+  .dt-sheet{position:absolute;top:320px;left:0;right:0;bottom:0;z-index:8;background:var(--bg);border-radius:28px 28px 0 0;padding:20px 18px 94px;overflow:hidden}
+  .dt-row1{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .chip-cat{font:600 11px/1 var(--font);padding:6px 11px;border-radius:20px;background:var(--chip);color:var(--chipink)}
+  .chip-open{font:700 10.5px/1 var(--font);padding:6px 10px;border-radius:20px;background:rgba(125,138,62,.18);color:#5a6a2c;display:flex;align-items:center;gap:5px}
+  .chip-open .dg{width:7px;height:7px;border-radius:50%;background:#7d8a3e}
+  .dt-title{font:700 26px/1.12 var(--disp);letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+  .dt-title .material-symbols-rounded{color:var(--acc2);font-size:23px;font-variation-settings:'FILL' 1}
+  .dt-loc{display:flex;align-items:center;gap:5px;margin-top:9px;font:500 12.5px/1 var(--font);color:var(--mut)}
+  .dt-loc .material-symbols-rounded{font-size:16px}
+  .dt-stats{display:flex;margin-top:16px;background:var(--surf);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  .dt-stat{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:6px}
+  .dt-stat:last-child{border-right:none}
+  .dt-stat b{font:700 16px/1 var(--disp);display:flex;align-items:center;gap:4px}
+  .dt-stat b .material-symbols-rounded{color:var(--acc2);font-size:16px;font-variation-settings:'FILL' 1}
+  .dt-stat span{font:500 10.5px/1 var(--font);color:var(--mut)}
+  .dt-h2{font:700 15px/1 var(--disp);margin:20px 0 9px}
+  .dt-desc{font:400 13px/1.65 var(--font);color:var(--ink);opacity:.82}
+  .rv{display:flex;gap:11px;margin-top:15px}
+  .rv-av{width:38px;height:38px;border-radius:50%;background:var(--chip);display:flex;align-items:center;justify-content:center;font:700 14px/1 var(--disp);color:var(--chipink);flex:none}
+  .rv-top{display:flex;align-items:baseline;gap:8px}
+  .rv-name{font:700 13px/1 var(--font)}
+  .rv-date{font:500 10.5px/1 var(--font);color:var(--mut)}
+  .rv-stars{margin-top:6px;display:flex;gap:1px}
+  .rv-stars .material-symbols-rounded{font-size:14px;color:var(--acc2);font-variation-settings:'FILL' 1}
+  .rv-txt{font:400 12.5px/1.55 var(--font);color:var(--ink);opacity:.85;margin-top:6px}
+  .dt-actions{position:absolute;left:0;right:0;bottom:0;z-index:10;background:var(--surf);border-top:1px solid var(--line);padding:12px 16px 22px;display:flex;gap:10px}
+  .btn-out{width:52px;height:50px;border-radius:16px;border:1.5px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:22px;flex:none}
+  .btn-primary{flex:1;height:50px;border-radius:16px;background:var(--acc);color:#fff;font:700 15px/1 var(--font);display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-primary .material-symbols-rounded{font-size:20px}
+
+  /* ===== merchant dashboard ===== */
+  .mh-scroll{position:absolute;top:52px;left:0;right:0;bottom:82px;overflow:hidden;padding:10px 16px 16px}
+  .mh-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .mh-hi small{font:700 10px/1 var(--font);color:var(--mut);text-transform:uppercase;letter-spacing:.1em}
+  .mh-hi b{display:block;font:700 21px/1.05 var(--disp);margin-top:7px;letter-spacing:-.01em}
+  .mh-tools{display:flex;gap:9px}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .kpi{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:14px}
+  .kpi .klabel{display:flex;align-items:center;gap:8px;font:600 11px/1 var(--font);color:var(--mut)}
+  .kpi .kicon{width:27px;height:27px;border-radius:9px;background:var(--chip);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+  .kpi .knum{font:700 22px/1 var(--disp);margin-top:12px;letter-spacing:-.01em}
+  .ktrend{display:inline-flex;align-items:center;gap:2px;margin-top:10px;font:700 10.5px/1 var(--font);padding:4px 7px 4px 5px;border-radius:12px}
+  .ktrend .material-symbols-rounded{font-size:13px}
+  .ktrend.up{background:rgba(125,138,62,.18);color:#5a6a2c}
+  .ktrend.flat{background:var(--chip);color:var(--mut)}
+  .legend{display:flex;gap:14px;margin-bottom:11px}
+  .legend span{display:flex;align-items:center;gap:6px;font:600 10.5px/1 var(--font);color:var(--mut)}
+  .legend i{width:9px;height:9px;border-radius:3px}
+  .chartbox{position:relative;height:108px;background:repeating-linear-gradient(180deg,transparent 0 34px,var(--line) 34px 35px);border-radius:9px;overflow:hidden}
+  .area{position:absolute;inset:0}
+  .area.a1{background:linear-gradient(180deg,rgba(181,71,31,.42),rgba(181,71,31,.03));clip-path:polygon(0% 72%,8% 62%,16% 68%,24% 48%,32% 55%,40% 40%,48% 46%,56% 32%,64% 42%,72% 24%,80% 36%,88% 20%,100% 28%,100% 100%,0% 100%)}
+  .area.a2{background:linear-gradient(180deg,rgba(125,138,62,.34),rgba(125,138,62,.02));clip-path:polygon(0% 84%,8% 80%,16% 82%,24% 70%,32% 74%,40% 64%,48% 68%,56% 58%,64% 64%,72% 52%,80% 60%,88% 48%,100% 54%,100% 100%,0% 100%)}
+  .bars7{display:flex;align-items:flex-end;gap:9px;height:96px}
+  .bars7 .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+  .bars7 .bar{width:100%;background:var(--acc);border-radius:6px 6px 3px 3px;opacity:.9}
+  .bars7 .bar.hl{background:var(--acc);opacity:1}
+  .bars7 .col span{font:600 9.5px/1 var(--font);color:var(--mut)}
+  .txn{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line)}
+  .txn:first-of-type{border-top:none;padding-top:2px}
+  .txn .ti{width:38px;height:38px;border-radius:11px;background:var(--chip);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:19px;flex:none}
+  .txn .tb b{font:700 12.5px/1.15 var(--font);display:block}
+  .txn .tb small{font:500 10.5px/1 var(--font);color:var(--mut)}
+  .txn .amt{margin-left:auto;text-align:right}
+  .txn .amt b{font:700 13px/1 var(--font);display:block}
+  .tstat{font:700 9.5px/1 var(--font);padding:4px 7px;border-radius:8px;margin-top:5px;display:inline-block}
+  .tstat.paid{background:rgba(125,138,62,.18);color:#5a6a2c}
+  .tstat.wait{background:rgba(220,154,43,.2);color:#9a6a1a}
+  .qa{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:15px}
+  .qa .q{display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:13px 4px;font:600 10px/1.15 var(--font);text-align:center;color:var(--ink)}
+  .qa .qi{width:34px;height:34px;border-radius:11px;background:var(--chip);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:19px}
+
+  /* ===== promote ===== */
+  .pr-scroll{position:absolute;top:52px;left:0;right:0;bottom:96px;overflow:hidden;padding:8px 16px 16px}
+  .pr-head{font:700 22px/1.1 var(--disp);letter-spacing:-.02em;margin:6px 0 4px}
+  .pr-sub{font:500 12px/1.4 var(--font);color:var(--mut)}
+  .steps{display:flex;align-items:center;margin:16px 0 18px}
+  .step{display:flex;align-items:center;gap:6px;font:700 11px/1 var(--font);color:var(--mut)}
+  .step .n{width:22px;height:22px;border-radius:50%;background:var(--chip);color:var(--mut);display:flex;align-items:center;justify-content:center;font:700 11px/1 var(--font)}
+  .step.active{color:var(--ink)}
+  .step.active .n{background:var(--acc);color:#fff}
+  .step-line{flex:1;height:2px;background:var(--line);margin:0 9px}
+  .pkg{border:1.5px solid var(--line);border-radius:20px;padding:16px;margin-bottom:13px;background:var(--surf);position:relative}
+  .pkg.sel{border-color:var(--acc);box-shadow:0 0 0 3px rgba(181,71,31,.13)}
+  .pkg-pop{position:absolute;top:-11px;left:16px;background:var(--acc);color:#fff;font:700 9.5px/1 var(--font);letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:20px}
+  .pkg-h{display:flex;align-items:flex-start;justify-content:space-between}
+  .pkg-name{font:700 18px/1 var(--disp)}
+  .pkg-days{font:600 11px/1 var(--font);color:var(--mut);margin-top:7px}
+  .pkg-price{font:700 19px/1 var(--disp);color:var(--acc);text-align:right}
+  .pkg-price small{display:block;font:500 10.5px/1 var(--font);color:var(--mut);margin-top:6px;font-weight:500}
+  .pkg-benes{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+  .bene{display:flex;align-items:center;gap:9px;font:500 12px/1.25 var(--font)}
+  .bene .material-symbols-rounded{font-size:18px;color:var(--acc2);flex:none}
+  .pkg-sel-ico{position:absolute;top:16px;right:16px;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .pr-bar{position:absolute;left:0;right:0;bottom:0;background:var(--surf);border-top:1px solid var(--line);padding:13px 16px 22px;display:flex;align-items:center;gap:14px;z-index:10}
+  .pr-bar .tot small{font:600 10.5px/1 var(--font);color:var(--mut)}
+  .pr-bar .tot b{display:block;font:700 20px/1 var(--disp);margin-top:5px;letter-spacing:-.01em}
+  .pr-bar .go{flex:1;height:50px;border-radius:16px;background:var(--acc);color:#fff;font:700 14.5px/1 var(--font);display:flex;align-items:center;justify-content:center;gap:8px}
+  .pr-bar .go .material-symbols-rounded{font-size:19px}
+
+  /* ===== auth ===== */
+  .au{position:absolute;inset:0;display:flex;flex-direction:column}
+  .au-hero{height:296px;position:relative;flex:none}
+  .au-hero .ph{position:absolute;inset:0}
+  .au-hsc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(58,43,33,.18),rgba(237,224,205,.15) 52%,var(--bg))}
+  .au-brand{position:absolute;left:0;right:0;bottom:30px;text-align:center}
+  .au-kicker{font:700 10px/1 var(--font);letter-spacing:.24em;text-transform:uppercase;color:var(--acc);margin-bottom:12px}
+  .au-logo{font:800 32px/1 var(--disp);letter-spacing:-.02em;color:var(--ink)}
+  .au-tag{font:500 12.5px/1.4 var(--font);color:var(--mut);margin-top:11px;padding:0 40px}
+  .au-card{flex:1;background:var(--bg);margin-top:-26px;border-radius:28px 28px 0 0;padding:26px 20px;position:relative;z-index:2}
+  .au-card h2{font:700 21px/1 var(--disp);margin:0 0 6px;letter-spacing:-.01em}
+  .au-cs{font:500 12.5px/1.45 var(--font);color:var(--mut);margin-bottom:22px}
+  .field{margin-bottom:15px}
+  .field>label{display:block;font:600 11.5px/1 var(--font);color:var(--ink);margin-bottom:9px}
+  .input{height:50px;border:1.5px solid var(--line);border-radius:14px;background:var(--surf);display:flex;align-items:center;gap:11px;padding:0 14px;color:var(--mut);font:500 13.5px/1 var(--font)}
+  .input .material-symbols-rounded{font-size:20px}
+  .input .eye{margin-left:auto}
+  .row-between{display:flex;align-items:center;justify-content:space-between;margin:2px 0 20px}
+  .check{display:flex;align-items:center;gap:9px;font:500 12.5px/1 var(--font);color:var(--ink)}
+  .check .box{width:19px;height:19px;border-radius:6px;border:1.5px solid var(--acc);background:var(--acc);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px}
+  .au-btn{height:52px;border-radius:16px;background:var(--acc);color:#fff;font:700 15px/1 var(--font);display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:18px}
+  .divider{display:flex;align-items:center;gap:12px;margin:8px 0 16px;color:var(--mut);font:600 10px/1 var(--font);letter-spacing:.08em}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+  .oauth{height:50px;border-radius:14px;border:1.5px solid var(--line);background:var(--surf);display:flex;align-items:center;justify-content:center;gap:10px;font:700 13px/1 var(--font);color:var(--ink);margin-bottom:20px}
+  .oauth .g{width:20px;height:20px;border-radius:50%;background:var(--chip);display:flex;align-items:center;justify-content:center;font:800 12px/1 var(--disp);color:var(--acc)}
+  .au-alt{text-align:center;font:500 12.5px/1 var(--font);color:var(--mut)}
+  .au-alt a{color:var(--acc);font-weight:700;text-decoration:none}
+
+  /* ===== admin ===== */
+  .ad-scroll{position:absolute;top:52px;left:0;right:0;bottom:0;overflow:hidden;padding:10px 16px 16px}
+  .ad-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+  .ad-head .t small{font:700 10px/1 var(--font);color:var(--mut);letter-spacing:.14em;text-transform:uppercase}
+  .ad-head .t b{display:block;font:700 20px/1 var(--disp);margin-top:7px}
+  .ad-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .ad-stat{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:13px 14px}
+  .ad-stat .sl{display:flex;align-items:center;gap:7px;font:600 10.5px/1 var(--font);color:var(--mut)}
+  .ad-stat .sl .material-symbols-rounded{font-size:15px}
+  .ad-stat .n{font:700 23px/1 var(--disp);margin-top:11px}
+  .ad-stat.hot{border-color:rgba(224,138,62,.5);background:rgba(224,138,62,.08)}
+  .ad-stat.hot .n{color:var(--acc)}
+  .ad-tabs{display:flex;gap:7px;overflow:hidden;margin-bottom:15px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .ad-tab{flex:none;font:600 11.5px/1 var(--font);padding:9px 13px;border-radius:11px;background:var(--surf);border:1px solid var(--line);color:var(--mut)}
+  .ad-tab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+  .ad-sech{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+  .ad-sech b{font:700 13.5px/1 var(--disp)}
+  .ad-sech small{font:600 10.5px/1 var(--font);color:var(--mut)}
+  .ad-item{background:var(--surf);border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:11px}
+  .ad-r1{display:flex;gap:12px}
+  .ad-thumb{width:66px;height:66px;border-radius:11px;flex:none}
+  .ad-name{font:700 14px/1.15 var(--disp)}
+  .ad-by{font:500 11px/1.4 var(--font);color:var(--mut);margin-top:6px}
+  .ad-meta{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+  .ad-mchip{font:600 9.5px/1 var(--font);padding:5px 8px;border-radius:8px;background:var(--chip);color:var(--chipink)}
+  .ad-acts{display:flex;gap:9px;margin-top:12px}
+  .ad-btn{flex:1;height:38px;border-radius:11px;font:700 12.5px/1 var(--font);display:flex;align-items:center;justify-content:center;gap:6px}
+  .ad-btn .material-symbols-rounded{font-size:17px}
+  .ad-approve{background:#2f8f57;color:#fff}
+  .ad-reject{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+
+  /* ===== turn 3: promote steps 2-3, submit, favorit ===== */
+  .pgscroll{position:absolute;top:52px;left:0;right:0;bottom:82px;overflow:hidden;padding:10px 16px 16px}
+  .step.done .n{background:rgba(125,138,62,.22);color:#5a6a2c}
+  .step.done{color:#5a6a2c}
+  .step .n .material-symbols-rounded{font-size:13px}
+  .shopc{display:flex;gap:12px;align-items:center;background:var(--surf);border:1.5px solid var(--line);border-radius:18px;padding:13px;margin-bottom:12px}
+  .shopc.sel{border-color:var(--acc);box-shadow:0 0 0 3px rgba(181,71,31,.13)}
+  .shopc.off{opacity:.6}
+  .shopc .simg{width:56px;height:56px;border-radius:13px;flex:none}
+  .shopc .sname{font:700 14px/1.15 var(--disp)}
+  .shopc .smeta{display:flex;align-items:center;gap:5px;margin-top:6px;font:500 11px/1 var(--font);color:var(--mut)}
+  .shopc .smeta .material-symbols-rounded{font-size:13px;color:var(--acc2);font-variation-settings:'FILL' 1}
+  .snote{font:600 9.5px/1.35 var(--font);color:#9a6a1a;background:rgba(220,154,43,.16);padding:5px 8px;border-radius:8px;display:inline-block;margin-top:8px}
+  .radio{margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none}
+  .radio.on{border-color:var(--acc);background:radial-gradient(circle,var(--acc) 0 5px,transparent 6px)}
+  .srow{display:flex;justify-content:space-between;align-items:baseline;font:500 12.5px/1.3 var(--font);padding:8px 0;border-top:1px solid var(--line)}
+  .srow:first-of-type{border-top:none;padding-top:0}
+  .srow span{color:var(--mut)}
+  .srow b{font-weight:700}
+  .pay{display:flex;gap:12px;align-items:center;background:var(--surf);border:1.5px solid var(--line);border-radius:16px;padding:12px 13px;margin-bottom:10px}
+  .pay.sel{border-color:var(--acc);box-shadow:0 0 0 3px rgba(181,71,31,.13)}
+  .pay .pi{width:40px;height:40px;border-radius:12px;background:var(--chip);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:21px;flex:none}
+  .pay .pb b{font:700 13px/1 var(--font);display:block}
+  .pay .pb small{font:500 10.5px/1.4 var(--font);color:var(--mut);display:block;margin-top:5px}
+  .notice{display:flex;gap:10px;background:rgba(220,154,43,.14);border:1px solid rgba(220,154,43,.35);border-radius:14px;padding:11px 13px;font:500 11.5px/1.5 var(--font);color:#7a5a1a;margin-bottom:13px}
+  .notice .material-symbols-rounded{font-size:19px;flex:none;color:#9a6a1a}
+  .banner{display:flex;gap:10px;background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:11px 13px;font:500 11.5px/1.5 var(--font);color:#7a6244;margin-bottom:15px}
+  .banner .material-symbols-rounded{font-size:19px;flex:none;color:var(--acc)}
+  .tagsel{display:flex;flex-wrap:wrap;gap:8px}
+  .tsel{font:600 11.5px/1 var(--font);padding:9px 13px;border-radius:20px;border:1.5px solid var(--line);background:var(--surf);color:var(--mut)}
+  .tsel.on{border-color:var(--acc);background:rgba(181,71,31,.1);color:var(--acc)}
+  .geo{display:flex;gap:9px}
+  .geo .input{flex:1}
+  .geobtn{height:50px;padding:0 14px;border-radius:14px;background:var(--ink);color:var(--bg);font:700 12px/1 var(--font);display:flex;align-items:center;gap:6px;flex:none}
+  .geobtn .material-symbols-rounded{font-size:17px}
+  .geook{display:flex;align-items:flex-start;gap:6px;margin-top:8px;font:600 10.5px/1.5 var(--font);color:#5a6a2c}
+  .geook .material-symbols-rounded{font-size:15px;flex:none}
+  .drop{border:1.5px dashed var(--acc);border-radius:16px;background:rgba(181,71,31,.05);padding:15px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+  .drop .material-symbols-rounded{font-size:25px;color:var(--acc)}
+  .drop b{font:700 12.5px/1 var(--font)}
+  .drop small{font:500 10.5px/1.45 var(--font);color:var(--mut)}
+  .thumbs{display:flex;gap:10px;margin-top:11px}
+  .thumb{width:56px;height:56px;border-radius:12px;position:relative}
+  .thumb .x{position:absolute;top:-6px;right:-6px;width:19px;height:19px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px}
+  .empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 22px 24px}
+  .empty .eico{width:74px;height:74px;border-radius:50%;background:var(--chip);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:34px;margin-bottom:15px}
+  .empty b{font:700 17px/1.25 var(--disp)}
+  .empty p{font:500 12.5px/1.6 var(--font);color:var(--mut);margin:9px 0 17px}
+
+  /* ===== desktop app shell (merchant + admin) ===== */
+  .dwrap{width:1240px;border-radius:18px;overflow:hidden;box-shadow:0 44px 90px -32px rgba(30,18,8,.4);background:var(--bg);color:var(--ink);font-family:var(--font)}
+  .dchrome{height:42px;background:var(--surf);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 16px;flex:none}
+  .dchrome .dot{width:11px;height:11px;border-radius:50%}
+  .dchrome .addr{margin-left:16px;flex:1;max-width:420px;height:25px;background:var(--bg);border-radius:7px;display:flex;align-items:center;padding:0 12px;font:500 11.5px/1 ui-monospace,Menlo,monospace;color:var(--mut)}
+  .dchrome .addr .material-symbols-rounded{font-size:14px;margin-right:7px}
+  .dapp{display:flex;height:788px}
+  .dside{width:252px;flex:none;background:var(--surf);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:22px 16px 18px;overflow:hidden}
+  .dlogo{font:800 19px/1 var(--disp);letter-spacing:-.02em;padding:2px 6px;display:flex;align-items:center;gap:9px}
+  .dlogo .role{margin-left:auto;font:700 9px/1 var(--font);text-transform:uppercase;letter-spacing:.06em;background:var(--chip);color:var(--chipink);padding:5px 7px;border-radius:7px}
+  .dnav{margin-top:24px;display:flex;flex-direction:column;gap:3px}
+  .dnav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;font:600 13px/1 var(--font);color:var(--mut)}
+  .dnav a .material-symbols-rounded{font-size:20px}
+  .dnav a.active{background:var(--acc);color:#fff}
+  .dnav a .badge{margin-left:auto;background:var(--acc);color:#fff;font:700 10px/1 var(--font);padding:3px 7px;border-radius:20px}
+  .dnav a.active .badge{background:rgba(255,255,255,.28)}
+  .dnav .sep{height:1px;background:var(--line);margin:13px 6px}
+  .dpromo{margin-top:auto;background:linear-gradient(160deg,var(--acc),#8a3216);color:#fff;border-radius:16px;padding:16px;margin-bottom:14px}
+  .dpromo .material-symbols-rounded{font-size:22px;opacity:.9}
+  .dpromo b{display:block;font:700 13.5px/1.3 var(--disp);margin-top:9px}
+  .dpromo p{font:500 11px/1.5 var(--font);opacity:.85;margin:6px 0 12px}
+  .dpromo .go{background:#fff;color:var(--acc);font:700 11.5px/1 var(--font);padding:9px 0;border-radius:10px;text-align:center}
+  .dprofile{display:flex;align-items:center;gap:10px;padding:14px 6px 0;border-top:1px solid var(--line)}
+  .dprofile .av{width:36px;height:36px;border-radius:11px;background:var(--chip);color:var(--chipink);display:flex;align-items:center;justify-content:center;font:700 14px/1 var(--disp);flex:none}
+  .dprofile b{font:700 12.5px/1.2 var(--font);display:block}
+  .dprofile small{font:500 10.5px/1 var(--font);color:var(--mut)}
+  .dmain{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+  .dtopbar{height:76px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--line)}
+  .dtopbar h1{font:700 20px/1 var(--disp);letter-spacing:-.01em}
+  .dtopbar .sub{font:500 12px/1 var(--font);color:var(--mut);margin-top:7px}
+  .dtools{display:flex;align-items:center;gap:11px}
+  .dsearch{height:40px;width:240px;border:1.5px solid var(--line);border-radius:12px;background:var(--surf);display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--mut);font:500 12.5px/1 var(--font)}
+  .dsearch .material-symbols-rounded{font-size:18px}
+  .dcontent{flex:1;overflow:hidden;padding:26px 32px}
+  .dgrid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .dgrid2{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:16px}
+  .dshop{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+  .dshop:first-child{border-top:none;padding-top:2px}
+  .adrow{display:flex;align-items:center;gap:16px;padding:15px 4px;border-top:1px solid var(--line)}
+  .adrow:first-child{border-top:none;padding-top:2px}
+  .adrow .thumb{width:58px;height:58px;border-radius:12px;flex:none}
+  .adrow .info{flex:1 1 260px;min-width:180px}
+  .adrow .info b{font:700 14.5px/1.2 var(--disp);display:block}
+  .adrow .info small{font:500 11.5px/1.5 var(--font);color:var(--mut);display:block;margin-top:5px}
+  .adrow .col{width:110px;flex:none}
+  .adrow .col small{display:block;font:600 10px/1 var(--font);color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .adrow .col span{font:600 12.5px/1.4 var(--font)}
+  .adrow .acts{display:flex;gap:8px;flex:none}
+  .adrow .ad-btn{width:96px}
+
+  /* ===== admin: extra tabs (overview, reviews, spots, categories, closures) ===== */
+  .tstat.closed{background:rgba(181,71,31,.14);color:#b5471f}
+  .tstat.rejected{background:rgba(0,0,0,.08);color:var(--mut)}
+  .adm .tstat.paid{background:rgba(63,174,106,.18);color:#6fdb9c}
+  .adm .tstat.wait{background:rgba(224,178,62,.2);color:#f0c34e}
+  .adm .tstat.closed{background:rgba(224,90,60,.18);color:#ff8a68}
+  .adm .tstat.rejected{background:rgba(255,255,255,.09);color:var(--mut)}
+
+  .guide{display:flex;gap:13px;padding:13px 4px;border-top:1px solid var(--line);align-items:flex-start}
+  .guide:first-child{border-top:none;padding-top:2px}
+  .guide .gi{width:38px;height:38px;border-radius:11px;background:var(--chip);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:19px;flex:none}
+  .guide b{font:700 13px/1.3 var(--font);display:block}
+  .guide p{font:500 11.5px/1.5 var(--font);color:var(--mut);margin:5px 0 0}
+  .actv{display:flex;gap:12px;padding:11px 4px;border-top:1px solid var(--line);align-items:center}
+  .actv:first-child{border-top:none}
+  .actv .ai{width:32px;height:32px;border-radius:9px;background:var(--chip);color:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+  .actv b{font:600 12px/1.3 var(--font);display:block}
+  .actv small{font:500 10.5px/1 var(--font);color:var(--mut);display:block;margin-top:4px}
+  .actv .adot{margin-left:auto;font:500 10.5px/1 var(--font);color:var(--mut);flex:none}
+
+  .revrow{display:flex;gap:14px;padding:16px 4px;border-top:1px solid var(--line);align-items:flex-start}
+  .revrow:first-child{border-top:none;padding-top:2px}
+  .revrow .rav{width:40px;height:40px;border-radius:50%;background:var(--chip);color:var(--chipink);display:flex;align-items:center;justify-content:center;font:700 15px/1 var(--disp);flex:none}
+  .revrow .rbody{flex:1;min-width:0}
+  .revrow .rtop{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .revrow .rname{font:700 13.5px/1 var(--font)}
+  .revrow .rspot{font:600 12px/1 var(--font);color:var(--acc)}
+  .revrow .rstars{display:flex;gap:1px;margin-top:7px}
+  .revrow .rstars .material-symbols-rounded{font-size:14px;color:var(--acc2);font-variation-settings:'FILL' 1}
+  .revrow .rtxt{font:400 12.5px/1.55 var(--font);color:var(--ink);opacity:.82;margin-top:7px;max-width:560px}
+  .revrow .rdate{font:500 11px/1 var(--font);color:var(--mut);margin-left:auto;flex:none}
+  .revrow .racts{display:flex;gap:8px;margin-top:11px}
+  .flag{font:700 9.5px/1 var(--font);text-transform:uppercase;letter-spacing:.05em;padding:4px 8px;border-radius:8px;background:rgba(224,90,60,.18);color:#ff8a68}
+
+  .filterpills{display:flex;gap:8px;margin-bottom:16px}
+  .fpill{font:600 12px/1 var(--font);padding:9px 13px;border-radius:10px;background:var(--surf);border:1px solid var(--line);color:var(--mut);white-space:nowrap;flex:none}
+  .fpill.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+
+  .sprow{display:flex;align-items:center;gap:14px;padding:14px 4px;border-top:1px solid var(--line)}
+  .sprow:first-child{border-top:none;padding-top:2px}
+  .sprow .thumb{width:52px;height:52px;border-radius:11px;flex:none}
+  .sprow .info{flex:1 1 260px;min-width:180px}
+  .sprow .info b{font:700 13.5px/1.2 var(--disp);display:block}
+  .sprow .info small{font:500 11px/1.4 var(--font);color:var(--mut);display:block;margin-top:5px}
+  .sprow .reason{font:500 11px/1.5 var(--font);color:var(--mut);margin-top:5px;font-style:italic}
+  .sprow .col{width:110px;flex:none}
+  .sprow .acts{display:flex;gap:8px;flex:none}
+
+  .catrow{display:flex;align-items:center;gap:12px;padding:11px 4px;border-top:1px solid var(--line)}
+  .catrow:first-child{border-top:none}
+  .catrow .ci{width:36px;height:36px;border-radius:10px;background:var(--chip);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:19px;flex:none}
+  .catrow b{font:700 13px/1 var(--font);display:block}
+  .catrow small{font:500 10.5px/1 var(--font);color:var(--mut);display:block;margin-top:4px}
+  .catrow .icts{margin-left:auto;display:flex;gap:6px}
+  .circbtn{width:32px;height:32px;border-radius:9px;background:var(--surf);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:16px;flex:none}
+  .tagrow{display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-top:1px solid var(--line)}
+  .tagrow:first-child{border-top:none}
+  .tagrow span{font:600 12.5px/1 var(--font)}
+  .addrow{display:flex;gap:8px;margin-bottom:12px}
+  .addrow .input{flex:1;height:42px}
+  .addbtn{width:42px;height:42px;border-radius:12px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t5">
+  <div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">Admin Console — 5 tab yang tersisa</span></div>
+  <p class="dv-intro">Melengkapi <a class="dv-oid" href="#4b">4b</a>: Ringkasan, Moderasi Ulasan, Semua Tempat, Kategori &amp; Tag, Laporan Penutupan. Shell (chrome, sidebar, topbar) identik — cuma nav aktif &amp; konten yang berubah, biar terasa satu konsol.</p>
+
+  <div class="dv-opts">
+
+    <!-- ===== 5a Ringkasan ===== -->
+    <div class="dv-opt" id="5a">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#5a">5a</a><span class="oh-name">Ringkasan</span><span class="oh-tag">Admin · Overview</span></div><div class="oh-desc">Panduan cepat + aktivitas terbaru — bukan halaman kosong.</div></div>
+      <div class="dwrap adm">
+        <div class="dchrome"><span class="dot" style="background:#d9645a"></span><span class="dot" style="background:#e0b23e"></span><span class="dot" style="background:#7d8a3e"></span><div class="addr"><span class="material-symbols-rounded">lock</span>app.semarangkuliner.id/admin/dashboard</div></div>
+        <div class="dapp">
+          <div class="dside">
+            <div class="dlogo">Semarang.<span class="role">Admin</span></div>
+            <div class="dnav">
+              <a class="active"><span class="material-symbols-rounded">space_dashboard</span>Ringkasan</a>
+              <a><span class="material-symbols-rounded">pending_actions</span>Menunggu<span class="badge">7</span></a>
+              <a><span class="material-symbols-rounded">reviews</span>Moderasi Ulasan</a>
+              <a><span class="material-symbols-rounded">restaurant</span>Semua Tempat</a>
+              <a><span class="material-symbols-rounded">sell</span>Kategori & Tag</a>
+              <a><span class="material-symbols-rounded">report</span>Laporan Penutupan</a>
+              <div class="sep"></div>
+              <a><span class="material-symbols-rounded">arrow_back</span>Kembali ke Situs</a>
+            </div>
+            <div class="dprofile" style="margin-top:auto"><div class="av">A</div><div><b>Admin Utama</b><small>Administrator</small></div></div>
+          </div>
+          <div class="dmain">
+            <div class="dtopbar"><div><h1>Ringkasan</h1><div class="sub">Selamat datang kembali, Admin — begini kondisi platform hari ini</div></div><div class="dtools"><div class="iconbtn"><span class="material-symbols-rounded">notifications</span></div></div></div>
+            <div class="dcontent">
+              <div class="dgrid4">
+                <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">group</span>Pengguna</div><div class="n">1.284</div></div>
+                <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">restaurant</span>Tempat</div><div class="n">342</div></div>
+                <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">reviews</span>Ulasan</div><div class="n">2.9rb</div></div>
+                <div class="ad-stat hot"><div class="sl"><span class="material-symbols-rounded">pending</span>Menunggu</div><div class="n">7</div></div>
+              </div>
+              <div class="dgrid2">
+                <div class="card">
+                  <div class="card-h"><b>Panduan Cepat</b></div>
+                  <div class="guide"><span class="gi material-symbols-rounded">pending_actions</span><div><b>Tinjau tempat yang diajukan pengguna</b><p>7 tempat menunggu di tab Menunggu — makin cepat ditinjau, makin cepat tampil ke publik.</p></div></div>
+                  <div class="guide"><span class="gi material-symbols-rounded">reviews</span><div><b>Moderasi ulasan yang dilaporkan</b><p>Hapus ulasan yang melanggar pedoman komunitas di tab Moderasi Ulasan.</p></div></div>
+                  <div class="guide"><span class="gi material-symbols-rounded">sell</span><div><b>Rapikan kategori & tag</b><p>Gabungkan kategori duplikat atau tambah tag baru supaya pencarian tetap relevan.</p></div></div>
+                  <div class="guide"><span class="gi material-symbols-rounded">report</span><div><b>Konfirmasi laporan tempat tutup</b><p>3 laporan menunggu — cek dulu sebelum status tempat berubah jadi Tutup.</p></div></div>
+                </div>
+                <div class="card">
+                  <div class="card-h"><b>Aktivitas Terbaru</b><span class="lnk">Lihat log</span></div>
+                  <div class="actv"><span class="ai material-symbols-rounded">check_circle</span><div><b>Menyetujui "Sate Buntel Bu Tari"</b><small>oleh Admin Utama</small></div><span class="adot">10 menit lalu</span></div>
+                  <div class="actv"><span class="ai material-symbols-rounded">delete</span><div><b>Menghapus ulasan di "Soto Bangkong"</b><small>alasan: konten kasar</small></div><span class="adot">1 jam lalu</span></div>
+                  <div class="actv"><span class="ai material-symbols-rounded">block</span><div><b>Menolak "Warung Asal-Asalan"</b><small>foto tidak sesuai pedoman</small></div><span class="adot">2 jam lalu</span></div>
+                  <div class="actv"><span class="ai material-symbols-rounded">storefront</span><div><b>Mengonfirmasi tutup "Bakmi Pak Karto"</b><small>laporan komunitas</small></div><span class="adot">Kemarin</span></div>
+                  <div class="actv"><span class="ai material-symbols-rounded">sell</span><div><b>Menambah kategori "Minuman Dingin"</b><small>oleh Admin Utama</small></div><span class="adot">2 hari lalu</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 5b Moderasi Ulasan ===== -->
+    <div class="dv-opt" id="5b">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#5b">5b</a><span class="oh-name">Moderasi Ulasan</span><span class="oh-tag">Admin · Review Moderation</span></div><div class="oh-desc">Ulasan yang dilaporkan ditandai jelas, bukan tersembunyi di antara yang lain.</div></div>
+      <div class="dwrap adm">
+        <div class="dchrome"><span class="dot" style="background:#d9645a"></span><span class="dot" style="background:#e0b23e"></span><span class="dot" style="background:#7d8a3e"></span><div class="addr"><span class="material-symbols-rounded">lock</span>app.semarangkuliner.id/admin/dashboard</div></div>
+        <div class="dapp">
+          <div class="dside">
+            <div class="dlogo">Semarang.<span class="role">Admin</span></div>
+            <div class="dnav">
+              <a><span class="material-symbols-rounded">space_dashboard</span>Ringkasan</a>
+              <a><span class="material-symbols-rounded">pending_actions</span>Menunggu<span class="badge">7</span></a>
+              <a class="active"><span class="material-symbols-rounded">reviews</span>Moderasi Ulasan</a>
+              <a><span class="material-symbols-rounded">restaurant</span>Semua Tempat</a>
+              <a><span class="material-symbols-rounded">sell</span>Kategori & Tag</a>
+              <a><span class="material-symbols-rounded">report</span>Laporan Penutupan</a>
+              <div class="sep"></div>
+              <a><span class="material-symbols-rounded">arrow_back</span>Kembali ke Situs</a>
+            </div>
+            <div class="dprofile" style="margin-top:auto"><div class="av">A</div><div><b>Admin Utama</b><small>Administrator</small></div></div>
+          </div>
+          <div class="dmain">
+            <div class="dtopbar"><div><h1>Moderasi Ulasan</h1><div class="sub">2.9rb ulasan total · 1 ditandai perlu ditinjau</div></div><div class="dtools"><div class="dsearch"><span class="material-symbols-rounded">search</span>Cari nama tempat / pengulas…</div></div></div>
+            <div class="dcontent">
+              <div class="filterpills"><span class="fpill active">Semua</span><span class="fpill">Ditandai Pengguna</span><span class="fpill">Rating Rendah (&le;2)</span></div>
+              <div class="card">
+                <div class="revrow">
+                  <div class="rav">B</div>
+                  <div class="rbody">
+                    <div class="rtop"><span class="rname">Budi Santoso</span><span class="flag">Ditandai</span></div>
+                    <div style="margin-top:5px"><span class="rspot">Soto Bangkong</span></div>
+                    <div class="rstars"><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span></div>
+                    <div class="rtxt">"Pelayan tidak sopan dan kasar ke pengunjung, tidak akan balik lagi ke tempat ini!!!" — dilaporkan 4 pengguna sebagai konten kasar.</div>
+                    <div class="racts"><div class="ad-btn ad-approve" style="background:transparent;border:1.5px solid var(--line);color:var(--ink);width:auto;padding:0 14px"><span class="material-symbols-rounded">visibility</span>Lihat Tempat</div><div class="ad-btn ad-reject" style="width:auto;padding:0 14px;border-color:rgba(224,90,60,.5);color:#ff8a68"><span class="material-symbols-rounded">delete</span>Hapus Ulasan</div></div>
+                  </div>
+                  <div class="rdate">2 jam lalu</div>
+                </div>
+                <div class="revrow">
+                  <div class="rav">D</div>
+                  <div class="rbody">
+                    <div class="rtop"><span class="rname">Dewi Kartika</span></div>
+                    <div style="margin-top:5px"><span class="rspot">Nasi Ayam Bu Pini</span></div>
+                    <div class="rstars"><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span></div>
+                    <div class="rtxt">Kuahnya juara, porsinya pas. Datang pagi biar tidak antre.</div>
+                    <div class="racts"><div class="ad-btn ad-approve" style="background:transparent;border:1.5px solid var(--line);color:var(--ink);width:auto;padding:0 14px"><span class="material-symbols-rounded">visibility</span>Lihat Tempat</div><div class="ad-btn ad-reject" style="width:auto;padding:0 14px;border-color:rgba(224,90,60,.5);color:#ff8a68"><span class="material-symbols-rounded">delete</span>Hapus Ulasan</div></div>
+                  </div>
+                  <div class="rdate">2 hari lalu</div>
+                </div>
+                <div class="revrow">
+                  <div class="rav">R</div>
+                  <div class="rbody">
+                    <div class="rtop"><span class="rname">Rian Pratama</span></div>
+                    <div style="margin-top:5px"><span class="rspot">Lumpia Gang Lombok</span></div>
+                    <div class="rstars"><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span></div>
+                    <div class="rtxt">Enak, tapi antre lumayan panjang pas weekend. Worth it kok.</div>
+                    <div class="racts"><div class="ad-btn ad-approve" style="background:transparent;border:1.5px solid var(--line);color:var(--ink);width:auto;padding:0 14px"><span class="material-symbols-rounded">visibility</span>Lihat Tempat</div><div class="ad-btn ad-reject" style="width:auto;padding:0 14px;border-color:rgba(224,90,60,.5);color:#ff8a68"><span class="material-symbols-rounded">delete</span>Hapus Ulasan</div></div>
+                  </div>
+                  <div class="rdate">4 hari lalu</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 5c Semua Tempat ===== -->
+    <div class="dv-opt" id="5c">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#5c">5c</a><span class="oh-name">Semua Tempat</span><span class="oh-tag">Admin · All Spots</span></div><div class="oh-desc">Satu bahasa status untuk semua kondisi: Disetujui / Menunggu / Tutup / Ditolak.</div></div>
+      <div class="dwrap adm">
+        <div class="dchrome"><span class="dot" style="background:#d9645a"></span><span class="dot" style="background:#e0b23e"></span><span class="dot" style="background:#7d8a3e"></span><div class="addr"><span class="material-symbols-rounded">lock</span>app.semarangkuliner.id/admin/dashboard</div></div>
+        <div class="dapp">
+          <div class="dside">
+            <div class="dlogo">Semarang.<span class="role">Admin</span></div>
+            <div class="dnav">
+              <a><span class="material-symbols-rounded">space_dashboard</span>Ringkasan</a>
+              <a><span class="material-symbols-rounded">pending_actions</span>Menunggu<span class="badge">7</span></a>
+              <a><span class="material-symbols-rounded">reviews</span>Moderasi Ulasan</a>
+              <a class="active"><span class="material-symbols-rounded">restaurant</span>Semua Tempat</a>
+              <a><span class="material-symbols-rounded">sell</span>Kategori & Tag</a>
+              <a><span class="material-symbols-rounded">report</span>Laporan Penutupan</a>
+              <div class="sep"></div>
+              <a><span class="material-symbols-rounded">arrow_back</span>Kembali ke Situs</a>
+            </div>
+            <div class="dprofile" style="margin-top:auto"><div class="av">A</div><div><b>Admin Utama</b><small>Administrator</small></div></div>
+          </div>
+          <div class="dmain">
+            <div class="dtopbar"><div><h1>Semua Tempat</h1><div class="sub">342 tempat terdaftar di platform</div></div><div class="dtools"><div class="dsearch"><span class="material-symbols-rounded">search</span>Cari nama tempat…</div></div></div>
+            <div class="dcontent">
+              <div class="filterpills"><span class="fpill active">Semua</span><span class="fpill">Disetujui</span><span class="fpill">Menunggu</span><span class="fpill">Tutup</span><span class="fpill">Ditolak</span></div>
+              <div class="card">
+                <div class="sprow">
+                  <div class="thumb ph" data-cap="nasi ayam"></div>
+                  <div class="info"><b>Nasi Ayam Bu Pini</b><small>Nasi · Pandanaran</small></div>
+                  <div class="col"><span class="tstat paid">Disetujui</span></div>
+                  <div class="acts"><div class="circbtn"><span class="material-symbols-rounded">visibility</span></div><div class="ad-btn ad-reject" style="width:auto;padding:0 12px"><span class="material-symbols-rounded">storefront</span>Tandai Tutup</div></div>
+                </div>
+                <div class="sprow">
+                  <div class="thumb ph" data-cap="sate kambing"></div>
+                  <div class="info"><b>Sate Kambing Pak Kumis</b><small>Sate · Jl. Dr. Cipto</small></div>
+                  <div class="col"><span class="tstat wait">Menunggu</span></div>
+                  <div class="acts"><div class="circbtn"><span class="material-symbols-rounded">visibility</span></div></div>
+                </div>
+                <div class="sprow">
+                  <div class="thumb ph" data-cap="bakmi karto"></div>
+                  <div class="info"><b>Bakmi Pak Karto</b><small>Mie · Peterongan</small><div class="reason">Ditutup 28 Jun 2026 — dikonfirmasi lewat laporan komunitas: "sudah pindah, ruko kosong"</div></div>
+                  <div class="col"><span class="tstat closed">Tutup</span></div>
+                  <div class="acts"><div class="circbtn"><span class="material-symbols-rounded">visibility</span></div></div>
+                </div>
+                <div class="sprow">
+                  <div class="thumb ph" data-cap="warung x"></div>
+                  <div class="info"><b>Warung Asal-Asalan</b><small>Nasi · Tembalang</small><div class="reason">Ditolak — foto tidak sesuai pedoman (bukan foto asli tempat)</div></div>
+                  <div class="col"><span class="tstat rejected">Ditolak</span></div>
+                  <div class="acts"><div class="circbtn"><span class="material-symbols-rounded">visibility</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 5d Kategori & Tag ===== -->
+    <div class="dv-opt" id="5d">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#5d">5d</a><span class="oh-name">Kategori & Tag</span><span class="oh-tag">Admin · Categories &amp; Tags</span></div><div class="oh-desc">Kategori bisa diedit (1 label/tempat); tag cuma tambah/hapus (many-to-many).</div></div>
+      <div class="dwrap adm">
+        <div class="dchrome"><span class="dot" style="background:#d9645a"></span><span class="dot" style="background:#e0b23e"></span><span class="dot" style="background:#7d8a3e"></span><div class="addr"><span class="material-symbols-rounded">lock</span>app.semarangkuliner.id/admin/dashboard</div></div>
+        <div class="dapp">
+          <div class="dside">
+            <div class="dlogo">Semarang.<span class="role">Admin</span></div>
+            <div class="dnav">
+              <a><span class="material-symbols-rounded">space_dashboard</span>Ringkasan</a>
+              <a><span class="material-symbols-rounded">pending_actions</span>Menunggu<span class="badge">7</span></a>
+              <a><span class="material-symbols-rounded">reviews</span>Moderasi Ulasan</a>
+              <a><span class="material-symbols-rounded">restaurant</span>Semua Tempat</a>
+              <a class="active"><span class="material-symbols-rounded">sell</span>Kategori & Tag</a>
+              <a><span class="material-symbols-rounded">report</span>Laporan Penutupan</a>
+              <div class="sep"></div>
+              <a><span class="material-symbols-rounded">arrow_back</span>Kembali ke Situs</a>
+            </div>
+            <div class="dprofile" style="margin-top:auto"><div class="av">A</div><div><b>Admin Utama</b><small>Administrator</small></div></div>
+          </div>
+          <div class="dmain">
+            <div class="dtopbar"><div><h1>Kategori & Tag</h1><div class="sub">Label yang dipakai untuk filter &amp; pencarian di seluruh platform</div></div></div>
+            <div class="dcontent">
+              <div class="dgrid2" style="margin-top:0">
+                <div class="card">
+                  <div class="card-h"><b>Kategori</b><span class="lnk">9 kategori</span></div>
+                  <div class="addrow"><div class="input"><span class="material-symbols-rounded">add</span>Nama kategori baru…</div><div class="addbtn"><span class="material-symbols-rounded">add</span></div></div>
+                  <div class="catrow"><span class="ci material-symbols-rounded">rice_bowl</span><div><b>Nasi</b><small>86 tempat</small></div><div class="icts"><div class="circbtn"><span class="material-symbols-rounded">edit</span></div><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div></div>
+                  <div class="catrow"><span class="ci material-symbols-rounded">ramen_dining</span><div><b>Mie & Soto</b><small>54 tempat</small></div><div class="icts"><div class="circbtn"><span class="material-symbols-rounded">edit</span></div><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div></div>
+                  <div class="catrow"><span class="ci material-symbols-rounded">kebab_dining</span><div><b>Sate</b><small>31 tempat</small></div><div class="icts"><div class="circbtn"><span class="material-symbols-rounded">edit</span></div><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div></div>
+                  <div class="catrow"><span class="ci material-symbols-rounded">icecream</span><div><b>Manis</b><small>47 tempat</small></div><div class="icts"><div class="circbtn"><span class="material-symbols-rounded">edit</span></div><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div></div>
+                  <div class="catrow"><span class="ci material-symbols-rounded">local_cafe</span><div><b>Kopi</b><small>39 tempat</small></div><div class="icts"><div class="circbtn"><span class="material-symbols-rounded">edit</span></div><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div></div>
+                </div>
+                <div class="card">
+                  <div class="card-h"><b>Tag</b><span class="lnk">14 tag</span></div>
+                  <div class="addrow"><div class="input"><span class="material-symbols-rounded">tag</span>Nama tag baru…</div><div class="addbtn"><span class="material-symbols-rounded">add</span></div></div>
+                  <div class="tagrow"><span>Halal</span><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div>
+                  <div class="tagrow"><span>Budget-Friendly</span><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div>
+                  <div class="tagrow"><span>Legendaris</span><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div>
+                  <div class="tagrow"><span>Buka Malam</span><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div>
+                  <div class="tagrow"><span>Ramah Vegetarian</span><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div>
+                  <div class="tagrow"><span>Kaki Lima</span><div class="circbtn"><span class="material-symbols-rounded">delete</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 5e Laporan Penutupan ===== -->
+    <div class="dv-opt" id="5e">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#5e">5e</a><span class="oh-name">Laporan Penutupan</span><span class="oh-tag">Admin · Closure Reports</span></div><div class="oh-desc">Alasan pelapor tampil apa adanya supaya admin bisa memutuskan cepat.</div></div>
+      <div class="dwrap adm">
+        <div class="dchrome"><span class="dot" style="background:#d9645a"></span><span class="dot" style="background:#e0b23e"></span><span class="dot" style="background:#7d8a3e"></span><div class="addr"><span class="material-symbols-rounded">lock</span>app.semarangkuliner.id/admin/dashboard</div></div>
+        <div class="dapp">
+          <div class="dside">
+            <div class="dlogo">Semarang.<span class="role">Admin</span></div>
+            <div class="dnav">
+              <a><span class="material-symbols-rounded">space_dashboard</span>Ringkasan</a>
+              <a><span class="material-symbols-rounded">pending_actions</span>Menunggu<span class="badge">7</span></a>
+              <a><span class="material-symbols-rounded">reviews</span>Moderasi Ulasan</a>
+              <a><span class="material-symbols-rounded">restaurant</span>Semua Tempat</a>
+              <a><span class="material-symbols-rounded">sell</span>Kategori & Tag</a>
+              <a class="active"><span class="material-symbols-rounded">report</span>Laporan Penutupan<span class="badge">3</span></a>
+              <div class="sep"></div>
+              <a><span class="material-symbols-rounded">arrow_back</span>Kembali ke Situs</a>
+            </div>
+            <div class="dprofile" style="margin-top:auto"><div class="av">A</div><div><b>Admin Utama</b><small>Administrator</small></div></div>
+          </div>
+          <div class="dmain">
+            <div class="dtopbar"><div><h1>Laporan Penutupan</h1><div class="sub">3 laporan menunggu konfirmasi sebelum status tempat berubah</div></div></div>
+            <div class="dcontent">
+              <div class="card">
+                <div class="sprow">
+                  <div class="thumb ph" data-cap="bakmi karto"></div>
+                  <div class="info"><b>Bakmi Pak Karto</b><small>Dilaporkan oleh 3 pengguna · terbaru 1 hari lalu</small><div class="reason">"Sudah lewat 2 minggu tutup terus, ruko kelihatan kosong dan disewakan lagi."</div></div>
+                  <div class="acts"><div class="ad-btn ad-approve"><span class="material-symbols-rounded">check</span>Konfirmasi Tutup</div><div class="ad-btn ad-reject"><span class="material-symbols-rounded">close</span>Tolak Laporan</div></div>
+                </div>
+                <div class="sprow">
+                  <div class="thumb ph" data-cap="soto sederhana"></div>
+                  <div class="info"><b>Soto Sederhana Pak Joyo</b><small>Dilaporkan oleh Yusuf Hidayat · 2 hari lalu</small><div class="reason">"Pindah ke Jl. Gajah Mada, bangunan lama sudah jadi toko lain."</div></div>
+                  <div class="acts"><div class="ad-btn ad-approve"><span class="material-symbols-rounded">check</span>Konfirmasi Tutup</div><div class="ad-btn ad-reject"><span class="material-symbols-rounded">close</span>Tolak Laporan</div></div>
+                </div>
+                <div class="sprow">
+                  <div class="thumb ph" data-cap="es teler bu nur"></div>
+                  <div class="info"><b>Es Teler Bu Nur</b><small>Dilaporkan oleh Citra Amelia · 4 hari lalu</small><div class="reason">"Masih buka kok, mungkin cuma libur pas dicek. Saya beli kemarin."</div></div>
+                  <div class="acts"><div class="ad-btn ad-approve"><span class="material-symbols-rounded">check</span>Konfirmasi Tutup</div><div class="ad-btn ad-reject"><span class="material-symbols-rounded">close</span>Tolak Laporan</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="dv-next">Next: "state kosong untuk Laporan Penutupan (kalau 0)" · "modal konfirmasi hapus ulasan" · "form edit kategori"</p>
+</section>
+
+<section class="dv-turn" id="t4">
+  <div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Versi desktop — Merchant Dashboard &amp; Admin Console</span></div>
+  <p class="dv-intro">Sidebar tetap (bukan bottom nav) + grid multi-kolom untuk layar lebar. Merchant tetap warm/Rempah; Admin tetap gelap &amp; utilitarian sesuai PRD — dua konteks yang sengaja terasa beda.</p>
+
+  <div class="dv-opts">
+
+    <!-- ===== 4a Merchant Dashboard desktop ===== -->
+    <div class="dv-opt" id="4a">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#4a">4a</a><span class="oh-name">Merchant Dashboard</span><span class="oh-tag">Desktop · /merchant/dashboard</span></div><div class="oh-desc">Sidebar dengan 5 nav item + kartu ajakan promosi. Konten sama seperti <a class="dv-oid" href="#2b">2b</a>, ditata ulang jadi grid.</div></div>
+      <div class="dwrap d3">
+        <div class="dchrome">
+          <span class="dot" style="background:#d9645a"></span><span class="dot" style="background:#e0b23e"></span><span class="dot" style="background:#7d8a3e"></span>
+          <div class="addr"><span class="material-symbols-rounded">lock</span>app.semarangkuliner.id/merchant/dashboard</div>
+        </div>
+        <div class="dapp">
+          <div class="dside">
+            <div class="dlogo">Semarang.<span class="role">Merchant</span></div>
+            <div class="dnav">
+              <a class="active"><span class="material-symbols-rounded">dashboard</span>Dashboard</a>
+              <a><span class="material-symbols-rounded">storefront</span>Toko Saya</a>
+              <a><span class="material-symbols-rounded">add_business</span>Daftar Toko Baru</a>
+              <a><span class="material-symbols-rounded">campaign</span>Promosikan Toko</a>
+              <a><span class="material-symbols-rounded">receipt_long</span>Riwayat Pembayaran</a>
+              <div class="sep"></div>
+              <a><span class="material-symbols-rounded">arrow_back</span>Kembali ke Situs</a>
+            </div>
+            <div class="dpromo">
+              <span class="material-symbols-rounded">trending_up</span>
+              <b>Toko belum terlihat maksimal?</b>
+              <p>Promosikan tokomu mulai Rp 50rb dan naik ke urutan atas pencarian.</p>
+              <div class="go">Promosikan Sekarang</div>
+            </div>
+            <div class="dprofile"><div class="av">P</div><div><b>Warung Bu Pini</b><small>Merchant Aktif</small></div></div>
+          </div>
+          <div class="dmain">
+            <div class="dtopbar">
+              <div><h1>Dashboard</h1><div class="sub">Ringkasan performa & aktivitas tokomu</div></div>
+              <div class="dtools"><div class="iconbtn"><span class="material-symbols-rounded">notifications</span></div><div class="iconbtn"><span class="material-symbols-rounded">settings</span></div></div>
+            </div>
+            <div class="dcontent">
+              <div class="dgrid4">
+                <div class="kpi"><div class="klabel"><span class="kicon material-symbols-rounded">visibility</span>Kunjungan</div><div class="knum">2.847</div><div class="ktrend up"><span class="material-symbols-rounded">trending_up</span>12% vs bulan lalu</div></div>
+                <div class="kpi"><div class="klabel"><span class="kicon material-symbols-rounded">ads_click</span>Interaksi</div><div class="knum">1.216</div><div class="ktrend up"><span class="material-symbols-rounded">trending_up</span>8% vs bulan lalu</div></div>
+                <div class="kpi"><div class="klabel"><span class="kicon material-symbols-rounded">payments</span>Pendapatan</div><div class="knum">Rp 1,2jt</div><div class="ktrend up"><span class="material-symbols-rounded">trending_up</span>24% vs bulan lalu</div></div>
+                <div class="kpi"><div class="klabel"><span class="kicon material-symbols-rounded">storefront</span>Toko Terdaftar</div><div class="knum">3</div><div class="ktrend flat">semua aktif</div></div>
+              </div>
+              <div class="dgrid2">
+                <div class="card">
+                  <div class="card-h"><b>Traffic 30 Hari</b><span class="lnk">Unduh laporan</span></div>
+                  <div class="legend"><span><i style="background:#b5471f"></i>Kunjungan</span><span><i style="background:#7d8a3e"></i>Klik</span></div>
+                  <div class="chartbox" style="height:150px"><div class="area a2"></div><div class="area a1"></div></div>
+                </div>
+                <div class="card">
+                  <div class="card-h"><b>Pendapatan Mingguan</b><span class="lnk">Rp 340rb</span></div>
+                  <div class="bars7" style="height:150px">
+                    <div class="col"><div class="bar" style="height:60px"></div><span>Sen</span></div>
+                    <div class="col"><div class="bar" style="height:88px"></div><span>Sel</span></div>
+                    <div class="col"><div class="bar" style="height:70px"></div><span>Rab</span></div>
+                    <div class="col"><div class="bar" style="height:110px"></div><span>Kam</span></div>
+                    <div class="col"><div class="bar hl" style="height:138px"></div><span>Jum</span></div>
+                    <div class="col"><div class="bar" style="height:98px"></div><span>Sab</span></div>
+                    <div class="col"><div class="bar" style="height:78px"></div><span>Min</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="dgrid2">
+                <div class="card">
+                  <div class="card-h"><b>Transaksi Terbaru</b><span class="lnk">Lihat semua</span></div>
+                  <div class="txn"><div class="ti material-symbols-rounded">workspace_premium</div><div class="tb"><b>Paket Gold · Warung Bu Pini</b><small>1 Jul 2026 · #TRX-88213</small></div><div class="amt"><b>Rp 150.000</b><span class="tstat paid">Lunas</span></div></div>
+                  <div class="txn"><div class="ti material-symbols-rounded">workspace_premium</div><div class="tb"><b>Paket Silver · Es Puter Cong Lik</b><small>28 Jun 2026 · #TRX-88190</small></div><div class="amt"><b>Rp 50.000</b><span class="tstat wait">Menunggu</span></div></div>
+                </div>
+                <div class="card">
+                  <div class="card-h"><b>Toko Saya</b><span class="lnk">Kelola</span></div>
+                  <div class="dshop"><div class="simg ph" data-cap="nasi ayam"></div><div style="flex:1"><b style="font:700 13.5px/1.2 var(--disp)">Warung Bu Pini</b><div style="font:500 11px/1.4 var(--font);color:var(--mut);margin-top:5px">★4,9 · Nasi · Rp 22rb</div></div><span class="tstat paid">Dipromosikan</span></div>
+                  <div class="dshop"><div class="simg ph" data-cap="es puter"></div><div style="flex:1"><b style="font:700 13.5px/1.2 var(--disp)">Es Puter Cong Lik</b><div style="font:500 11px/1.4 var(--font);color:var(--mut);margin-top:5px">★4,8 · Manis · Rp 12rb</div></div><span class="tstat wait">Menunggu Bayar</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 4b Admin Console desktop ===== -->
+    <div class="dv-opt" id="4b">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#4b">4b</a><span class="oh-name">Admin Console</span><span class="oh-tag">Desktop · /admin/dashboard</span></div><div class="oh-desc">Sidebar navy gelap, terpisah dari tampilan customer. Antrean disusun sebagai baris tabel yang bisa discan cepat.</div></div>
+      <div class="dwrap adm">
+        <div class="dchrome">
+          <span class="dot" style="background:#d9645a"></span><span class="dot" style="background:#e0b23e"></span><span class="dot" style="background:#7d8a3e"></span>
+          <div class="addr"><span class="material-symbols-rounded">lock</span>app.semarangkuliner.id/admin/dashboard</div>
+        </div>
+        <div class="dapp">
+          <div class="dside">
+            <div class="dlogo">Semarang.<span class="role">Admin</span></div>
+            <div class="dnav">
+              <a><span class="material-symbols-rounded">space_dashboard</span>Ringkasan</a>
+              <a class="active"><span class="material-symbols-rounded">pending_actions</span>Menunggu<span class="badge">7</span></a>
+              <a><span class="material-symbols-rounded">reviews</span>Moderasi Ulasan</a>
+              <a><span class="material-symbols-rounded">restaurant</span>Semua Tempat</a>
+              <a><span class="material-symbols-rounded">sell</span>Kategori & Tag</a>
+              <a><span class="material-symbols-rounded">report</span>Laporan Penutupan</a>
+              <div class="sep"></div>
+              <a><span class="material-symbols-rounded">arrow_back</span>Kembali ke Situs</a>
+            </div>
+            <div class="dprofile" style="margin-top:auto"><div class="av">A</div><div><b>Admin Utama</b><small>Administrator</small></div></div>
+          </div>
+          <div class="dmain">
+            <div class="dtopbar">
+              <div><h1>Menunggu Persetujuan</h1><div class="sub">7 tempat menunggu ditinjau sebelum tampil publik</div></div>
+              <div class="dtools"><div class="dsearch"><span class="material-symbols-rounded">search</span>Cari nama tempat / pengaju…</div><div class="iconbtn"><span class="material-symbols-rounded">filter_list</span></div></div>
+            </div>
+            <div class="dcontent">
+              <div class="dgrid4">
+                <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">group</span>Pengguna</div><div class="n">1.284</div></div>
+                <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">restaurant</span>Tempat</div><div class="n">342</div></div>
+                <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">reviews</span>Ulasan</div><div class="n">2.9rb</div></div>
+                <div class="ad-stat hot"><div class="sl"><span class="material-symbols-rounded">pending</span>Menunggu</div><div class="n">7</div></div>
+              </div>
+              <div class="card" style="margin-top:16px">
+                <div class="card-h"><b>Antrean Persetujuan</b><span class="lnk">Urutkan: Terbaru</span></div>
+                <div class="adrow">
+                  <div class="thumb ph" data-cap="sate kambing"></div>
+                  <div class="info"><b>Sate Kambing Pak Kumis</b><small>Diajukan oleh Andi Wijaya · 1 jam lalu</small></div>
+                  <div class="col"><small>Kategori</small><span>Sate</span></div>
+                  <div class="col"><small>Lokasi</small><span>Jl. Dr. Cipto</span></div>
+                  <div class="col"><small>Lampiran</small><span>3 foto</span></div>
+                  <div class="acts"><div class="ad-btn ad-approve"><span class="material-symbols-rounded">check</span>Setujui</div><div class="ad-btn ad-reject"><span class="material-symbols-rounded">close</span>Tolak</div></div>
+                </div>
+                <div class="adrow">
+                  <div class="thumb ph" data-cap="kopi semawis"></div>
+                  <div class="info"><b>Kopi Semawis</b><small>Diajukan oleh Rina Sari · 3 jam lalu</small></div>
+                  <div class="col"><small>Kategori</small><span>Kopi</span></div>
+                  <div class="col"><small>Lokasi</small><span>Kota Lama</span></div>
+                  <div class="col"><small>Lampiran</small><span>2 foto</span></div>
+                  <div class="acts"><div class="ad-btn ad-approve"><span class="material-symbols-rounded">check</span>Setujui</div><div class="ad-btn ad-reject"><span class="material-symbols-rounded">close</span>Tolak</div></div>
+                </div>
+                <div class="adrow">
+                  <div class="thumb ph" data-cap="bandeng presto"></div>
+                  <div class="info"><b>Bandeng Presto Bu Sri</b><small>Diajukan oleh Sri Wahyuni · 5 jam lalu</small></div>
+                  <div class="col"><small>Kategori</small><span>Seafood</span></div>
+                  <div class="col"><small>Lokasi</small><span>Pandanaran</span></div>
+                  <div class="col"><small>Lampiran</small><span>3 foto</span></div>
+                  <div class="acts"><div class="ad-btn ad-approve"><span class="material-symbols-rounded">check</span>Setujui</div><div class="ad-btn ad-reject"><span class="material-symbols-rounded">close</span>Tolak</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="dv-next">Next: "buat versi desktop untuk Explorer / halaman detail" · "tabel 'Semua Tempat' di admin" · "state kosong kalau antrean 0"</p>
+</section>
+
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Lanjutan Rempah — sisa flow Promosikan Toko, Ajukan Tempat, Favorit</span></div>
+  <p class="dv-intro">Melengkapi step 2–3 <a class="dv-oid" href="#2c">2c</a> dengan gaya visual yang sama persis (steps, kartu, sticky bar). <b>Ajukan Tempat Baru</b> dan <b>Favorit</b> memakai komponen &amp; bahasa yang sama dengan <a class="dv-oid" href="#2a">2a</a> — chip status, stat card, tombol, spacing — supaya terasa satu produk.</p>
+
+  <div class="dv-opts">
+
+    <!-- ===== 3a Promote step 2: Pilih Toko ===== -->
+    <div class="dv-opt" id="3a">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#3a">3a</a><span class="oh-name">Pilih Toko</span><span class="oh-tag">Promosi · step 2/3</span></div><div class="oh-desc">Toko yang sedang dipromosikan dikunci dengan alasan yang jelas, bukan cuma "tidak tersedia".</div></div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="pgscroll">
+          <div class="pr-head">Promosikan Toko</div>
+          <div class="pr-sub">Pilih toko yang mau kamu naikkan visibilitasnya.</div>
+          <div class="steps">
+            <div class="step done"><span class="n"><span class="material-symbols-rounded">check</span></span>Paket</div><div class="step-line"></div>
+            <div class="step active"><span class="n">2</span>Toko</div><div class="step-line"></div>
+            <div class="step"><span class="n">3</span>Bayar</div>
+          </div>
+          <div class="shopc sel">
+            <div class="simg ph" data-cap="nasi ayam"></div>
+            <div><div class="sname">Warung Bu Pini</div><div class="smeta"><span class="material-symbols-rounded">star</span>4,9 · Nasi · Pandanaran</div></div>
+            <div class="radio on"></div>
+          </div>
+          <div class="shopc">
+            <div class="simg ph" data-cap="tahu gimbal"></div>
+            <div><div class="sname">Tahu Gimbal Pak Edy</div><div class="smeta"><span class="material-symbols-rounded">star</span>4,7 · Jajanan · Simpang Lima</div></div>
+            <div class="radio"></div>
+          </div>
+          <div class="shopc off">
+            <div class="simg ph" data-cap="es puter"></div>
+            <div><div class="sname">Es Puter Cong Lik</div><div class="smeta"><span class="material-symbols-rounded">star</span>4,8 · Manis · Kota Lama</div><div class="snote">Sudah dipromosikan sampai 12 Jul</div></div>
+            <div class="radio" style="opacity:.3"></div>
+          </div>
+          <div class="card" style="margin-top:6px">
+            <div class="card-h"><b>Ringkasan Pesanan</b></div>
+            <div class="srow"><span>Paket</span><b>Gold · 15 hari</b></div>
+            <div class="srow"><span>Toko</span><b>Warung Bu Pini</b></div>
+            <div class="srow"><span>Tayang mulai</span><b>Hari ini</b></div>
+          </div>
+        </div>
+        <div class="pr-bar">
+          <div class="tot"><small>Total · Gold</small><b>Rp 150.000</b></div>
+          <div class="go">Lanjut ke Bayar<span class="material-symbols-rounded">arrow_forward</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 3b Promote step 3: Bayar ===== -->
+    <div class="dv-opt" id="3b">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#3b">3b</a><span class="oh-name">Bayar</span><span class="oh-tag">Promosi · step 3/3</span></div><div class="oh-desc">Sandbox disclaimer eksplisit, bukan disembunyikan di footer.</div></div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="pgscroll">
+          <div class="pr-head">Bayar</div>
+          <div class="pr-sub">Selesaikan pembayaran lewat Midtrans.</div>
+          <div class="steps">
+            <div class="step done"><span class="n"><span class="material-symbols-rounded">check</span></span>Paket</div><div class="step-line"></div>
+            <div class="step done"><span class="n"><span class="material-symbols-rounded">check</span></span>Toko</div><div class="step-line"></div>
+            <div class="step active"><span class="n">3</span>Bayar</div>
+          </div>
+          <div class="notice"><span class="material-symbols-rounded">science</span>Mode sandbox — ini simulasi pembayaran Midtrans, saldo kamu tidak akan terpotong sungguhan.</div>
+          <div class="card">
+            <div class="card-h"><b>Ringkasan Pesanan</b></div>
+            <div class="srow"><span>Paket Gold · Warung Bu Pini</span><b>Rp 150.000</b></div>
+            <div class="srow"><span>Biaya admin</span><b>Rp 2.500</b></div>
+            <div class="srow" style="border-top:1.5px solid var(--line);margin-top:2px;padding-top:11px"><span style="color:var(--ink);font-weight:700">Total Bayar</span><b style="font-size:15px;color:var(--acc)">Rp 152.500</b></div>
+          </div>
+          <div class="dt-h2" style="margin-top:18px">Metode Pembayaran</div>
+          <div class="pay sel"><div class="pi material-symbols-rounded">qr_code_2</div><div class="pb"><b>QRIS</b><small>Bayar pakai aplikasi bank / e-wallet apa saja</small></div><div class="radio on" style="margin-left:auto"></div></div>
+          <div class="pay"><div class="pi material-symbols-rounded">account_balance_wallet</div><div class="pb"><b>E-Wallet</b><small>GoPay, OVO, DANA, ShopeePay</small></div><div class="radio" style="margin-left:auto"></div></div>
+          <div class="pay"><div class="pi material-symbols-rounded">account_balance</div><div class="pb"><b>Virtual Account</b><small>BCA, BNI, BRI, Mandiri</small></div><div class="radio" style="margin-left:auto"></div></div>
+          <div class="pay"><div class="pi material-symbols-rounded">credit_card</div><div class="pb"><b>Kartu Kredit/Debit</b><small>Visa, Mastercard</small></div><div class="radio" style="margin-left:auto"></div></div>
+        </div>
+        <div class="pr-bar">
+          <div class="tot"><small>Total Bayar</small><b>Rp 152.500</b></div>
+          <div class="go"><span class="material-symbols-rounded">lock</span>Bayar Sekarang</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 3c Ajukan Tempat Baru ===== -->
+    <div class="dv-opt" id="3c">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#3c">3c</a><span class="oh-name">Ajukan Tempat Baru</span><span class="oh-tag">Customer · /spot/submit</span></div><div class="oh-desc">Sama persis komponennya dengan <a class="dv-oid" href="#2a">2a</a> — chip kategori, input, dt-h2 — plus konfirmasi geocoding yang jelas.</div></div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="dt-top" style="top:52px"><div class="iconbtn"><span class="material-symbols-rounded">arrow_back</span></div></div>
+        <div class="pgscroll" style="top:106px">
+          <div class="pr-head" style="font-size:20px">Ajukan Tempat Baru</div>
+          <div class="banner"><span class="material-symbols-rounded">shield</span>Setiap tempat yang diajukan akan ditinjau admin dulu (biasanya &lt;1x24 jam) sebelum tampil ke publik — supaya rekomendasi tetap bisa dipercaya.</div>
+
+          <div class="field"><label>Nama Tempat</label><div class="input"><span class="material-symbols-rounded">storefront</span>Sate Buntel Bu Tari</div></div>
+          <div class="field"><label>Deskripsi</label><div class="input" style="height:auto;min-height:78px;align-items:flex-start;padding-top:14px">Sate kambing muda dibalut lemak, dibakar tanpa tusuk. Cocok buat yang suka daging empuk tanpa bau prengus.</div></div>
+          <div class="field"><label>Kategori</label><div class="input"><span class="material-symbols-rounded">restaurant</span>Sate<span class="material-symbols-rounded" style="margin-left:auto">expand_more</span></div></div>
+          <div class="field"><label>Tag <span style="color:var(--mut);font-weight:500">(pilih yang sesuai)</span></label><div class="tagsel"><span class="tsel on">Halal</span><span class="tsel">Ramah Vegetarian</span><span class="tsel on">Malam Hari</span><span class="tsel">Kaki Lima</span><span class="tsel">Budget-Friendly</span></div></div>
+          <div class="field"><label>Alamat</label>
+            <div class="geo"><div class="input"><span class="material-symbols-rounded">location_on</span>Jl. MT Haryono, Semarang</div><div class="geobtn"><span class="material-symbols-rounded">my_location</span>Cari</div></div>
+            <div class="geook"><span class="material-symbols-rounded">check_circle</span>Koordinat ditemukan: -6.9925, 110.4229 — geser pin di peta kalau kurang tepat.</div>
+          </div>
+          <div class="field"><label>Harga Rata-rata</label><div class="input"><span class="material-symbols-rounded">payments</span>Rp 25.000</div></div>
+          <div class="field"><label>Foto <span style="color:var(--mut);font-weight:500">(maks. 3, JPG/PNG di bawah 5MB)</span></label>
+            <div class="drop"><span class="material-symbols-rounded">add_photo_alternate</span><b>Seret foto ke sini atau ketuk untuk unggah</b><small>Foto close-up makanan biasanya paling menarik perhatian</small></div>
+            <div class="thumbs"><div class="thumb ph" data-cap="1"><div class="x material-symbols-rounded">close</div></div><div class="thumb ph" data-cap="2"><div class="x material-symbols-rounded">close</div></div></div>
+          </div>
+        </div>
+        <div class="dt-actions"><div class="btn-primary"><span class="material-symbols-rounded">send</span>Ajukan Tempat Ini</div></div>
+      </div>
+    </div>
+
+    <!-- ===== 3d Favorit (empty state) ===== -->
+    <div class="dv-opt" id="3d">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#3d">3d</a><span class="oh-name">Favorit</span><span class="oh-tag">Customer · /favorites</span></div><div class="oh-desc">Empty state yang informatif dan mengarahkan aksi, bukan cuma "belum ada data".</div></div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="pgscroll" style="bottom:82px">
+          <div class="pr-head" style="font-size:20px">Favorit</div>
+          <div class="pr-sub">Tempat yang sudah kamu simpan.</div>
+          <div class="empty" style="margin-top:34px">
+            <div class="eico material-symbols-rounded">favorite_border</div>
+            <b>Belum ada favorit tersimpan</b>
+            <p>Ketuk ikon hati di kartu tempat atau halaman detail buat nyimpen kuliner favoritmu di sini — biar gampang balik lagi lain kali.</p>
+            <div class="btn-primary" style="width:100%"><span class="material-symbols-rounded">explore</span>Jelajahi Kuliner</div>
+          </div>
+          <div class="card" style="margin-top:8px;background:transparent;border-style:dashed">
+            <div class="card-h" style="margin-bottom:9px"><b style="font-size:12.5px;color:var(--mut)">SARAN UNTUK KAMU</b></div>
+            <div class="txn"><div class="ti material-symbols-rounded">restaurant</div><div class="tb"><b>Soto Bangkong</b><small>★4,6 · Bangkong · Rp 18rb</small></div></div>
+            <div class="txn"><div class="ti material-symbols-rounded">restaurant</div><div class="tb"><b>Lumpia Gang Lombok</b><small>★4,8 · Kota Lama · Rp 15rb</small></div></div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="nav-i"><span class="material-symbols-rounded">explore</span>Jelajah</div>
+          <div class="nav-i active"><span class="material-symbols-rounded">favorite</span>Favorit</div>
+          <div class="nav-i"><span class="material-symbols-rounded">receipt_long</span>Pesanan</div>
+          <div class="nav-i"><span class="material-symbols-rounded">person</span>Profil</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="dv-next">Next: "isi Favorit dengan tempat tersimpan (state populated)" · "tambah halaman Profil + Riwayat Pesanan" · "buat versi desktop untuk <a href="#3c">3c</a>"</p>
+</section>
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Rempah — the full app (chosen from <a class="dv-oid" href="#1c">1c</a>)</span></div>
+  <p class="dv-intro">The rest of the product in <b>Rempah</b>: warm parchment, tamarind + clove-green, characterful Bricolage display, dotted texture. Customer screens stay editorial &amp; inviting; the merchant side reads efficient; the admin console flips to a utilitarian <b>dark</b> shell (per the PRD).</p>
+
+  <div class="dv-opts">
+
+    <!-- ===== 2a Spot Detail ===== -->
+    <div class="dv-opt" id="2a">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#2a">2a</a><span class="oh-name">Detail Tempat</span><span class="oh-tag">Customer · /spot/{id}</span></div><div class="oh-desc">Hero gallery, status + rating stats, reviews, sticky Rute / Tulis Ulasan.</div></div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="dt-hero">
+          <div class="ph" data-cap="foto · nasi ayam bu pini"></div>
+          <div class="dt-scr"></div>
+        </div>
+        <div class="dt-count">1 / 8</div>
+        <div class="dt-top">
+          <div class="iconbtn"><span class="material-symbols-rounded">arrow_back</span></div>
+          <div class="grp">
+            <div class="iconbtn"><span class="material-symbols-rounded">ios_share</span></div>
+            <div class="iconbtn" style="color:#b5471f"><span class="material-symbols-rounded" style="font-variation-settings:'FILL' 1">favorite</span></div>
+          </div>
+        </div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="dt-sheet">
+          <div class="dt-row1"><span class="chip-cat">Nasi</span><span class="chip-open"><span class="dg"></span>Buka · tutup 21.00</span></div>
+          <div class="dt-title">Nasi Ayam Bu Pini <span class="material-symbols-rounded">verified</span></div>
+          <div class="dt-loc"><span class="material-symbols-rounded">location_on</span>Jl. Pandanaran No.42, Semarang · 0,9 km</div>
+          <div class="dt-stats">
+            <div class="dt-stat"><b><span class="material-symbols-rounded">star</span>4,9</b><span>312 ulasan</span></div>
+            <div class="dt-stat"><b>Rp 22rb</b><span>rata-rata</span></div>
+            <div class="dt-stat"><b>$$</b><span>terjangkau</span></div>
+          </div>
+          <div class="dt-h2">Tentang tempat ini</div>
+          <div class="dt-desc">Nasi ayam legendaris dengan kuah areh gurih dan sambal khas. Buka sejak 1987, ramai saat sarapan dan makan malam. Tersedia opsi ayam suwir, telur, dan ati ampela.</div>
+          <div class="dt-h2" style="display:flex;align-items:center;justify-content:space-between">Ulasan <span style="font:600 11px/1 var(--font);color:var(--acc)">Tulis ulasan</span></div>
+          <div class="rv">
+            <div class="rv-av">D</div>
+            <div>
+              <div class="rv-top"><span class="rv-name">Dewi Kartika</span><span class="rv-date">2 hari lalu</span></div>
+              <div class="rv-stars"><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span><span class="material-symbols-rounded">star</span></div>
+              <div class="rv-txt">Kuahnya juara, porsinya pas. Datang pagi biar tidak antre.</div>
+            </div>
+          </div>
+        </div>
+        <div class="dt-actions">
+          <div class="btn-out"><span class="material-symbols-rounded">directions</span></div>
+          <div class="btn-primary"><span class="material-symbols-rounded">rate_review</span>Tulis Ulasan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2b Merchant Dashboard ===== -->
+    <div class="dv-opt" id="2b">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#2b">2b</a><span class="oh-name">Merchant Dashboard</span><span class="oh-tag">Merchant · /merchant/dashboard</span></div><div class="oh-desc">KPIs, 30-day traffic, weekly revenue, transactions. Efficient, data-first.</div></div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="mh-scroll">
+          <div class="mh-head">
+            <div class="mh-hi"><small>Dashboard</small><b>Halo, Warung Bu Pini</b></div>
+            <div class="mh-tools"><div class="iconbtn"><span class="material-symbols-rounded">notifications</span></div><div class="iconbtn" style="background:var(--chip);color:var(--chipink);font:700 15px/1 var(--disp)">P</div></div>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><div class="klabel"><span class="kicon material-symbols-rounded">visibility</span>Kunjungan</div><div class="knum">2.847</div><div class="ktrend up"><span class="material-symbols-rounded">trending_up</span>12%</div></div>
+            <div class="kpi"><div class="klabel"><span class="kicon material-symbols-rounded">ads_click</span>Interaksi</div><div class="knum">1.216</div><div class="ktrend up"><span class="material-symbols-rounded">trending_up</span>8%</div></div>
+            <div class="kpi"><div class="klabel"><span class="kicon material-symbols-rounded">payments</span>Pendapatan</div><div class="knum">Rp 1,2jt</div><div class="ktrend up"><span class="material-symbols-rounded">trending_up</span>24%</div></div>
+            <div class="kpi"><div class="klabel"><span class="kicon material-symbols-rounded">storefront</span>Toko</div><div class="knum">3</div><div class="ktrend flat">aktif</div></div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="card-h"><b>Traffic 30 hari</b><span class="lnk">Detail</span></div>
+            <div class="legend"><span><i style="background:#b5471f"></i>Kunjungan</span><span><i style="background:#7d8a3e"></i>Klik</span></div>
+            <div class="chartbox"><div class="area a2"></div><div class="area a1"></div></div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="card-h"><b>Pendapatan mingguan</b><span class="lnk">Rp 340rb</span></div>
+            <div class="bars7">
+              <div class="col"><div class="bar" style="height:38px"></div><span>Sen</span></div>
+              <div class="col"><div class="bar" style="height:56px"></div><span>Sel</span></div>
+              <div class="col"><div class="bar" style="height:44px"></div><span>Rab</span></div>
+              <div class="col"><div class="bar" style="height:70px"></div><span>Kam</span></div>
+              <div class="col"><div class="bar hl" style="height:88px"></div><span>Jum</span></div>
+              <div class="col"><div class="bar" style="height:62px"></div><span>Sab</span></div>
+              <div class="col"><div class="bar" style="height:50px"></div><span>Min</span></div>
+            </div>
+          </div>
+          <div class="qa">
+            <div class="q"><span class="qi material-symbols-rounded">add_business</span>Daftar Toko</div>
+            <div class="q"><span class="qi material-symbols-rounded">campaign</span>Promosi</div>
+            <div class="q"><span class="qi material-symbols-rounded">storefront</span>Toko Saya</div>
+            <div class="q"><span class="qi material-symbols-rounded">receipt_long</span>Riwayat</div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="nav-i active"><span class="material-symbols-rounded">dashboard</span>Beranda</div>
+          <div class="nav-i"><span class="material-symbols-rounded">storefront</span>Toko</div>
+          <div class="nav-i"><span class="material-symbols-rounded">campaign</span>Promosi</div>
+          <div class="nav-i"><span class="material-symbols-rounded">receipt_long</span>Riwayat</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2c Promote ===== -->
+    <div class="dv-opt" id="2c">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#2c">2c</a><span class="oh-name">Promosikan Toko</span><span class="oh-tag">Merchant · /merchant/promotion</span></div><div class="oh-desc">Step 1 of 3 — packages should feel aspirational, not "buy now".</div></div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="pr-scroll">
+          <div class="pr-head">Promosikan Toko</div>
+          <div class="pr-sub">Naikkan visibilitas tokomu di pencarian &amp; carousel.</div>
+          <div class="steps">
+            <div class="step active"><span class="n">1</span>Paket</div><div class="step-line"></div>
+            <div class="step"><span class="n">2</span>Toko</div><div class="step-line"></div>
+            <div class="step"><span class="n">3</span>Bayar</div>
+          </div>
+          <div class="pkg">
+            <div class="pkg-h"><div><div class="pkg-name">Silver</div><div class="pkg-days">7 hari tayang</div></div><div class="pkg-price">Rp 50rb<small>Rp 7rb / hari</small></div></div>
+            <div class="pkg-benes"><div class="bene"><span class="material-symbols-rounded">check_circle</span>Prioritas pencarian</div><div class="bene"><span class="material-symbols-rounded">check_circle</span>Badge tersemat</div><div class="bene"><span class="material-symbols-rounded">check_circle</span>Analitik dasar</div></div>
+          </div>
+          <div class="pkg sel">
+            <div class="pkg-pop">Paling Populer</div>
+            <div class="pkg-sel-ico material-symbols-rounded">check</div>
+            <div class="pkg-h"><div><div class="pkg-name">Gold</div><div class="pkg-days">15 hari tayang</div></div><div class="pkg-price">Rp 150rb<small>Rp 10rb / hari</small></div></div>
+            <div class="pkg-benes"><div class="bene"><span class="material-symbols-rounded">check_circle</span>Prioritas teratas di pencarian</div><div class="bene"><span class="material-symbols-rounded">check_circle</span>Badge "Unggulan"</div><div class="bene"><span class="material-symbols-rounded">check_circle</span>Analitik lengkap</div><div class="bene"><span class="material-symbols-rounded">check_circle</span>Shoutout media sosial</div></div>
+          </div>
+          <div class="pkg">
+            <div class="pkg-h"><div><div class="pkg-name">Platinum</div><div class="pkg-days">30 hari tayang</div></div><div class="pkg-price">Rp 300rb<small>Rp 10rb / hari</small></div></div>
+            <div class="pkg-benes"><div class="bene"><span class="material-symbols-rounded">check_circle</span>Prioritas maksimal</div><div class="bene"><span class="material-symbols-rounded">check_circle</span>Slot carousel utama</div><div class="bene"><span class="material-symbols-rounded">check_circle</span>Analitik + laporan bulanan</div></div>
+          </div>
+        </div>
+        <div class="pr-bar">
+          <div class="tot"><small>Total · Gold</small><b>Rp 150.000</b></div>
+          <div class="go">Pilih Toko<span class="material-symbols-rounded">arrow_forward</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 2d Auth ===== -->
+    <div class="dv-opt" id="2d">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#2d">2d</a><span class="oh-name">Masuk</span><span class="oh-tag">Auth · /login</span></div><div class="oh-desc">Warm brand hero over a clean form. Register mirrors this.</div></div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="au">
+          <div class="au-hero">
+            <div class="ph" data-cap="foto · suasana pasar semawis"></div>
+            <div class="au-hsc"></div>
+            <div class="au-brand">
+              <div class="au-kicker">Jelajah Kuliner</div>
+              <div class="au-logo">Semarang.</div>
+              <div class="au-tag">Temukan kuliner otentik kota Semarang — dari lumpia sampai tahu gimbal.</div>
+            </div>
+          </div>
+          <div class="au-card">
+            <h2>Selamat datang</h2>
+            <div class="au-cs">Masuk untuk menyimpan favorit &amp; menulis ulasan.</div>
+            <div class="field"><label>Email</label><div class="input"><span class="material-symbols-rounded">mail</span>nama@email.com</div></div>
+            <div class="field"><label>Kata sandi</label><div class="input"><span class="material-symbols-rounded">lock</span>••••••••<span class="material-symbols-rounded eye">visibility_off</span></div></div>
+            <div class="row-between"><div class="check"><span class="box material-symbols-rounded">check</span>Ingat saya</div></div>
+            <div class="au-btn">Masuk</div>
+            <div class="divider">ATAU</div>
+            <div class="oauth"><span class="g">G</span>Lanjutkan dengan Google</div>
+            <div class="au-alt">Belum punya akun? <a href="#2d">Daftar</a></div>
+          </div>
+        </div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+      </div>
+    </div>
+
+    <!-- ===== 2e Admin ===== -->
+    <div class="dv-opt" id="2e">
+      <div class="oh"><div class="oh-top"><a class="dv-oid" href="#2e">2e</a><span class="oh-name">Admin Console</span><span class="oh-tag">Admin · /admin/dashboard</span></div><div class="oh-desc">Utilitarian dark shell — moderation queue, distinct from customer app.</div></div>
+      <div class="phone adm">
+        <div class="isl"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="ad-scroll">
+          <div class="ad-head"><div class="t"><small>Konsol Admin</small><b>Moderasi</b></div><div class="iconbtn"><span class="material-symbols-rounded">logout</span></div></div>
+          <div class="ad-stats">
+            <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">group</span>Pengguna</div><div class="n">1.284</div></div>
+            <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">restaurant</span>Tempat</div><div class="n">342</div></div>
+            <div class="ad-stat"><div class="sl"><span class="material-symbols-rounded">reviews</span>Ulasan</div><div class="n">2.9rb</div></div>
+            <div class="ad-stat hot"><div class="sl"><span class="material-symbols-rounded">pending</span>Menunggu</div><div class="n">7</div></div>
+          </div>
+          <div class="ad-tabs"><span class="ad-tab">Ringkasan</span><span class="ad-tab active">Menunggu</span><span class="ad-tab">Ulasan</span><span class="ad-tab">Semua</span><span class="ad-tab">Kategori</span></div>
+          <div class="ad-sech"><b>Antrean Persetujuan</b><small>7 tempat</small></div>
+          <div class="ad-item">
+            <div class="ad-r1">
+              <div class="ad-thumb ph" data-cap="foto"></div>
+              <div><div class="ad-name">Sate Kambing Pak Kumis</div><div class="ad-by">Diajukan oleh Andi Wijaya · 1 jam lalu</div><div class="ad-meta"><span class="ad-mchip">Sate</span><span class="ad-mchip">Jl. Dr. Cipto</span><span class="ad-mchip">3 foto</span></div></div>
+            </div>
+            <div class="ad-acts"><div class="ad-btn ad-approve"><span class="material-symbols-rounded">check</span>Setujui</div><div class="ad-btn ad-reject"><span class="material-symbols-rounded">close</span>Tolak</div></div>
+          </div>
+          <div class="ad-item">
+            <div class="ad-r1">
+              <div class="ad-thumb ph" data-cap="foto"></div>
+              <div><div class="ad-name">Kopi Semawis</div><div class="ad-by">Diajukan oleh Rina Sari · 3 jam lalu</div><div class="ad-meta"><span class="ad-mchip">Kopi</span><span class="ad-mchip">Kota Lama</span><span class="ad-mchip">2 foto</span></div></div>
+            </div>
+            <div class="ad-acts"><div class="ad-btn ad-approve"><span class="material-symbols-rounded">check</span>Setujui</div><div class="ad-btn ad-reject"><span class="material-symbols-rounded">close</span>Tolak</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="dv-next">Next: "add the Submit-a-spot + Favorites screens" · "show <a href="#2b">2b</a> and <a href="#2e">2e</a> as desktop" · "add register (step 2/3) of the promote flow" · "tweak the Rempah accent warmer"</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Explorer · map-first · mobile — three brand directions</span></div>
+  <p class="dv-intro">Same product, same screen, three points of view. All map-first, Bahasa Indonesia, deeper <b>spice palette</b>, all-sans type, real Semarang dishes. Pick a direction (or mix elements — "the type from <a href="#1a" style="color:#c8451f;text-decoration:none;font-weight:700">1a</a> on <a href="#1b" style="color:#c8451f;text-decoration:none;font-weight:700">1b</a>") and I'll build the rest of the app in it.</p>
+
+  <div class="dv-opts">
+
+    <!-- ============ 1a · SAJIAN ============ -->
+    <div class="dv-opt" id="1a">
+      <div class="oh">
+        <div class="oh-top"><a class="dv-oid" href="#1a">1a</a><span class="oh-name">Sajian</span><span class="oh-tag">Editorial · Premium</span></div>
+        <div class="oh-desc">Warm cream, airy, restaurant-guide calm. One confident chili-red accent, turmeric for ratings. Big photos, quiet UI.</div>
+        <div class="oh-meta"><div class="sw"><i style="background:#f4eee1"></i><i style="background:#2a2118"></i><i style="background:#c8451f"></i><i style="background:#dc9a2b"></i><i style="background:#c9dde0"></i></div><span class="oh-font">Schibsted Grotesk</span></div>
+      </div>
+      <div class="phone d1">
+        <div class="isl"></div>
+        <div class="map">
+          <div class="water" style="top:-6%;left:-14%;width:52%;height:40%"></div>
+          <div class="park" style="top:56%;left:58%;width:38%;height:30%"></div>
+          <div class="road maj" style="top:0;left:34%;width:12px;height:100%;transform:rotate(6deg)"></div>
+          <div class="road maj" style="top:40%;left:-10%;width:120%;height:11px;transform:rotate(-8deg)"></div>
+          <div class="road" style="top:16%;left:-10%;width:120%;height:6px;transform:rotate(-8deg)"></div>
+          <div class="road" style="top:64%;left:0;width:70%;height:6px;transform:rotate(4deg)"></div>
+          <div class="road" style="top:0;left:66%;width:6px;height:100%;transform:rotate(-4deg)"></div>
+          <span class="mlabel" style="top:15%;left:10%">Kota Lama</span>
+          <span class="mlabel" style="top:70%;left:60%">Simpang Lima</span>
+          <div class="pin pin" style="top:24%;left:22%"><div class="pin-price"><span class="dot"></span>15rb</div></div>
+          <div class="pin" style="top:33%;left:70%"><div class="pin-price"><span class="dot"></span>20rb</div></div>
+          <div class="pin" style="top:66%;left:26%"><div class="pin-price"><span class="dot"></span>12rb</div></div>
+          <div class="pin" style="top:70%;left:80%"><div class="pin-dot"></div></div>
+          <div class="mini" style="top:52%;left:52%">
+            <div class="mimg ph" data-cap="nasi ayam"></div>
+            <div><div class="mname">Nasi Ayam Bu Pini</div><div class="mrow"><span class="material-symbols-rounded st">star</span>4.9 · 312 ulasan · Rp 22rb</div></div>
+          </div>
+          <div class="pin" style="top:59%;left:52%"><div class="pin-dot"></div></div>
+        </div>
+        <div class="scrim-t"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="top">
+          <div class="search"><span class="material-symbols-rounded lead">search</span><span class="ph-txt">Cari kuliner di Semarang…</span><span class="tune material-symbols-rounded">tune</span></div>
+          <div class="cats"><span class="cat active">Semua</span><span class="cat">Nasi</span><span class="cat">Soto</span><span class="cat">Sate</span><span class="cat">Jajanan</span><span class="cat">Kopi</span></div>
+        </div>
+        <div class="fab material-symbols-rounded">near_me</div>
+        <div class="toggle"><span class="material-symbols-rounded">list</span>Daftar</div>
+        <div class="sheet">
+          <div class="handle"></div>
+          <div class="sheet-h"><div><div class="sh-title">Dekat Kamu</div><div class="sh-sub">24 tempat dalam 2 km</div></div><span class="see">Lihat semua</span></div>
+          <div class="cardrow">
+            <div class="spot">
+              <div class="spot-img ph" data-cap="foto · lumpia">
+                <div class="spot-rate"><span class="material-symbols-rounded st">star</span>4.8</div>
+                <div class="spot-heart"><span class="material-symbols-rounded">favorite</span></div>
+              </div>
+              <div class="spot-body"><div class="spot-name">Lumpia Gang Lombok</div><div class="spot-loc"><span class="material-symbols-rounded">location_on</span>Kota Lama · 0,8 km</div><div class="tags"><span class="tag">Halal</span><span class="tag">Legendaris</span></div><div class="spot-foot"><span class="price">Rp 15rb <small>/ porsi</small></span></div></div>
+            </div>
+            <div class="spot">
+              <div class="spot-img ph" data-cap="foto · tahu gimbal">
+                <div class="spot-rate"><span class="material-symbols-rounded st">star</span>4.7</div>
+                <div class="spot-heart"><span class="material-symbols-rounded">favorite</span></div>
+                <div class="promo-badge">Pilihan</div>
+              </div>
+              <div class="spot-body"><div class="spot-name">Tahu Gimbal Pak Edy</div><div class="spot-loc"><span class="material-symbols-rounded">location_on</span>Simpang Lima · 1,2 km</div><div class="tags"><span class="tag">Kaki Lima</span><span class="tag">Pedas</span></div><div class="spot-foot"><span class="price">Rp 20rb</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="nav-i active"><span class="material-symbols-rounded">explore</span>Jelajah</div>
+          <div class="nav-i"><span class="material-symbols-rounded">favorite</span>Favorit</div>
+          <div class="nav-i"><span class="material-symbols-rounded">receipt_long</span>Pesanan</div>
+          <div class="nav-i"><span class="material-symbols-rounded">person</span>Profil</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1b · KAKI LIMA ============ -->
+    <div class="dv-opt" id="1b">
+      <div class="oh">
+        <div class="oh-top"><a class="dv-oid" href="#1b">1b</a><span class="oh-name">Kaki Lima</span><span class="oh-tag">Bold · Street-food</span></div>
+        <div class="oh-desc">Night-market energy. Dark clove base, electric chili + turmeric, sticker badges, heavy display caps. Photos glow.</div>
+        <div class="oh-meta"><div class="sw"><i style="background:#161210"></i><i style="background:#f6ecdc"></i><i style="background:#ff4d2e"></i><i style="background:#f5b301"></i><i style="background:#153036"></i></div><span class="oh-font">Space Grotesk + Hanken</span></div>
+      </div>
+      <div class="phone d2">
+        <div class="isl"></div>
+        <div class="map">
+          <div class="water" style="top:-6%;left:-14%;width:52%;height:40%"></div>
+          <div class="park" style="top:56%;left:58%;width:38%;height:30%"></div>
+          <div class="road maj" style="top:0;left:34%;width:12px;height:100%;transform:rotate(6deg)"></div>
+          <div class="road maj" style="top:40%;left:-10%;width:120%;height:11px;transform:rotate(-8deg)"></div>
+          <div class="road" style="top:16%;left:-10%;width:120%;height:6px;transform:rotate(-8deg)"></div>
+          <div class="road" style="top:64%;left:0;width:70%;height:6px;transform:rotate(4deg)"></div>
+          <div class="road" style="top:0;left:66%;width:6px;height:100%;transform:rotate(-4deg)"></div>
+          <span class="mlabel" style="top:15%;left:10%">Kota Lama</span>
+          <span class="mlabel" style="top:70%;left:60%">Simpang Lima</span>
+          <div class="pin" style="top:24%;left:22%"><div class="pin-price"><span class="dot"></span>15rb</div></div>
+          <div class="pin" style="top:33%;left:70%"><div class="pin-price"><span class="dot"></span>20rb</div></div>
+          <div class="pin" style="top:66%;left:26%"><div class="pin-price"><span class="dot"></span>12rb</div></div>
+          <div class="pin" style="top:70%;left:80%"><div class="pin-dot"></div></div>
+          <div class="mini" style="top:52%;left:52%">
+            <div class="mimg ph" data-cap="nasi ayam"></div>
+            <div><div class="mname">Nasi Ayam Bu Pini</div><div class="mrow"><span class="material-symbols-rounded st">star</span>4.9 · 312 ulasan · Rp 22rb</div></div>
+          </div>
+          <div class="pin" style="top:59%;left:52%"><div class="pin-dot"></div></div>
+        </div>
+        <div class="scrim-t"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="top">
+          <div class="search"><span class="material-symbols-rounded lead">search</span><span class="ph-txt">Cari kuliner di Semarang…</span><span class="tune material-symbols-rounded">tune</span></div>
+          <div class="cats"><span class="cat active">Semua</span><span class="cat">Nasi</span><span class="cat">Soto</span><span class="cat">Sate</span><span class="cat">Jajanan</span><span class="cat">Kopi</span></div>
+        </div>
+        <div class="fab material-symbols-rounded">near_me</div>
+        <div class="toggle"><span class="material-symbols-rounded">list</span>Daftar</div>
+        <div class="sheet">
+          <div class="handle"></div>
+          <div class="sheet-h"><div><div class="sh-title">Dekat Kamu</div><div class="sh-sub">24 tempat dalam 2 km</div></div><span class="see">Lihat semua</span></div>
+          <div class="cardrow">
+            <div class="spot">
+              <div class="spot-img ph" data-cap="foto · lumpia">
+                <div class="spot-rate"><span class="material-symbols-rounded st">star</span>4.8</div>
+                <div class="spot-heart"><span class="material-symbols-rounded">favorite</span></div>
+              </div>
+              <div class="spot-body"><div class="spot-name">Lumpia Gang Lombok</div><div class="spot-loc"><span class="material-symbols-rounded">location_on</span>Kota Lama · 0,8 km</div><div class="tags"><span class="tag">Halal</span><span class="tag">Legendaris</span></div><div class="spot-foot"><span class="price">Rp 15rb <small>/ porsi</small></span></div></div>
+            </div>
+            <div class="spot">
+              <div class="spot-img ph" data-cap="foto · tahu gimbal">
+                <div class="spot-rate"><span class="material-symbols-rounded st">star</span>4.7</div>
+                <div class="spot-heart"><span class="material-symbols-rounded">favorite</span></div>
+                <div class="promo-badge">Pilihan</div>
+              </div>
+              <div class="spot-body"><div class="spot-name">Tahu Gimbal Pak Edy</div><div class="spot-loc"><span class="material-symbols-rounded">location_on</span>Simpang Lima · 1,2 km</div><div class="tags"><span class="tag">Kaki Lima</span><span class="tag">Pedas</span></div><div class="spot-foot"><span class="price">Rp 20rb</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="nav-i active"><span class="material-symbols-rounded">explore</span>Jelajah</div>
+          <div class="nav-i"><span class="material-symbols-rounded">favorite</span>Favorit</div>
+          <div class="nav-i"><span class="material-symbols-rounded">receipt_long</span>Pesanan</div>
+          <div class="nav-i"><span class="material-symbols-rounded">person</span>Profil</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1c · REMPAH ============ -->
+    <div class="dv-opt" id="1c">
+      <div class="oh">
+        <div class="oh-top"><a class="dv-oid" href="#1c">1c</a><span class="oh-name">Rempah</span><span class="oh-tag">Warm · Craft</span></div>
+        <div class="oh-desc">Handmade and local. Terracotta parchment, tamarind brick + clove-green, softer rounds, dotted texture, characterful display.</div>
+        <div class="oh-meta"><div class="sw"><i style="background:#ede0cd"></i><i style="background:#3a2b21"></i><i style="background:#b5471f"></i><i style="background:#7d8a3e"></i><i style="background:#bcccb4"></i></div><span class="oh-font">Bricolage Grotesque</span></div>
+      </div>
+      <div class="phone d3">
+        <div class="isl"></div>
+        <div class="map">
+          <div class="water" style="top:-6%;left:-14%;width:52%;height:40%"></div>
+          <div class="park" style="top:56%;left:58%;width:38%;height:30%"></div>
+          <div class="road maj" style="top:0;left:34%;width:12px;height:100%;transform:rotate(6deg)"></div>
+          <div class="road maj" style="top:40%;left:-10%;width:120%;height:11px;transform:rotate(-8deg)"></div>
+          <div class="road" style="top:16%;left:-10%;width:120%;height:6px;transform:rotate(-8deg)"></div>
+          <div class="road" style="top:64%;left:0;width:70%;height:6px;transform:rotate(4deg)"></div>
+          <div class="road" style="top:0;left:66%;width:6px;height:100%;transform:rotate(-4deg)"></div>
+          <span class="mlabel" style="top:15%;left:10%">Kota Lama</span>
+          <span class="mlabel" style="top:70%;left:60%">Simpang Lima</span>
+          <div class="pin" style="top:24%;left:22%"><div class="pin-price"><span class="dot"></span>15rb</div></div>
+          <div class="pin" style="top:33%;left:70%"><div class="pin-price"><span class="dot"></span>20rb</div></div>
+          <div class="pin" style="top:66%;left:26%"><div class="pin-price"><span class="dot"></span>12rb</div></div>
+          <div class="pin" style="top:70%;left:80%"><div class="pin-dot"></div></div>
+          <div class="mini" style="top:52%;left:52%">
+            <div class="mimg ph" data-cap="nasi ayam"></div>
+            <div><div class="mname">Nasi Ayam Bu Pini</div><div class="mrow"><span class="material-symbols-rounded st">star</span>4.9 · 312 ulasan · Rp 22rb</div></div>
+          </div>
+          <div class="pin" style="top:59%;left:52%"><div class="pin-dot"></div></div>
+        </div>
+        <div class="scrim-t"></div>
+        <div class="sb"><span class="sb-time">19:41</span><div class="sb-r"><div class="bars"><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i></div><span class="sb-5g">5G</span><div class="batt"><b></b></div></div></div>
+        <div class="top">
+          <div class="search"><span class="material-symbols-rounded lead">search</span><span class="ph-txt">Cari kuliner di Semarang…</span><span class="tune material-symbols-rounded">tune</span></div>
+          <div class="cats"><span class="cat active">Semua</span><span class="cat">Nasi</span><span class="cat">Soto</span><span class="cat">Sate</span><span class="cat">Jajanan</span><span class="cat">Kopi</span></div>
+        </div>
+        <div class="fab material-symbols-rounded">near_me</div>
+        <div class="toggle"><span class="material-symbols-rounded">list</span>Daftar</div>
+        <div class="sheet">
+          <div class="handle"></div>
+          <div class="sheet-h"><div><div class="sh-title">Dekat Kamu</div><div class="sh-sub">24 tempat dalam 2 km</div></div><span class="see">Lihat semua</span></div>
+          <div class="cardrow">
+            <div class="spot">
+              <div class="spot-img ph" data-cap="foto · lumpia">
+                <div class="spot-rate"><span class="material-symbols-rounded st">star</span>4.8</div>
+                <div class="spot-heart"><span class="material-symbols-rounded">favorite</span></div>
+              </div>
+              <div class="spot-body"><div class="spot-name">Lumpia Gang Lombok</div><div class="spot-loc"><span class="material-symbols-rounded">location_on</span>Kota Lama · 0,8 km</div><div class="tags"><span class="tag">Halal</span><span class="tag">Legendaris</span></div><div class="spot-foot"><span class="price">Rp 15rb <small>/ porsi</small></span></div></div>
+            </div>
+            <div class="spot">
+              <div class="spot-img ph" data-cap="foto · tahu gimbal">
+                <div class="spot-rate"><span class="material-symbols-rounded st">star</span>4.7</div>
+                <div class="spot-heart"><span class="material-symbols-rounded">favorite</span></div>
+                <div class="promo-badge">Pilihan</div>
+              </div>
+              <div class="spot-body"><div class="spot-name">Tahu Gimbal Pak Edy</div><div class="spot-loc"><span class="material-symbols-rounded">location_on</span>Simpang Lima · 1,2 km</div><div class="tags"><span class="tag">Kaki Lima</span><span class="tag">Pedas</span></div><div class="spot-foot"><span class="price">Rp 20rb</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="nav-i active"><span class="material-symbols-rounded">explore</span>Jelajah</div>
+          <div class="nav-i"><span class="material-symbols-rounded">favorite</span>Favorit</div>
+          <div class="nav-i"><span class="material-symbols-rounded">receipt_long</span>Pesanan</div>
+          <div class="nav-i"><span class="material-symbols-rounded">person</span>Profil</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="dv-next">Next: "build the app in <a href="#1a">1a</a>" · "<a href="#1b">1b</a> but lighter, not full dark" · "<a href="#1c">1c</a> with the type from <a href="#1a">1a</a>" · "show me a desktop Explorer" · "new directions"</p>
+</section>
+</x-dc>
+</body>
+</html>
