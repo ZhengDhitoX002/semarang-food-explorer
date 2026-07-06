@@ -14,16 +14,9 @@
     overflow: auto;
   }
 
-  .erd-wrapper {
-    width: 1700px;
-    height: 1080px;
-    position: relative;
-    margin: 30px auto;
-  }
-
   .erd-title {
     text-align: center;
-    margin-bottom: 14px;
+    margin: 30px 0 18px;
   }
   .erd-title h1 {
     font-size: 21px;
@@ -35,6 +28,13 @@
     font-size: 12.5px;
     color: #64748b;
     margin-top: 3px;
+  }
+
+  .erd-wrapper {
+    width: 1300px;
+    height: 960px;
+    position: relative;
+    margin: 0 auto 40px;
   }
 
   .entity {
@@ -84,7 +84,7 @@
   .fk { background: #bfdbfe; color: #1e40af; border: 1px solid #3b82f6; }
 
   .attr .col-name { font-weight: 500; color: #1e293b; }
-  .attr .col-type { color: #94a3b8; margin-left: auto; font-size: 10px; }
+  .attr .col-type { color: #94a3b8; margin-left: auto; font-size: 10px; white-space: nowrap; }
 
   .entity.pivot .entity-header { background: #475569; }
 
@@ -109,7 +109,7 @@
   .legend {
     position: absolute;
     bottom: 16px;
-    right: 30px;
+    right: 20px;
     background: #f8fafc;
     border: 1.5px solid #cbd5e1;
     border-radius: 5px;
@@ -141,87 +141,90 @@
 
 <div class="erd-title">
   <h1>Entity Relationship Diagram &mdash; Semarang Food Explorer</h1>
-  <p>Database: PostgreSQL &nbsp;|&nbsp; Framework: Laravel 13 &nbsp;|&nbsp; 10 entitas, 18 migrasi</p>
+  <p>Database: MySQL (production) / SQLite (lokal) &nbsp;|&nbsp; Framework: Laravel 13 &nbsp;|&nbsp; 11 entitas</p>
 </div>
 
 <div class="erd-wrapper">
 
-  <svg class="lines" viewBox="0 0 1700 1080">
-    <!-- users(310,160) -> culinary_spots(520,183) : owner_id  1:N -->
-    <path d="M 285,168 C 370,168 420,183 505,183"/>
-    <text x="380" y="162">1</text>
-    <text x="485" y="178">N</text>
+  <svg class="lines" viewBox="0 0 1300 900">
+    <!-- users -> culinary_spots : owner_id (1:N) -->
+    <path d="M 280,140 L 340,225"/>
+    <text x="288" y="132">1</text>
+    <text x="322" y="222">N</text>
 
-    <!-- users(310,195) -> culinary_spots(520,392) : submitted_by 1:N -->
-    <path d="M 285,200 C 380,220 440,380 505,392"/>
-    <text x="390" y="275">N</text>
+    <!-- users -> culinary_spots : submitted_by (1:N) -->
+    <path d="M 280,196 L 340,320"/>
+    <text x="288" y="212">1</text>
+    <text x="322" y="317">N</text>
 
-    <!-- categories -> culinary_spots : category_id 1:N -->
-    <path d="M 590,95 L 590,135"/>
-    <text x="596" y="92">1</text>
-    <text x="596" y="148">N</text>
+    <!-- categories -> culinary_spots : category_id (1:N) -->
+    <path d="M 470,158 L 470,208"/>
+    <text x="477" y="155">1</text>
+    <text x="477" y="205">N</text>
 
-    <!-- culinary_spots(760,420) -> reviews(620,502) 1:N -->
-    <path d="M 640,420 C 640,455 630,470 630,502"/>
-    <text x="648" y="453">1</text>
-    <text x="614" y="498">N</text>
+    <!-- culinary_spots -> reviews : spot_id (1:N) -->
+    <path d="M 470,556 L 470,606"/>
+    <text x="477" y="553">1</text>
+    <text x="477" y="603">N</text>
 
-    <!-- users -> reviews : user_id 1:N -->
-    <path d="M 180,310 C 180,440 400,502 510,502"/>
-    <text x="165" y="330">1</text>
-    <text x="500" y="496">N</text>
+    <!-- users -> reviews : user_id (1:N) -->
+    <path d="M 280,250 C 320,400 320,600 340,700"/>
+    <text x="288" y="262">1</text>
+    <text x="322" y="697">N</text>
 
-    <!-- users -> transactions : user_id 1:N -->
-    <path d="M 100,310 L 100,450"/>
-    <text x="86" y="340">1</text>
-    <text x="86" y="445">N</text>
+    <!-- users -> transactions : user_id (1:N) -->
+    <path d="M 150,296 L 150,346"/>
+    <text x="157" y="293">1</text>
+    <text x="157" y="343">N</text>
 
-    <!-- culinary_spots -> transactions : spot_id 1:N -->
-    <path d="M 505,350 C 380,380 200,420 160,450"/>
-    <text x="370" y="372">1</text>
-    <text x="170" y="445">N</text>
+    <!-- culinary_spots -> transactions : spot_id (1:N) -->
+    <path d="M 340,420 L 280,455"/>
+    <text x="318" y="415">1</text>
+    <text x="288" y="452">N</text>
 
-    <!-- culinary_spots -> analytics : spot_id 1:N -->
-    <path d="M 505,380 C 350,420 150,500 120,620"/>
-    <text x="330" y="415">1</text>
-    <text x="130" y="612">N</text>
+    <!-- culinary_spots -> analytics : spot_id (1:N) -->
+    <path d="M 340,500 C 260,560 200,590 160,629"/>
+    <text x="300" y="555">1</text>
+    <text x="168" y="626">N</text>
 
-    <!-- culinary_spots -> favorites : 1:N -->
-    <path d="M 760,420 C 800,550 880,600 920,630"/>
-    <text x="800" y="530">1</text>
-    <text x="905" y="625">N</text>
+    <!-- culinary_spots -> favorites : culinary_spot_id (1:N) -->
+    <path d="M 600,420 C 700,440 760,400 790,376"/>
+    <text x="612" y="414">1</text>
+    <text x="775" y="372">N</text>
 
-    <!-- users -> favorites : 1:N -->
-    <path d="M 285,270 C 500,290 860,530 940,630"/>
-    <text x="500" y="285">1</text>
-    <text x="925" y="625">N</text>
+    <!-- users -> favorites : user_id (1:N) -->
+    <path d="M 280,230 C 500,270 700,340 790,400"/>
+    <text x="288" y="245">1</text>
+    <text x="775" y="412">N</text>
 
-    <!-- culinary_spots -> culinary_spot_tag pivot : N -->
-    <path d="M 760,350 C 830,430 860,490 880,530"/>
-    <text x="810" y="440">N</text>
+    <!-- culinary_spots -> culinary_spot_tag : culinary_spot_id (N) -->
+    <path d="M 600,470 L 660,300"/>
+    <text x="608" y="465">1</text>
+    <text x="642" y="304">N</text>
 
-    <!-- tags -> culinary_spot_tag pivot : N -->
-    <path d="M 1150,120 C 1130,300 1060,460 980,530"/>
-    <text x="1080" y="340">N</text>
+    <!-- tags -> culinary_spot_tag : tag_id (N) -->
+    <path d="M 790,181 L 790,231"/>
+    <text x="797" y="178">1</text>
+    <text x="797" y="228">N</text>
 
-    <!-- culinary_spots -> media : 1:N (morph) -->
-    <path d="M 760,230 C 900,210 1020,185 1090,160"/>
-    <text x="890" y="205">1</text>
-    <text x="1072" y="155">N</text>
+    <!-- culinary_spots -> media : morph (1:N) -->
+    <path d="M 600,260 L 980,180"/>
+    <text x="612" y="255">1</text>
+    <text x="960" y="176">N</text>
 
-    <!-- reviews -> media : 1:N (morph) -->
-    <path d="M 780,530 C 950,500 1050,350 1120,180"/>
-    <text x="945" y="480">1</text>
-    <text x="1108" y="195">N</text>
+    <!-- reviews -> media : morph (1:N) -->
+    <path d="M 600,650 C 850,600 1000,500 1110,457"/>
+    <text x="612" y="656">1</text>
+    <text x="1090" y="452">N</text>
 
-    <!-- users -> notifications : 1:N (morph) -->
-    <path d="M 285,240 C 700,230 1150,360 1290,470"/>
-    <text x="700" y="224">1</text>
-    <text x="1275" y="465">N</text>
+    <!-- users -> notifications : morph (1:N) -->
+    <path d="M 280,270 C 700,380 1000,470 1110,507"/>
+    <text x="288" y="284">1</text>
+    <text x="1090" y="503">N</text>
   </svg>
 
-  <!-- ══ USERS ══ -->
-  <div class="entity" style="left:20px; top:90px; width:260px;">
+  <!-- Column A: users, transactions, analytics -->
+  <div class="entity" style="left:20px; top:40px; width:260px;">
     <div class="entity-header">users</div>
     <div class="entity-body">
       <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
@@ -237,61 +240,12 @@
     </div>
   </div>
 
-  <!-- ══ CATEGORIES ══ -->
-  <div class="entity" style="left:490px; top:0px; width:200px;">
-    <div class="entity-header">categories</div>
-    <div class="entity-body">
-      <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
-      <div class="attr"><span class="col-name">name</span> <span class="col-type">varchar(255)</span></div>
-      <div class="attr"><span class="col-name">created_at</span> <span class="col-type">timestamp</span></div>
-      <div class="attr"><span class="col-name">updated_at</span> <span class="col-type">timestamp</span></div>
-    </div>
-  </div>
-
-  <!-- ══ CULINARY_SPOTS ══ -->
-  <div class="entity" style="left:505px; top:135px; width:260px;">
-    <div class="entity-header">culinary_spots</div>
-    <div class="entity-body">
-      <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">owner_id</span> <span class="col-type">bigint NULL &rarr; users</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">category_id</span> <span class="col-type">bigint &rarr; categories</span></div>
-      <div class="attr"><span class="col-name">name</span> <span class="col-type">varchar(255)</span></div>
-      <div class="attr"><span class="col-name">description</span> <span class="col-type">text NULL</span></div>
-      <div class="attr"><span class="col-name">address</span> <span class="col-type">varchar(255) NULL</span></div>
-      <div class="attr"><span class="col-name">latitude</span> <span class="col-type">decimal(10,8)</span></div>
-      <div class="attr"><span class="col-name">longitude</span> <span class="col-type">decimal(11,8)</span></div>
-      <div class="attr"><span class="col-name">price</span> <span class="col-type">decimal(10,2)</span></div>
-      <div class="attr"><span class="col-name">is_promoted</span> <span class="col-type">boolean def:false</span></div>
-      <div class="attr"><span class="col-name">status</span> <span class="col-type">varchar def:'approved'</span></div>
-      <div class="attr"><span class="col-name">closed_reason</span> <span class="col-type">varchar(255) NULL</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">submitted_by</span> <span class="col-type">bigint NULL &rarr; users</span></div>
-      <div class="attr"><span class="col-name">created_at</span> <span class="col-type">timestamp</span></div>
-      <div class="attr"><span class="col-name">updated_at</span> <span class="col-type">timestamp</span></div>
-    </div>
-  </div>
-
-  <!-- ══ REVIEWS ══ -->
-  <div class="entity" style="left:510px; top:502px; width:240px;">
-    <div class="entity-header">reviews</div>
-    <div class="entity-body">
-      <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">user_id</span> <span class="col-type">bigint &rarr; users</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">spot_id</span> <span class="col-type">bigint &rarr; culinary_spots</span></div>
-      <div class="attr"><span class="col-name">rating</span> <span class="col-type">tinyint (1-5)</span></div>
-      <div class="attr"><span class="col-name">comment</span> <span class="col-type">text</span></div>
-      <div class="attr"><span class="col-name">is_verified</span> <span class="col-type">boolean def:false</span></div>
-      <div class="attr"><span class="col-name">created_at</span> <span class="col-type">timestamp</span></div>
-      <div class="attr"><span class="col-name">updated_at</span> <span class="col-type">timestamp</span></div>
-    </div>
-  </div>
-
-  <!-- ══ TRANSACTIONS ══ -->
-  <div class="entity" style="left:10px; top:450px; width:250px;">
+  <div class="entity" style="left:20px; top:346px; width:260px;">
     <div class="entity-header">transactions</div>
     <div class="entity-body">
       <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">user_id</span> <span class="col-type">bigint &rarr; users</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">spot_id</span> <span class="col-type">bigint &rarr; culinary_spots</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">user_id</span> <span class="col-type">&rarr; users</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">spot_id</span> <span class="col-type">&rarr; culinary_spots</span></div>
       <div class="attr"><span class="col-name">order_id</span> <span class="col-type">varchar(255) UQ</span></div>
       <div class="attr"><span class="col-name">status</span> <span class="col-type">varchar(255)</span></div>
       <div class="attr"><span class="col-name">amount</span> <span class="col-type">decimal(12,2)</span></div>
@@ -301,12 +255,11 @@
     </div>
   </div>
 
-  <!-- ══ ANALYTICS ══ -->
-  <div class="entity" style="left:10px; top:680px; width:230px;">
+  <div class="entity" style="left:20px; top:629px; width:260px;">
     <div class="entity-header">analytics</div>
     <div class="entity-body">
       <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">spot_id</span> <span class="col-type">bigint &rarr; culinary_spots</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">spot_id</span> <span class="col-type">&rarr; culinary_spots</span></div>
       <div class="attr"><span class="col-name">event_type</span> <span class="col-type">varchar(255)</span></div>
       <div class="attr"><span class="col-name">ip_address</span> <span class="col-type">varchar(255) NULL</span></div>
       <div class="attr"><span class="col-name">created_at</span> <span class="col-type">timestamp</span></div>
@@ -314,20 +267,53 @@
     </div>
   </div>
 
-  <!-- ══ FAVORITES ══ -->
-  <div class="entity" style="left:850px; top:630px; width:250px;">
-    <div class="entity-header">favorites</div>
+  <!-- Column B: categories, culinary_spots, reviews -->
+  <div class="entity" style="left:340px; top:40px; width:260px;">
+    <div class="entity-header">categories</div>
     <div class="entity-body">
       <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">user_id</span> <span class="col-type">bigint &rarr; users</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">culinary_spot_id</span> <span class="col-type">bigint &rarr; culinary_spots</span></div>
+      <div class="attr"><span class="col-name">name</span> <span class="col-type">varchar(255)</span></div>
       <div class="attr"><span class="col-name">created_at</span> <span class="col-type">timestamp</span></div>
       <div class="attr"><span class="col-name">updated_at</span> <span class="col-type">timestamp</span></div>
     </div>
   </div>
 
-  <!-- ══ TAGS ══ -->
-  <div class="entity" style="left:1050px; top:0px; width:200px;">
+  <div class="entity" style="left:340px; top:208px; width:260px;">
+    <div class="entity-header">culinary_spots</div>
+    <div class="entity-body">
+      <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">owner_id</span> <span class="col-type">NULL &rarr; users</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">category_id</span> <span class="col-type">&rarr; categories</span></div>
+      <div class="attr"><span class="col-name">name</span> <span class="col-type">varchar(255)</span></div>
+      <div class="attr"><span class="col-name">description</span> <span class="col-type">text NULL</span></div>
+      <div class="attr"><span class="col-name">address</span> <span class="col-type">varchar(255) NULL</span></div>
+      <div class="attr"><span class="col-name">latitude</span> <span class="col-type">decimal(10,8)</span></div>
+      <div class="attr"><span class="col-name">longitude</span> <span class="col-type">decimal(11,8)</span></div>
+      <div class="attr"><span class="col-name">price</span> <span class="col-type">decimal(10,2)</span></div>
+      <div class="attr"><span class="col-name">is_promoted</span> <span class="col-type">boolean def:false</span></div>
+      <div class="attr"><span class="col-name">status</span> <span class="col-type">varchar def:'approved'</span></div>
+      <div class="attr"><span class="col-name">closed_reason</span> <span class="col-type">varchar(255) NULL</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">submitted_by</span> <span class="col-type">NULL &rarr; users</span></div>
+      <div class="attr"><span class="col-name">created_at</span> <span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <div class="entity" style="left:340px; top:606px; width:260px;">
+    <div class="entity-header">reviews</div>
+    <div class="entity-body">
+      <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">user_id</span> <span class="col-type">&rarr; users</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">spot_id</span> <span class="col-type">&rarr; culinary_spots</span></div>
+      <div class="attr"><span class="col-name">rating</span> <span class="col-type">tinyint (1-5)</span></div>
+      <div class="attr"><span class="col-name">comment</span> <span class="col-type">text</span></div>
+      <div class="attr"><span class="col-name">is_verified</span> <span class="col-type">boolean def:false</span></div>
+      <div class="attr"><span class="col-name">created_at</span> <span class="col-type">timestamp</span></div>
+      <div class="attr"><span class="col-name">updated_at</span> <span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- Column C: tags, culinary_spot_tag, favorites -->
+  <div class="entity" style="left:660px; top:40px; width:260px;">
     <div class="entity-header">tags</div>
     <div class="entity-body">
       <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
@@ -338,18 +324,28 @@
     </div>
   </div>
 
-  <!-- ══ CULINARY_SPOT_TAG (Pivot) ══ -->
-  <div class="entity pivot" style="left:830px; top:530px; width:240px;">
+  <div class="entity pivot" style="left:660px; top:231px; width:260px;">
     <div class="entity-header">culinary_spot_tag (pivot)</div>
     <div class="entity-body">
       <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">culinary_spot_id</span> <span class="col-type">bigint &rarr; culinary_spots</span></div>
-      <div class="attr"><span class="key fk">FK</span> <span class="col-name">tag_id</span> <span class="col-type">bigint &rarr; tags</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">culinary_spot_id</span> <span class="col-type">&rarr; culinary_spots</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">tag_id</span> <span class="col-type">&rarr; tags</span></div>
     </div>
   </div>
 
-  <!-- ══ MEDIA (Spatie - Polymorphic) ══ -->
-  <div class="entity" style="left:1090px; top:160px; width:260px;">
+  <div class="entity" style="left:660px; top:376px; width:260px;">
+    <div class="entity-header">favorites</div>
+    <div class="entity-body">
+      <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">user_id</span> <span class="col-type">&rarr; users</span></div>
+      <div class="attr"><span class="key fk">FK</span> <span class="col-name">culinary_spot_id</span> <span class="col-type">&rarr; culinary_spots</span></div>
+      <div class="attr"><span class="col-name">created_at</span> <span class="col-type">timestamp</span></div>
+      <div class="attr"><span class="col-name">updated_at</span> <span class="col-type">timestamp</span></div>
+    </div>
+  </div>
+
+  <!-- Column D: media, notifications -->
+  <div class="entity" style="left:980px; top:40px; width:260px;">
     <div class="entity-header">media (polymorphic)</div>
     <div class="entity-body">
       <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">bigint</span></div>
@@ -372,8 +368,7 @@
     </div>
   </div>
 
-  <!-- ══ NOTIFICATIONS (Polymorphic) ══ -->
-  <div class="entity" style="left:1250px; top:470px; width:230px;">
+  <div class="entity" style="left:980px; top:507px; width:260px;">
     <div class="entity-header">notifications</div>
     <div class="entity-body">
       <div class="attr"><span class="key pk">PK</span> <span class="col-name">id</span> <span class="col-type">uuid</span></div>
@@ -387,7 +382,6 @@
     </div>
   </div>
 
-  <!-- ══ LEGEND ══ -->
   <div class="legend">
     <div class="legend-title">Keterangan</div>
     <div class="legend-row"><span class="swatch" style="background:#fef08a; border:1px solid #eab308;"></span> PK = Primary Key</div>

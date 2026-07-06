@@ -8,15 +8,16 @@
 
 ## Daftar Isi
 
-- [Fitur Utama](#-fitur-utama)
-- [Tech Stack](#-tech-stack)
-- [Arsitektur](#-arsitektur)
-- [Persyaratan Sistem](#-persyaratan-sistem)
-- [Cara Instalasi](#-cara-instalasi)
-- [Konfigurasi .env](#-konfigurasi-env)
-- [Akun Demo](#-akun-demo)
-- [API Endpoints](#-api-endpoints)
-- [Screenshot](#-screenshot)
+- [Fitur Utama](#fitur-utama)
+- [Tech Stack](#tech-stack)
+- [Arsitektur](#arsitektur)
+- [Persyaratan Sistem](#persyaratan-sistem)
+- [Cara Instalasi](#cara-instalasi)
+- [Konfigurasi .env](#konfigurasi-env)
+- [Akun Demo](#akun-demo)
+- [API Endpoints](#api-endpoints)
+- [Entity Relationship Diagram (ERD)](#entity-relationship-diagram-erd)
+- [Screenshot](#screenshot)
 
 ---
 
@@ -25,19 +26,24 @@
 ### Public (Tanpa Login)
 - **Explorer** — Jelajahi kuliner Semarang dengan peta interaktif (Leaflet.js)
 - **Detail Spot** — Lihat info lengkap, foto, rating, dan ulasan tempat kuliner
-- **Search** — Pencarian cepat dengan Meilisearch full-text search
+- **Search** — Pencarian cepat lewat Laravel Scout (default driver `database`, bisa diganti Meilisearch)
 
 ### User (Login)
-- **Review & Rating** — Beri ulasan dan rating pada tempat kuliner
+- **Review & Rating** — Beri ulasan dan rating pada tempat kuliner, lengkap dengan upload foto
 - **Rekomendasi AI** — Dapatkan rekomendasi kuliner berdasarkan preferensi (Collaborative Filtering)
-- **Transaksi Promosi** — Promosikan tempat kuliner favorit
+- **Ajukan Tempat Baru** — Submit tempat kuliner baru untuk ditinjau admin
+- **Favorit** — Simpan tempat kuliner favorit
 
 ### Merchant
-- **Dashboard** — Statistik penjualan, ulasan, dan analitik pengunjung (Recharts)
-- **Promosi** — Kelola promosi tempat kuliner
+- **Dashboard** — Statistik kunjungan, interaksi, pendapatan, dan grafik (Recharts)
+- **Daftarkan & Kelola Toko** — CRUD tempat kuliner milik sendiri
+- **Promosi Berbayar** — Promosikan tempat kuliner lewat Midtrans (paket Silver/Gold/Platinum)
+- **Riwayat Pembayaran** — Lihat status transaksi promosi
 
 ### Admin
-- **Manajemen Spot** — CRUD tempat kuliner
+- **Moderasi** — Setujui/tolak pengajuan tempat kuliner dan laporan penutupan
+- **Manajemen Ulasan** — Hapus ulasan yang melanggar
+- **Manajemen Kategori & Tag** — CRUD kategori dan tag
 - **Akses Merchant** — Semua fitur merchant
 
 ### Fitur Teknis
@@ -57,8 +63,8 @@
 | **Frontend** | React 19 + TypeScript |
 | **Bridge** | Inertia.js 2.0 |
 | **Styling** | Tailwind CSS 4 |
-| **Database** | PostgreSQL |
-| **Search** | Meilisearch |
+| **Database** | SQLite (default lokal), MySQL/PostgreSQL (production) via Eloquent |
+| **Search** | Laravel Scout — driver `database` (default) atau Meilisearch (opsional) |
 | **Maps** | Leaflet.js + React-Leaflet |
 | **Charts** | Recharts |
 | **Auth** | Laravel Session-based |
@@ -83,7 +89,7 @@ semarang-food-explorer/
 │   ├── Notifications/            # Notification classes
 │   └── Providers/                # Service Providers
 ├── database/
-│   ├── migrations/               # 11 migration files
+│   ├── migrations/               # 18 migration files
 │   ├── seeders/                  # 8 seeder files (data real Semarang)
 │   └── factories/                # Model factories
 ├── resources/
@@ -107,8 +113,8 @@ semarang-food-explorer/
 - **Composer** >= 2.x
 - **Node.js** >= 20.x
 - **NPM** >= 10.x
-- **PostgreSQL** >= 14
-- **Meilisearch** >= 1.x *(opsional, untuk fitur search)*
+- **Database** — tidak perlu instalasi tambahan (default pakai SQLite). MySQL atau PostgreSQL didukung juga kalau lebih suka, tinggal ganti `DB_CONNECTION` di `.env`
+- **Meilisearch** >= 1.x *(opsional, untuk fitur search — default sudah jalan tanpa ini lewat driver `database`)*
 
 ---
 
@@ -117,7 +123,7 @@ semarang-food-explorer/
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/USERNAME/semarang-food-explorer.git
+git clone https://github.com/ZhengDhitoX002/semarang-food-explorer.git
 cd semarang-food-explorer
 ```
 
@@ -141,23 +147,26 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Edit file `.env` dan sesuaikan konfigurasi database:
+Secara default project ini pakai SQLite, jadi tidak perlu setup database server terpisah — cukup pastikan `DB_CONNECTION=sqlite` di `.env` dan buat file databasenya:
+
+```bash
+touch database/database.sqlite
+```
+
+Kalau lebih suka MySQL atau PostgreSQL, ganti bagian `DB_*` di `.env` sesuai kredensial database kamu:
 
 ```env
-DB_CONNECTION=pgsql
+DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
-DB_PORT=5432
+DB_PORT=3306
 DB_DATABASE=semarang_food_explorer
-DB_USERNAME=postgres
+DB_USERNAME=root
 DB_PASSWORD=password_anda
 ```
 
 ### 4. Setup Database
 
 ```bash
-# Buat database PostgreSQL terlebih dahulu:
-# sudo -u postgres createdb semarang_food_explorer
-
 # Jalankan migration + seeder
 php artisan migrate --seed
 ```
@@ -192,13 +201,13 @@ Buka browser dan akses: **http://localhost:8000**
 
 | Variable | Deskripsi | Contoh |
 |----------|-----------|--------|
-| `DB_CONNECTION` | Driver database | `pgsql` |
-| `DB_HOST` | Host database | `127.0.0.1` |
-| `DB_PORT` | Port database | `5432` |
-| `DB_DATABASE` | Nama database | `semarang_food_explorer` |
-| `DB_USERNAME` | Username database | `postgres` |
-| `DB_PASSWORD` | Password database | `password_anda` |
-| `SCOUT_DRIVER` | Search engine | `meilisearch` *(opsional)* |
+| `DB_CONNECTION` | Driver database | `sqlite` (default), `mysql`, atau `pgsql` |
+| `DB_HOST` | Host database *(tidak dipakai untuk sqlite)* | `127.0.0.1` |
+| `DB_PORT` | Port database *(tidak dipakai untuk sqlite)* | `3306` |
+| `DB_DATABASE` | Nama database *(tidak dipakai untuk sqlite)* | `semarang_food_explorer` |
+| `DB_USERNAME` | Username database *(tidak dipakai untuk sqlite)* | `root` |
+| `DB_PASSWORD` | Password database *(tidak dipakai untuk sqlite)* | `password_anda` |
+| `SCOUT_DRIVER` | Search engine | `database` (default) atau `meilisearch` *(opsional)* |
 | `MEILISEARCH_HOST` | URL Meilisearch | `http://127.0.0.1:7700` |
 | `SENTRY_LARAVEL_DSN` | Sentry DSN | *(opsional)* |
 
@@ -236,19 +245,27 @@ Setelah menjalankan `php artisan migrate --seed`, akun berikut tersedia:
 
 | Method | Endpoint | Auth | Deskripsi |
 |--------|----------|------|-----------|
-| `GET` | `/` | ❌ | Halaman Explorer |
-| `GET` | `/spot/{id}` | ❌ | Detail tempat kuliner |
-| `POST` | `/login` | ❌ | Login |
-| `POST` | `/register` | ❌ | Register |
-| `POST` | `/reviews` | ✅ | Buat review |
-| `POST` | `/transactions` | ✅ | Buat transaksi promosi |
-| `GET` | `/merchant/dashboard` | ✅ Merchant | Dashboard merchant |
-| `POST` | `/admin/spots` | ✅ Admin | Tambah spot kuliner |
-| `PUT` | `/admin/spots/{id}` | ✅ Admin | Update spot kuliner |
-| `POST` | `/api/analytics` | ❌ | Track analytics |
-| `GET` | `/api/geocode` | ❌ | Reverse geocoding |
-| `GET` | `/api/nearby` | ❌ | Cari spot terdekat |
-| `GET` | `/api/recommendations` | ✅ | Rekomendasi AI |
+| `GET` | `/` | Tidak perlu | Halaman Explorer |
+| `GET` | `/spot/{id}` | Tidak perlu | Detail tempat kuliner |
+| `POST` | `/login` | Tidak perlu | Login |
+| `POST` | `/register` | Tidak perlu | Register |
+| `POST` | `/reviews` | Login | Buat review |
+| `POST` | `/spot/submit` | Login | Ajukan tempat kuliner baru |
+| `POST` | `/favorites/{id}` | Login | Simpan/hapus favorit |
+| `POST` | `/transactions` | Login | Buat transaksi promosi |
+| `GET` | `/merchant/dashboard` | Merchant/Admin | Dashboard merchant |
+| `GET` | `/merchant/promotion` | Merchant/Admin | Halaman promosi toko |
+| `GET` | `/admin/dashboard` | Admin | Konsol admin (moderasi, kategori, dll) |
+| `POST` | `/admin/spots/{id}/approve` | Admin | Setujui pengajuan tempat kuliner |
+| `POST` | `/admin/spots/{id}/reject` | Admin | Tolak pengajuan tempat kuliner |
+| `POST` | `/api/analytics` | Tidak perlu | Track analytics |
+| `GET` | `/api/geocode` | Tidak perlu | Reverse geocoding |
+| `GET` | `/api/nearby` | Tidak perlu | Cari spot terdekat (Haversine) |
+| `POST` | `/api/webhook/payment/midtrans` | Signature Midtrans | Webhook pembayaran Midtrans |
+| `GET` | `/api/recommendations` | Sanctum token | Rekomendasi AI (Collaborative Filtering) |
+| `GET/POST/PUT/DELETE` | `/api/spots` | Sanctum token | RESTful API tempat kuliner |
+
+> **Catatan:** Endpoint `/api/*` yang butuh autentikasi memakai Laravel Sanctum (token API), berbeda dari endpoint web biasa (`/reviews`, `/transactions`, dst.) yang memakai session login. Dokumentasi API lengkap dengan skema request/response dibuat otomatis oleh Scribe — jalankan `php artisan scribe:generate` lalu buka `/docs`.
 
 ---
 
@@ -298,6 +315,7 @@ erDiagram
         decimal price
         boolean is_promoted
         varchar status
+        varchar closed_reason
         bigint submitted_by FK
     }
     reviews {
