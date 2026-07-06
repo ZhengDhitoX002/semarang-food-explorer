@@ -13,11 +13,24 @@ interface FavoriteSpot {
     category?: { name: string };
     average_rating: number;
     review_count: number;
-    media?: any[];
+    media?: { id: number; original_url: string }[];
     is_promoted?: boolean;
 }
 
-export default function Favorites({ favorites = [] }: { favorites: FavoriteSpot[] }) {
+// A handful of spots have curated local photos from the initial redesign
+// (public/images/merchants/*); real uploaded media always takes priority.
+const CURATED_SPOTS = /(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i;
+
+function resolveSpotImageUrl(name: string, media?: { original_url: string }[]): string | null {
+    if (media && media.length > 0) return media[0].original_url;
+    if (CURATED_SPOTS.test(name)) {
+        const folderName = name.toUpperCase().replace(/\s+/g, '_');
+        return `/images/merchants/${folderName}/unnamed.webp`;
+    }
+    return null;
+}
+
+export default function Favorites({ favorites = [], suggestions = [] }: { favorites: FavoriteSpot[]; suggestions?: FavoriteSpot[] }) {
     const { auth } = usePage<any>().props;
 
     const toggleFavorite = (e: React.MouseEvent, id: number) => {
@@ -30,52 +43,73 @@ export default function Favorites({ favorites = [] }: { favorites: FavoriteSpot[
         <>
             <Head title="Favorites" />
 
-            <div className="flex-1 flex flex-col px-4 pt-4 pb-20">
+            <div className="flex-1 flex flex-col w-full max-w-5xl mx-auto px-4 pt-4 pb-20">
                 <div className="mb-6 mt-2">
-                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Tempat Favorit Kamu</h2>
-                    <p className="text-sm text-slate-500 font-medium">Koleksi kuliner terbaik yang kamu simpan.</p>
+                    <h2 className="font-display text-2xl font-bold text-ink-900 tracking-tight">Favorit</h2>
+                    <p className="text-sm text-ink-500 font-medium">Tempat yang sudah kamu simpan.</p>
                 </div>
 
                 {!auth?.user ? (
-                    <div className="flex-1 flex flex-col items-center justify-center py-20">
-                        <div className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6 bg-slate-100">
-                            <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '48px' }}>lock</span>
+                    <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh] py-20">
+                        <div className="w-[74px] h-[74px] rounded-full flex items-center justify-center mb-4 bg-chip">
+                            <span className="material-symbols-outlined text-primary" style={{ fontSize: '34px' }}>lock</span>
                         </div>
-                        <p className="text-slate-500 text-center max-w-sm mb-6 leading-relaxed">
+                        <p className="text-ink-500 text-center max-w-sm mb-6 leading-relaxed text-[12.5px]">
                             Akses daftar favorit eksklusif Anda dengan masuk ke akun terlebih dahulu.
                         </p>
-                        <Link href="/login" className="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-primary hover:bg-primary-dark transition-colors">
+                        <Link href="/login" className="px-6 py-2.5 rounded-full font-bold text-sm text-white bg-primary hover:bg-primary/90 transition-colors">
                             Masuk Sekarang
                         </Link>
                     </div>
                 ) : favorites.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center py-10">
-                        <div className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6 bg-orange-50">
-                            <span className="material-symbols-outlined text-primary" style={{ fontSize: '48px' }}>favorite</span>
+                    <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh] py-10">
+                        <div className="w-[74px] h-[74px] rounded-full flex items-center justify-center mb-4 bg-chip">
+                            <span className="material-symbols-outlined text-primary" style={{ fontSize: '34px' }}>favorite_border</span>
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-2">Belum ada favorit</h3>
-                        <p className="text-slate-500 text-center text-sm max-w-xs mb-6">
-                            Jelajahi peta dan simpan tempat kuliner yang menarik perhatianmu ke daftar ini.
+                        <h3 className="font-display text-[17px] font-bold text-ink-900 mb-2">Belum ada favorit tersimpan</h3>
+                        <p className="text-ink-500 text-center text-[12.5px] max-w-xs mb-4 leading-relaxed">
+                            Ketuk ikon hati di kartu tempat atau halaman detail buat nyimpen kuliner favoritmu di sini — biar gampang balik lagi lain kali.
                         </p>
-                        <Link href="/" className="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-primary hover:bg-primary-dark transition-colors">
-                            Cari Kuliner
+                        <Link href="/" className="w-full max-w-xs px-6 py-2.5 rounded-full font-bold text-sm text-white bg-primary hover:bg-primary/90 transition-colors inline-flex items-center justify-center gap-2">
+                            <span className="material-symbols-outlined text-lg">explore</span>
+                            Jelajahi Kuliner
                         </Link>
+
+                        {suggestions.length > 0 && (
+                            <div className="w-full max-w-xs mt-4 rounded-[18px] border border-dashed border-ink-300 p-4">
+                                <p className="text-[12.5px] font-bold text-ink-500 mb-2">SARAN UNTUK KAMU</p>
+                                {suggestions.map((spot) => (
+                                    <Link
+                                        key={spot.id}
+                                        href={`/spot/${spot.id}`}
+                                        className="flex items-center gap-3 py-2.5 border-t border-ink-300 first:border-t-0"
+                                    >
+                                        <div className="w-[38px] h-[38px] rounded-[11px] bg-chip text-primary flex items-center justify-center shrink-0">
+                                            <span className="material-symbols-outlined text-[19px]">restaurant</span>
+                                        </div>
+                                        <div className="text-left">
+                                            <b className="block text-sm font-bold text-ink-900">{spot.name}</b>
+                                            <small className="text-xs text-ink-500">
+                                                ★{spot.average_rating.toFixed(1)} · {spot.category?.name || 'Local'} · Rp {Math.round(Number(spot.price) / 1000)}rb
+                                            </small>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {favorites.map((spot) => {
-                            const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
-                            const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
-                            
                             const mappedSpot = {
                                 id: spot.id,
                                 name: spot.name,
-                                imageUrl: isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                                imageUrl: resolveSpotImageUrl(spot.name, spot.media),
                                 imageAlt: spot.name,
                                 rating: spot.average_rating || 0,
                                 location: spot.description ? spot.description.substring(0, 30) + '...' : 'Semarang',
                                 tags: [spot.category?.name || 'Local'],
-                                priceLevel: Number(spot.price) > 50000 ? '$$$' : '$$',
+                                priceLevel: `Rp ${Math.round(Number(spot.price) / 1000)}rb`,
                                 isVerified: spot.is_promoted,
                             };
 

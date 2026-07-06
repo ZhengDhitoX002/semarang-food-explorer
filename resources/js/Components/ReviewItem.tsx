@@ -27,15 +27,15 @@ export default function ReviewItem({ review }: ReviewItemProps) {
                         <img
                             src={review.avatarUrl}
                             alt={review.name}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-slate-100"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-ink-100"
                         />
                     ) : (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-slate-100 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-ink-100 flex items-center justify-center">
                             <span className="text-sm font-bold text-primary">{initials}</span>
                         </div>
                     )}
                     <div>
-                        <p className="font-bold text-slate-900">{review.name}</p>
+                        <p className="font-bold text-ink-900">{review.name}</p>
                         <div className="flex text-primary">
                             {Array.from({ length: 5 }, (_, i) => (
                                 <span
@@ -50,15 +50,15 @@ export default function ReviewItem({ review }: ReviewItemProps) {
                         </div>
                     </div>
                 </div>
-                <span className="text-sm text-slate-500">{review.timeAgo}</span>
+                <span className="text-sm text-ink-500">{review.timeAgo}</span>
             </div>
-            <p className="text-slate-600 mb-4">{review.comment}</p>
+            <p className="text-ink-600 mb-4">{review.comment}</p>
             {review.photoUrls && review.photoUrls.length > 0 && (
                 <div className="flex gap-2">
                     {review.photoUrls.map((url, i) => (
                         <div
                             key={i}
-                            className="w-16 h-16 rounded-lg bg-slate-100 bg-cover bg-center"
+                            className="w-16 h-16 rounded-lg bg-ink-100 bg-cover bg-center"
                             style={{ backgroundImage: `url("${url}")` }}
                         ></div>
                     ))}

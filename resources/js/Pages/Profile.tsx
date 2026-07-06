@@ -13,28 +13,28 @@ export default function Profile() {
                     <div
                         className="w-28 h-28 rounded-3xl flex items-center justify-center mb-8"
                         style={{
-                            background: 'linear-gradient(135deg, rgba(231, 126, 35, 0.12) 0%, rgba(244, 162, 97, 0.08) 100%)',
+                            background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, color-mix(in srgb, var(--color-primary-300) 8%, transparent) 100%)',
                         }}
                     >
                         <span
                             className="material-symbols-outlined fill-icon"
-                            style={{ fontSize: '56px', color: '#e77e23' }}
+                            style={{ fontSize: '56px', color: 'var(--color-primary)' }}
                         >
                             account_circle
                         </span>
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2 text-center" style={{ letterSpacing: '-0.02em' }}>
+                    <h2 className="font-display text-2xl font-semibold text-ink-900 mb-2 text-center" style={{ letterSpacing: '-0.02em' }}>
                         Profil Kamu
                     </h2>
-                    <p className="text-slate-500 text-center max-w-sm mb-8 leading-relaxed">
+                    <p className="text-ink-500 text-center max-w-sm mb-8 leading-relaxed">
                         Login untuk melihat dan mengelola profil kamu, termasuk data akun dan preferensi kuliner.
                     </p>
                     <Link
                         href="/login"
                         className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-white transition-all duration-300 hover:shadow-xl active:scale-95"
                         style={{
-                            background: 'linear-gradient(135deg, #e77e23 0%, #f4a261 100%)',
-                            boxShadow: '0 4px 20px rgba(231, 126, 35, 0.3)',
+                            background: 'linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-300) 100%)',
+                            boxShadow: '0 4px 20px color-mix(in srgb, var(--color-primary) 30%, transparent)',
                         }}
                     >
                         <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>login</span>
@@ -71,7 +71,7 @@ export default function Profile() {
                     <div
                         className="absolute inset-0"
                         style={{
-                            background: 'linear-gradient(160deg, #d4710e 0%, #e77e23 40%, #f0a050 100%)',
+                            background: 'linear-gradient(160deg, var(--color-primary-600) 0%, var(--color-primary-500) 40%, var(--color-primary-300) 100%)',
                         }}
                     />
                     {/* Soft decorative shapes */}
@@ -144,11 +144,11 @@ export default function Profile() {
                         {stats.map((stat) => (
                             <div
                                 key={stat.label}
-                                className="flex flex-col items-center py-4 px-2 rounded-2xl bg-white border border-slate-100 shadow-sm"
+                                className="flex flex-col items-center py-4 px-2 rounded-2xl bg-surface border border-ink-300 shadow-sm"
                             >
                                 <span className="material-symbols-outlined text-primary mb-1.5" style={{ fontSize: '22px' }}>{stat.icon}</span>
-                                <span className="text-lg font-bold text-slate-900">{stat.value}</span>
-                                <span className="text-[11px] text-slate-400 font-medium tracking-wide uppercase">{stat.label}</span>
+                                <span className="text-lg font-bold text-ink-900">{stat.value}</span>
+                                <span className="text-[11px] text-ink-400 font-medium tracking-wide uppercase">{stat.label}</span>
                             </div>
                         ))}
                     </div>
@@ -159,27 +159,44 @@ export default function Profile() {
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 hover:shadow-sm transition-all duration-200 group"
+                                className="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-surface border border-ink-300 hover:border-primary/20 hover:shadow-sm transition-all duration-200 group"
                             >
                                 <div
                                     className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors group-hover:bg-primary/10"
-                                    style={{ background: 'rgba(231, 126, 35, 0.07)' }}
+                                    style={{ background: 'color-mix(in srgb, var(--color-primary) 7%, transparent)' }}
                                 >
                                     <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>{item.icon}</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-slate-800">{item.label}</p>
-                                    <p className="text-xs text-slate-400 truncate">{item.desc}</p>
+                                    <p className="text-sm font-semibold text-ink-800">{item.label}</p>
+                                    <p className="text-xs text-ink-400 truncate">{item.desc}</p>
                                 </div>
-                                <span className="material-symbols-outlined text-slate-300 group-hover:text-primary/60 transition-colors shrink-0" style={{ fontSize: '18px' }}>
+                                <span className="material-symbols-outlined text-ink-300 group-hover:text-primary/60 transition-colors shrink-0" style={{ fontSize: '18px' }}>
                                     chevron_right
                                 </span>
                             </Link>
                         ))}
                     </div>
 
-                    {/* Merchant Dashboard Link */}
-                    {(user.role === 'admin' || user.role === 'merchant') && (
+                    {/* Admin / Merchant console link — each role goes to its own console */}
+                    {user.role === 'admin' && (
+                        <Link
+                            href="/admin/dashboard"
+                            className="flex items-center gap-4 px-4 py-3.5 rounded-2xl border border-primary/15 bg-primary/[0.03] hover:bg-primary/[0.06] transition-all duration-200 group"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>admin_panel_settings</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-primary">Panel Admin</p>
+                                <p className="text-xs text-ink-400">Moderasi &amp; kelola platform</p>
+                            </div>
+                            <span className="material-symbols-outlined text-primary/30 group-hover:text-primary/60 transition-colors shrink-0" style={{ fontSize: '18px' }}>
+                                chevron_right
+                            </span>
+                        </Link>
+                    )}
+                    {user.role === 'merchant' && (
                         <Link
                             href="/merchant/dashboard"
                             className="flex items-center gap-4 px-4 py-3.5 rounded-2xl border border-primary/15 bg-primary/[0.03] hover:bg-primary/[0.06] transition-all duration-200 group"
@@ -189,7 +206,7 @@ export default function Profile() {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-primary">Dashboard Merchant</p>
-                                <p className="text-xs text-slate-400">Kelola tempat kuliner kamu</p>
+                                <p className="text-xs text-ink-400">Kelola tempat kuliner kamu</p>
                             </div>
                             <span className="material-symbols-outlined text-primary/30 group-hover:text-primary/60 transition-colors shrink-0" style={{ fontSize: '18px' }}>
                                 chevron_right

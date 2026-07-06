@@ -77,7 +77,7 @@ export default function FilterSidebar({
             {hasActiveFilters && (
                 <button
                     onClick={clearAll}
-                    className="mb-4 w-full rounded-lg border border-primary/30 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-all"
+                    className="mb-4 w-full rounded-xl border border-primary/30 py-2 text-xs font-semibold text-primary hover:bg-primary/5 transition-all"
                 >
                     ✕ Hapus Semua Filter
                 </button>
@@ -85,7 +85,7 @@ export default function FilterSidebar({
 
             {/* Categories */}
             <div className="mb-6">
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
+                <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-ink-500">
                     Culinary Categories
                 </h2>
                 <div className="flex flex-wrap gap-2">
@@ -93,10 +93,10 @@ export default function FilterSidebar({
                         <button
                             key={cat.id}
                             onClick={() => handleCategoryClick(cat.name)}
-                            className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
+                            className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-all border ${
                                 activeCategory === cat.name
-                                    ? 'bg-primary text-white shadow-sm'
-                                    : 'bg-primary/10 text-slate-700 hover:bg-primary/20'
+                                    ? 'bg-ink-900 text-ink-50 border-ink-900 shadow-sm'
+                                    : 'bg-surface text-ink-900 border-ink-300 hover:border-ink-500'
                             }`}
                         >
                             {cat.name}
@@ -108,7 +108,7 @@ export default function FilterSidebar({
             {/* Tags */}
             {tags.length > 0 && (
                 <div className="mb-6">
-                    <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
+                    <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-ink-500">
                         Tags
                     </h2>
                     <div className="flex flex-wrap gap-2">
@@ -116,10 +116,10 @@ export default function FilterSidebar({
                             <button
                                 key={tag.id}
                                 onClick={() => handleTagClick(tag.slug)}
-                                className={`rounded-full px-3 py-1 text-xs font-medium transition-all border ${
+                                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all border ${
                                     activeTags.includes(tag.slug)
-                                        ? 'border-amber-500 bg-amber-500/15 text-amber-400'
-                                        : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                                        ? 'border-secondary bg-secondary/15 text-secondary-700'
+                                        : 'border-ink-300 text-ink-500 hover:border-ink-400'
                                 }`}
                             >
                                 {tag.name}
@@ -131,7 +131,7 @@ export default function FilterSidebar({
 
             {/* Minimum Rating */}
             <div className="mb-8">
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
+                <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-ink-500">
                     Minimum Rating
                 </h2>
                 <div className="flex gap-2">
@@ -139,10 +139,10 @@ export default function FilterSidebar({
                         <button
                             key={rating}
                             onClick={() => handleRatingClick(rating)}
-                            className={`flex flex-1 items-center justify-center rounded-lg border py-2 text-xs font-medium transition-all ${
+                            className={`flex flex-1 items-center justify-center rounded-xl border py-2 text-xs font-semibold transition-all ${
                                 activeRating === rating
                                     ? 'border-2 border-primary bg-primary/5 font-bold text-primary'
-                                    : 'border-primary/20 hover:bg-primary/5'
+                                    : 'border-ink-300 text-ink-700 hover:bg-primary/5'
                             }`}
                         >
                             {rating}

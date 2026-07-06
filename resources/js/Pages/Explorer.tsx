@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, ReactNode } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import SpotCard, { CulinarySpot } from '@/Components/SpotCard';
 import PromoCard, { PromoSpot } from '@/Components/PromoCard';
-import FilterSidebar from '@/Components/FilterSidebar';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -13,6 +12,14 @@ L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+// Warm, price-pill map marker matching the Rempah design (replaces the default blue pin)
+const createPricePin = (price: number) => L.divIcon({
+    className: '',
+    html: `<div class="map-pin"><span class="dot"></span>Rp ${Math.round(price / 1000)}rb</div>`,
+    iconSize: undefined,
+    iconAnchor: [30, 14],
 });
 
 interface Category {
@@ -38,6 +45,22 @@ interface CulinarySpotDB {
     review_count: number;
     category?: Category;
     tags?: TagData[];
+    media?: { id: number; original_url: string }[];
+}
+
+// A handful of spots have curated local photos from the initial redesign
+// (public/images/merchants/*); everything else must use its real uploaded
+// photo. No spot should ever fall back to a generic stock image - that
+// silently hides missing photos instead of showing an honest empty state.
+const CURATED_SPOTS = /(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i;
+
+function resolveSpotImageUrl(name: string, media?: { original_url: string }[]): string | null {
+    if (media && media.length > 0) return media[0].original_url;
+    if (CURATED_SPOTS.test(name)) {
+        const folderName = name.toUpperCase().replace(/\s+/g, '_');
+        return `/images/merchants/${folderName}/unnamed.webp`;
+    }
+    return null;
 }
 
 interface PaginatedData {
@@ -49,29 +72,27 @@ interface PaginatedData {
     links: { url: string | null; label: string; active: boolean }[];
 }
 
-const nearbyResults = [
-    {
-        name: 'Lumpia Gang Lombok',
-        area: 'Semarang Tengah • 0.8km',
-        rating: 4.9,
-        price: 'Rp 15k - 30k',
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBR0NJ2BXOgbgVJd2-n0b0t0Mal4At8tfkWyD4WMsSgvPgOSBrkfeS6YCHon__LUHNEQK-tm7BKVuyDpFeiS6YgczJZCXKT0XABIrMoYGj8eISKrfHaFJTYlhAj6F_tJPr7ke3bQDEdtDIGCwIG3mrzThCn5QVlyauCu6QbqlcvkI8aRcvdQfGTYh281MVsfVbLDt5E0R6gRQociOHZeFsy4aK6bHnWTHJuXjLsjUuvo1gBXTcy-K6IUX-zjZg5MC6uaRYYvqBeXlU3',
-    },
-    {
-        name: 'Pesta Keboen',
-        area: 'Jl. Veteran • 1.2km',
-        rating: 4.7,
-        price: 'Rp 50k - 150k',
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvJcPLnS7eLGAkU1wp3_ujEzJJyT86iY7Gz5QMRrtVDSmISMtLOhbFk_6HOJQRp7Yp6p4kTgyN2JvfpVSmdmSwoUQqu6ajzEUVhQnaJGrfqnutR0jDl2kHVxKtAOKCiDjy6IRsanrj04V7fHbGaMT8ZDO_SCk0DgEtFbD5piuwhHmYntbWFMzONS93xeOrq_PaOSVrcQLtLiFA-AdhsAX9cNc6Xiyu8Tm647p3BC7rrsbzCJDkHLzwlGhnTzyi4ojPA4VKHXNSP973',
-    },
-];
-
 export default function Explorer() {
     const { spots, filters, auth, categories: serverCategories, availableTags } = usePage<{ spots: PaginatedData, filters: { search?: string; category?: string; tags?: string; min_rating?: string }, auth: { user?: { id: number; name: string; role: string }, favorite_spots?: number[] }, categories: Category[], availableTags: TagData[] }>().props;
     const spotsData = spots.data || [];
     const filterTabs = ['Semua Kategori', ...serverCategories.map(c => c.name)];
-    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+    // Mobile defaults to the map-first Rempah layout; desktop always shows
+    // the list+map split regardless of this state.
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('map');
     const [activeFilter, setActiveFilter] = useState('Semua Kategori');
+
+    // Desktop and mobile render entirely different map panes. Gating them
+    // with a JS breakpoint check (rather than just CSS `hidden md:...`)
+    // ensures only ONE Leaflet map instance ever mounts at a time — two
+    // live maps (even with one display:none) means double tile requests
+    // and double memory for no benefit.
+    const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 768px)').matches);
+    useEffect(() => {
+        const mql = window.matchMedia('(min-width: 768px)');
+        const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+        mql.addEventListener('change', handler);
+        return () => mql.removeEventListener('change', handler);
+    }, []);
 
     // Geolocation and Proximity States
     const [nearbySpots, setNearbySpots] = useState<any[]>([]);
@@ -135,6 +156,7 @@ export default function Explorer() {
     // Search: use local state, only send to server on Enter key
     const [searchInput, setSearchInput] = useState(filters?.search || '');
     const searchRef = useRef<HTMLInputElement>(null);
+    const mapRef = useRef<L.Map | null>(null);
 
     const doSearch = useCallback(() => {
         if (searchInput.trim() === '') {
@@ -158,71 +180,61 @@ export default function Explorer() {
         return true;
     });
 
-    const mappedSpots: CulinarySpot[] = filteredSpotsDB.map(spot => {
-        const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
-        const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
-        return {
-            id: spot.id,
-            name: spot.name,
-            imageUrl: isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            imageAlt: spot.name,
-            rating: spot.average_rating || 0,
-            location: spot.description?.substring(0, 30) + '...',
-            tags: [spot.category?.name || 'Local', ...(spot.tags?.map(t => t.name) || [])],
-            priceLevel: Number(spot.price) > 50000 ? '$$$' : '$$',
-            isVerified: spot.is_promoted,
-        };
-    });
+    const mappedSpots: CulinarySpot[] = filteredSpotsDB.map(spot => ({
+        id: spot.id,
+        name: spot.name,
+        imageUrl: resolveSpotImageUrl(spot.name, spot.media),
+        imageAlt: spot.name,
+        rating: spot.average_rating || 0,
+        location: spot.description?.substring(0, 30) + '...',
+        tags: [spot.category?.name || 'Local', ...(spot.tags?.map(t => t.name) || [])],
+        priceLevel: `Rp ${Math.round(Number(spot.price) / 1000)}rb`,
+        isVerified: spot.is_promoted,
+    }));
 
-    const promoSpots: PromoSpot[] = spotsData.filter(s => s.is_promoted).map(spot => {
-        const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
-        const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
-        return {
-            id: spot.id,
-            name: spot.name,
-            imageUrl: isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            imageAlt: spot.name,
-            rating: 4.8,
-            reviewCount: '1.2k',
-            price: `Rp ${Number(spot.price).toLocaleString('id-ID')}`,
-            badge: 'Featured',
-        };
-    });
+    const promoSpots: PromoSpot[] = spotsData.filter(s => s.is_promoted).map(spot => ({
+        id: spot.id,
+        name: spot.name,
+        imageUrl: resolveSpotImageUrl(spot.name, spot.media),
+        imageAlt: spot.name,
+        rating: 4.8,
+        reviewCount: '1.2k',
+        price: `Rp ${Number(spot.price).toLocaleString('id-ID')}`,
+        badge: 'Featured',
+    }));
 
     const mapCenter: [number, number] = [userCoords.lat, userCoords.lng];
 
-    return (
+    // Shared between the desktop sidebar (always visible) and the mobile
+    // list mode (toggled via viewMode) so the two don't drift apart.
+    const listPane: ReactNode = (
         <>
-            <Head title="Discover Authentic Tastes" />
-
-            {viewMode === 'list' && (
-                <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
-                    {/* Sidebar / List */}
-                    <aside className="w-full md:w-[420px] lg:w-[480px] bg-background-light border-r border-slate-100 flex flex-col z-20 flex-shrink-0">
-                        {/* Search & Filters — sticky on desktop */}
+            {/* Search & Filters — sticky on desktop */}
                         <div className="md:sticky md:top-[64px] z-30 bg-background-light">
                             <div className="px-6 pt-5 pb-2">
                                 <div className="relative flex items-center">
-                                    <span className="material-symbols-outlined absolute left-4 text-slate-400" style={{ fontSize: '20px' }}>search</span>
+                                    <span className="material-symbols-outlined absolute left-4 text-primary/70" style={{ fontSize: '20px' }}>search</span>
                                     <input
                                         ref={searchRef}
                                         type="text"
                                         value={searchInput}
                                         onChange={(e) => setSearchInput(e.target.value)}
                                         onKeyDown={handleSearchKeyDown}
-                                        placeholder="Cari kuliner... (tekan Enter)"
+                                        placeholder="Cari kuliner di Semarang…"
                                         style={{
                                             width: '100%',
                                             paddingLeft: '48px',
-                                            paddingRight: '48px',
-                                            paddingTop: '12px',
-                                            paddingBottom: '12px',
-                                            backgroundColor: '#fff',
-                                            border: '1px solid #e2e8f0',
-                                            borderRadius: '16px',
+                                            paddingRight: '64px',
+                                            paddingTop: '13px',
+                                            paddingBottom: '13px',
+                                            backgroundColor: 'var(--color-surface)',
+                                            border: '1px solid var(--color-ink-300)',
+                                            borderRadius: 'var(--radius-card)',
                                             fontSize: '14px',
                                             fontWeight: 500,
+                                            color: 'var(--color-ink-900)',
                                             outline: 'none',
+                                            boxShadow: '0 10px 26px -12px rgba(20,12,4,.2)',
                                         }}
                                     />
                                     <button
@@ -234,7 +246,7 @@ export default function Explorer() {
                                 </div>
                                 {filters?.search && (
                                     <div className="mt-2 flex items-center gap-2">
-                                        <span className="text-xs text-slate-500">Hasil untuk: <strong className="text-primary">"{filters.search}"</strong></span>
+                                        <span className="text-xs text-ink-500">Hasil untuk: <strong className="text-primary">"{filters.search}"</strong></span>
                                         <button
                                             onClick={() => {
                                                 setSearchInput('');
@@ -247,8 +259,8 @@ export default function Explorer() {
                                     </div>
                                 )}
                                 <div className="mt-4 flex items-center justify-between">
-                                    <span className="text-sm font-bold text-slate-700">Kategori</span>
-                                    <button 
+                                    <span className="font-display text-sm font-bold text-ink-900">Kategori</span>
+                                    <button
                                         onClick={() => setShowFilters(!showFilters)}
                                         className="flex items-center gap-1 text-xs text-primary font-bold hover:text-primary/80 transition-colors bg-primary/10 px-2 py-1 rounded-md"
                                     >
@@ -256,11 +268,11 @@ export default function Explorer() {
                                         {showFilters ? 'Tutup Filter' : 'Filter Harga'}
                                     </button>
                                 </div>
-                                    
+
                                 {showFilters && (
-                                    <div className="mt-3 p-4 bg-slate-50 border border-slate-100 rounded-xl flex flex-col gap-4">
+                                    <div className="mt-3 p-4 bg-surface border border-ink-300 rounded-xl flex flex-col gap-4">
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-xs font-bold text-slate-700 flex justify-between">
+                                            <label className="text-xs font-bold text-ink-700 flex justify-between">
                                                 <span>Harga Maks:</span>
                                                 <span className="text-primary">Rp {maxPrice.toLocaleString('id-ID')}</span>
                                             </label>
@@ -271,7 +283,7 @@ export default function Explorer() {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-xs font-bold text-slate-700 flex justify-between">
+                                            <label className="text-xs font-bold text-ink-700 flex justify-between">
                                                 <span>Min Rating:</span>
                                                 <span className="text-primary flex items-center"><span className="material-symbols-outlined text-[14px]">star</span> {minRating.toFixed(1)}</span>
                                             </label>
@@ -285,15 +297,22 @@ export default function Explorer() {
                                 )}
                             </div>
                             {/* Filter Tabs */}
-                            <div className="px-6 py-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-slate-100">
+                            <div
+                                className="px-6 py-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-ink-300"
+                                onWheel={(e) => {
+                                    if (e.deltaY === 0) return;
+                                    e.currentTarget.scrollLeft += e.deltaY;
+                                    e.preventDefault();
+                                }}
+                            >
                                 {filterTabs.map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveFilter(tab)}
-                                        className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                                        className={`whitespace-nowrap px-3.5 py-2 rounded-full text-xs font-semibold transition-all border ${
                                             activeFilter === tab
-                                                ? 'bg-primary text-white shadow-md shadow-primary/20'
-                                                : 'bg-white border border-slate-200 font-semibold hover:border-primary/50'
+                                                ? 'bg-ink-900 text-ink-50 border-ink-900 shadow-sm'
+                                                : 'bg-surface border-ink-300 text-ink-900 hover:border-ink-500'
                                         }`}
                                     >
                                         {tab}
@@ -309,7 +328,7 @@ export default function Explorer() {
                                     href="/spot/submit"
                                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold transition-all"
                                     style={{
-                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                        background: 'linear-gradient(135deg, var(--color-secondary-600), var(--color-secondary-500))',
                                         color: '#fff',
                                         textDecoration: 'none',
                                     }}
@@ -333,9 +352,9 @@ export default function Explorer() {
                                 ))
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                                    <span className="material-symbols-outlined text-5xl text-slate-300 mb-3">search_off</span>
-                                    <p className="text-slate-500 font-medium">Tidak ada hasil ditemukan</p>
-                                    <p className="text-slate-400 text-sm mt-1">Coba kata kunci lain</p>
+                                    <span className="material-symbols-outlined text-5xl text-ink-300 mb-3">search_off</span>
+                                    <p className="text-ink-500 font-medium">Tidak ada hasil ditemukan</p>
+                                    <p className="text-ink-400 text-sm mt-1">Coba kata kunci lain</p>
                                 </div>
                             )}
 
@@ -351,28 +370,73 @@ export default function Explorer() {
                                                 link.active
                                                     ? 'bg-primary text-white shadow-md'
                                                     : link.url
-                                                        ? 'bg-slate-100 text-slate-600 hover:bg-primary/10'
-                                                        : 'text-slate-300 cursor-not-allowed'
+                                                        ? 'bg-ink-100 text-ink-600 hover:bg-primary/10'
+                                                        : 'text-ink-300 cursor-not-allowed'
                                             }`}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
                                         />
                                     ))}
                                 </div>
                             )}
-                            <p className="text-center text-xs text-slate-400">
+                            <p className="text-center text-xs text-ink-400">
                                 Menampilkan {spotsData.length} dari {spots.total} tempat kuliner
                             </p>
                         </div>
-                    </aside>
+        </>
+    );
 
-                    {/* Map View (Desktop) — sticky so it stays visible while user scrolls the card list */}
-                    <div className="hidden md:block flex-1 relative">
-                        <div className="sticky top-[64px]" style={{ height: 'calc(100vh - 64px)' }}>
+    return (
+        <>
+            <Head title="Discover Authentic Tastes" />
+
+            <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
+              {isDesktop ? (
+                <>
+                {/* Desktop: sidebar list + sticky map split */}
+                <aside className="flex md:w-[420px] lg:w-[480px] bg-background-light border-r border-ink-300 flex-col z-20 flex-shrink-0">
+                    {listPane}
+                </aside>
+                <div className="flex-1 relative">
+                    <div className="sticky top-[64px]" style={{ height: 'calc(100vh - 64px)' }}>
+                        <MapContainer
+                            center={mapCenter}
+                            zoom={13}
+                            scrollWheelZoom={true}
+                            keyboard={false}
+                            preferCanvas
+                            style={{ height: '100%', width: '100%' }}
+                        >
+                            <TileLayer
+                                url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                                attribution="&copy; Google Maps"
+                            />
+                            {filteredSpotsDB.map((spot) => (
+                                <Marker key={spot.id} position={[Number(spot.latitude), Number(spot.longitude)]} icon={createPricePin(Number(spot.price))}>
+                                    <Popup>
+                                        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{spot.name}</div>
+                                        <div style={{ fontSize: '12px', color: '#98836c' }}>{spot.category?.name}</div>
+                                    </Popup>
+                                </Marker>
+                            ))}
+                        </MapContainer>
+                    </div>
+                </div>
+                </>
+              ) : (
+                /* Mobile: map-first (default) or full list, toggled by viewMode */
+                <div className="w-full">
+                    {viewMode === 'list' ? (
+                        <div className="w-full flex flex-col">{listPane}</div>
+                    ) : (
+                        <div className="relative" style={{ height: 'calc(100vh - 64px)' }}>
                             <MapContainer
+                                ref={mapRef}
                                 center={mapCenter}
-                                zoom={13}
+                                zoom={14}
                                 scrollWheelZoom={true}
                                 keyboard={false}
+                                zoomControl={false}
+                                preferCanvas
                                 style={{ height: '100%', width: '100%' }}
                             >
                                 <TileLayer
@@ -380,109 +444,124 @@ export default function Explorer() {
                                     attribution="&copy; Google Maps"
                                 />
                                 {filteredSpotsDB.map((spot) => (
-                                    <Marker key={spot.id} position={[Number(spot.latitude), Number(spot.longitude)]}>
+                                    <Marker key={spot.id} position={[Number(spot.latitude), Number(spot.longitude)]} icon={createPricePin(Number(spot.price))}>
                                         <Popup>
                                             <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{spot.name}</div>
-                                            <div style={{ fontSize: '12px', color: '#64748b' }}>{spot.category?.name}</div>
+                                            <div style={{ fontSize: '12px', color: '#98836c' }}>{spot.category?.name}</div>
                                         </Popup>
                                     </Marker>
                                 ))}
                             </MapContainer>
-                        </div>
-                    </div>
-                </div>
-            )}
 
-            {/* Mobile/Full Map View */}
-            {viewMode === 'map' && (
-                <>
-                    <div className="flex-1 relative" style={{ height: 'calc(100vh - 64px)' }}>
-                        <MapContainer
-                            center={mapCenter}
-                            zoom={14}
-                            scrollWheelZoom={true}
-                            keyboard={false}
-                            style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
-                        >
-                            <TileLayer
-                                url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-                                attribution="&copy; Google Maps"
-                            />
-                            {filteredSpotsDB.map((spot) => (
-                                <Marker key={spot.id} position={[Number(spot.latitude), Number(spot.longitude)]}>
-                                    <Popup>
-                                        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{spot.name}</div>
-                                        <div style={{ fontSize: '12px', color: '#64748b' }}>{spot.category?.name}</div>
-                                    </Popup>
-                                </Marker>
-                            ))}
-                        </MapContainer>
-                    </div>
-
-                    <aside className="w-full border-l border-primary/10 bg-white md:w-80 lg:w-96 flex flex-col overflow-hidden hidden md:flex">
-                        <FilterSidebar
-                            categories={serverCategories}
-                            tags={availableTags || []}
-                            activeCategory={filters?.category || ''}
-                            activeRating={filters?.min_rating ? filters.min_rating + '+' : ''}
-                            activeTags={filters?.tags ? filters.tags.split(',') : []}
-                        />
-                        <div className="px-6 pb-6 space-y-4 overflow-y-auto max-h-[calc(100vh-320px)]">
-                            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-                                Nearby Results (Radius 2km)
-                            </h2>
-                            {nearbySpots.length > 0 ? (
-                                nearbySpots.map((spot) => {
-                                    const distanceKm = (spot.distance / 1000).toFixed(1);
-                                    const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
-                                    const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
-                                    const imageUrl = isKnownSpot ? `/images/merchants/${folderName}/unnamed.webp` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
-                                    
-                                    return (
-                                        <a
-                                            key={spot.id}
-                                            href={`/spot/${spot.id}`}
-                                            className="group flex cursor-pointer gap-4 rounded-xl border border-transparent p-2 transition-all hover:border-primary/20 hover:bg-primary/5 text-decoration-none text-left"
+                            {/* Search bar + category pills, overlaid on the map */}
+                            <div className="absolute top-3 left-0 right-0 z-30 px-4">
+                                <div className="relative flex items-center">
+                                    <span className="material-symbols-outlined absolute left-4 text-primary/70 pointer-events-none" style={{ fontSize: '20px' }}>search</span>
+                                    <input
+                                        type="text"
+                                        value={searchInput}
+                                        onChange={(e) => setSearchInput(e.target.value)}
+                                        onKeyDown={handleSearchKeyDown}
+                                        placeholder="Cari kuliner di Semarang…"
+                                        className="w-full pl-11 pr-11 py-3.5 rounded-[22px] bg-surface border border-ink-300 text-sm font-medium text-ink-900 outline-none shadow-[0_10px_26px_-12px_rgba(20,12,4,.35)]"
+                                    />
+                                    <button
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        className="absolute right-2 w-9 h-9 rounded-full flex items-center justify-center text-ink-600"
+                                        aria-label="Filter"
+                                    >
+                                        <span className="material-symbols-outlined text-[20px]">tune</span>
+                                    </button>
+                                </div>
+                                <div
+                                    className="mt-3 flex gap-2 overflow-x-auto no-scrollbar"
+                                    style={{ WebkitMaskImage: 'linear-gradient(90deg,#000 88%,transparent)' }}
+                                >
+                                    {filterTabs.map((tab) => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveFilter(tab)}
+                                            className={`flex-none whitespace-nowrap px-3.5 py-2 rounded-full text-xs font-semibold shadow-[0_4px_12px_-6px_rgba(20,12,4,.3)] border ${
+                                                activeFilter === tab
+                                                    ? 'bg-ink-900 text-ink-50 border-ink-900'
+                                                    : 'bg-surface border-ink-300 text-ink-900'
+                                            }`}
                                         >
-                                            <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-200">
-                                                <img
-                                                    className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                                    src={imageUrl}
-                                                    alt={spot.name}
-                                                    loading="lazy"
+                                            {tab}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Locate-me button */}
+                            <button
+                                onClick={() => mapRef.current?.flyTo([userCoords.lat, userCoords.lng], 15)}
+                                className="absolute right-4 bottom-[292px] z-30 w-[46px] h-[46px] rounded-[15px] bg-surface border border-ink-300 shadow-[0_8px_20px_-6px_rgba(20,12,4,.4)] flex items-center justify-center text-ink-900"
+                                aria-label="Lokasi saya"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">near_me</span>
+                            </button>
+
+                            {/* "Daftar" — back to full list */}
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className="absolute left-1/2 -translate-x-1/2 bottom-[292px] z-30 flex items-center gap-1.5 bg-ink-900 text-background-light font-bold text-xs px-4 py-2.5 rounded-full shadow-[0_10px_24px_-8px_rgba(20,12,4,.5)]"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">list</span>
+                                Daftar
+                            </button>
+
+                            {/* "Dekat Kamu" bottom sheet */}
+                            <div className="absolute inset-x-0 bottom-0 z-20 h-[266px] bg-surface rounded-t-[26px] border-t border-ink-300 shadow-[0_-14px_40px_-18px_rgba(20,12,4,.35)] overflow-hidden">
+                                <div className="w-10 h-[5px] rounded-full bg-ink-300 mx-auto mt-2.5" />
+                                <div className="flex items-center justify-between px-4 pt-3 pb-2.5">
+                                    <div>
+                                        <p className="font-display font-bold text-ink-900 text-[15px]">Dekat Kamu</p>
+                                        <p className="text-xs text-ink-500">{nearbySpots.length} tempat dalam 2 km</p>
+                                    </div>
+                                    <button onClick={() => setViewMode('list')} className="text-xs font-bold text-primary">
+                                        Lihat semua
+                                    </button>
+                                </div>
+                                <div className="flex gap-3 px-4 pb-4 overflow-x-auto no-scrollbar">
+                                    {nearbySpots.length > 0 ? (
+                                        nearbySpots.slice(0, 8).map((spot: any) => (
+                                            <div key={spot.id} className="flex-none w-[190px]">
+                                                <SpotCard
+                                                    spot={{
+                                                        id: spot.id,
+                                                        name: spot.name,
+                                                        imageUrl: resolveSpotImageUrl(spot.name, spot.media),
+                                                        imageAlt: spot.name,
+                                                        rating: spot.average_rating || 0,
+                                                        location: `${spot.address || 'Semarang'} · ${spot.formatted_distance || ''}`,
+                                                        tags: [spot.category?.name || 'Local'],
+                                                        priceLevel: `Rp ${Math.round(Number(spot.price) / 1000)}rb`,
+                                                        isVerified: spot.is_promoted,
+                                                    }}
+                                                    isFavorite={auth.favorite_spots?.includes(spot.id)}
+                                                    onToggleFavorite={toggleFavorite}
                                                 />
                                             </div>
-                                            <div className="flex flex-col justify-between py-1">
-                                                <div>
-                                                    <h3 className="font-bold text-slate-900 text-sm">{spot.name}</h3>
-                                                    <p className="text-xs text-slate-500">{spot.address || 'Semarang'}</p>
-                                                    <p className="text-[11px] text-primary font-bold">{distanceKm} km dari lokasi Anda</p>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="flex items-center text-xs font-bold text-primary">
-                                                        <span className="material-symbols-outlined text-xs mr-0.5">payments</span>
-                                                        Rp {Number(spot.price).toLocaleString('id-ID')}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    );
-                                })
-                            ) : (
-                                <p className="text-xs text-slate-400 text-center py-4">Tidak ada tempat kuliner dalam radius 2 km.</p>
-                            )}
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-ink-400 py-6">Tidak ada tempat kuliner dalam radius 2 km.</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    </aside>
-                </>
-            )}
+                    )}
+                </div>
+              )}
+            </div>
 
             {/* Promoted Culinary Section */}
-            <section className="border-t border-primary/10 bg-white p-8">
+            <section className="border-t border-primary/10 bg-surface p-8">
                 <div className="mx-auto max-w-7xl">
                     <div className="mb-8 flex items-end justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold tracking-tight">Promoted Culinary</h2>
-                            <p className="text-slate-500">Handpicked featured spots for your food journey</p>
+                            <h2 className="font-display text-2xl font-bold tracking-tight text-ink-900">Promoted Culinary</h2>
+                            <p className="text-ink-500">Handpicked featured spots for your food journey</p>
                         </div>
                         <button className="text-sm font-bold text-primary hover:underline">
                             View All Promotions
@@ -492,41 +571,37 @@ export default function Explorer() {
                         {promoSpots.length > 0 ? (
                             promoSpots.map((spot) => <PromoCard key={spot.id} spot={spot} />)
                         ) : (
-                            <p className="text-sm text-slate-500">No promoted spots found.</p>
+                            <p className="text-sm text-ink-500">No promoted spots found.</p>
                         )}
                     </div>
                 </div>
             </section>
 
-            {/* Floating View Toggle (Mobile) */}
-            <div className="md:hidden fixed bottom-[84px] right-4 z-40">
-                <button
-                    onClick={() => {
-                        setViewMode(viewMode === 'list' ? 'map' : 'list');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-2xl font-bold text-sm shadow-lg transition-all duration-300 active:scale-95"
-                    style={{
-                        background: viewMode === 'list'
-                            ? 'linear-gradient(135deg, #1a1a21 0%, #2d2d3a 100%)'
-                            : 'linear-gradient(135deg, #e77e23 0%, #f4a261 100%)',
-                        color: '#fff',
-                        boxShadow: viewMode === 'list'
-                            ? '0 8px 32px rgba(26, 26, 33, 0.35), 0 2px 8px rgba(0,0,0,0.15)'
-                            : '0 8px 32px rgba(231, 126, 35, 0.35), 0 2px 8px rgba(231, 126, 35, 0.15)',
-                    }}
-                >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                        {viewMode === 'list' ? 'map' : 'view_list'}
-                    </span>
-                    <span>{viewMode === 'list' ? 'Map' : 'List'}</span>
-                </button>
-            </div>
+            {/* Floating View Toggle (Mobile) — map mode has its own "Daftar" pill, so this only shows in list mode */}
+            {viewMode === 'list' && (
+                <div className="md:hidden fixed bottom-[84px] right-4 z-40">
+                    <button
+                        onClick={() => {
+                            setViewMode('map');
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-2xl font-bold text-sm shadow-lg transition-all duration-300 active:scale-95"
+                        style={{
+                            background: 'linear-gradient(135deg, var(--color-ink-900) 0%, var(--color-ink-800) 100%)',
+                            color: '#fff',
+                            boxShadow: '0 8px 32px color-mix(in srgb, var(--color-ink-900) 35%, transparent), 0 2px 8px rgba(0,0,0,0.15)',
+                        }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>map</span>
+                        <span>Map</span>
+                    </button>
+                </div>
+            )}
 
             {/* Scroll to Top FAB */}
             <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className={`fixed bottom-[84px] md:bottom-8 left-4 z-40 h-12 w-12 rounded-full bg-white border border-slate-200 shadow-lg flex items-center justify-center text-slate-600 hover:text-primary hover:border-primary/30 transition-all duration-300 ${
+                className={`fixed bottom-[84px] md:bottom-8 left-4 z-40 h-12 w-12 rounded-full bg-surface border border-ink-300 shadow-lg flex items-center justify-center text-ink-600 hover:text-primary hover:border-primary/30 transition-all duration-300 ${
                     showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
                 }`}
                 aria-label="Scroll to top"

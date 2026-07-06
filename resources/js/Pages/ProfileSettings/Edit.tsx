@@ -58,13 +58,13 @@ export default function Edit() {
             <Head title="Edit Profil" />
             <div className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
                 <div className="flex items-center gap-4 mb-8">
-                    <Link href="/profile" className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors">
-                        <span className="material-symbols-outlined text-slate-500">arrow_back</span>
+                    <Link href="/profile" className="w-10 h-10 rounded-full border border-ink-300 flex items-center justify-center hover:bg-ink-100 transition-colors">
+                        <span className="material-symbols-outlined text-ink-500">arrow_back</span>
                     </Link>
-                    <h1 className="text-2xl font-bold text-slate-900">Edit Profil</h1>
+                    <h1 className="font-display text-2xl font-bold text-ink-900">Edit Profil</h1>
                 </div>
 
-                <div className="bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-sm">
+                <div className="bg-surface rounded-3xl border border-ink-300 p-6 md:p-8 shadow-sm">
                     {success && (
                         <div className="mb-6 p-4 rounded-xl bg-green-50 text-green-700 text-sm font-bold flex items-center gap-2">
                             <span className="material-symbols-outlined">check_circle</span>
@@ -80,10 +80,10 @@ export default function Edit() {
                                     <img
                                         src={avatarPreview}
                                         alt="Avatar"
-                                        className="w-28 h-28 rounded-full object-cover border-4 border-slate-100 shadow-md"
+                                        className="w-28 h-28 rounded-full object-cover border-4 border-ink-200 shadow-md"
                                     />
                                 ) : (
-                                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-4 border-slate-100 flex items-center justify-center shadow-md">
+                                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-4 border-ink-200 flex items-center justify-center shadow-md">
                                         <span className="text-4xl font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
                                     </div>
                                 )}
@@ -117,12 +117,12 @@ export default function Edit() {
 
                         {/* Name */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Nama Lengkap</label>
+                            <label className="block text-sm font-bold text-ink-700 mb-2">Nama Lengkap</label>
                             <input
                                 type="text"
                                 value={name}
                                 onChange={e => setName(e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-xl border border-ink-300 focus:border-primary outline-none transition-all"
                                 placeholder="Masukkan nama Anda"
                             />
                             {errors.name && <p className="mt-2 text-sm text-red-500">{errors.name}</p>}
@@ -130,12 +130,12 @@ export default function Edit() {
 
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                            <label className="block text-sm font-bold text-ink-700 mb-2">Email Address</label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-xl border border-ink-300 focus:border-primary outline-none transition-all"
                                 placeholder="Masukkan email aktif"
                             />
                             {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email}</p>}

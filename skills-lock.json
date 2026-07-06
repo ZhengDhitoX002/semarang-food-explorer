@@ -51,6 +51,12 @@
       "sourceType": "github",
       "computedHash": "a2fe47d24b3fd8e52faef731fff099c557e698083cd644b2e5695cc4dd8c7715"
     },
+    "caveman": {
+      "source": "juliusbrussee/caveman",
+      "sourceType": "github",
+      "skillPath": "skills/caveman/SKILL.md",
+      "computedHash": "b0e7741886c0c32270cedc1a2fc21c2879d90964d3ce00f24952de7064613404"
+    },
     "code-review-excellence": {
       "source": "wshobson/agents",
       "sourceType": "github",
@@ -74,7 +80,8 @@
     "design-taste-frontend": {
       "source": "leonxlnx/taste-skill",
       "sourceType": "github",
-      "computedHash": "9d1e82c5c409d2b0247245a005bc0f7e4447c0999b78dcea60f568c1ba4a6694"
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "computedHash": "899b84384f74f540ea5284d9b2e9234e050998b42eacc805410b518d4226c0b3"
     },
     "docx": {
       "source": "anthropics/skills",
@@ -114,12 +121,25 @@
     "high-end-visual-design": {
       "source": "leonxlnx/taste-skill",
       "sourceType": "github",
-      "computedHash": "7db385e4c5370e5a7fca9704a1361b056e4504ea6a03924bb86f33a4f00b5c73"
+      "skillPath": "skills/soft-skill/SKILL.md",
+      "computedHash": "f730e4132775f13eea19e3dc39afc6bb453cfc0498872b127ad8f0d47cfd802d"
     },
     "html-ppt": {
       "source": "lewislulu/html-ppt-skill",
       "sourceType": "github",
       "computedHash": "5882aedf465b722d9ca871b6462b85c81a1e57089ccfb9d27f71f7a1146d205e"
+    },
+    "huashu-design": {
+      "source": "alchaincyf/huashu-design",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "78e1678a8faab0ff306e19f39ba362a2248180e167146b21d8a46c549f468083"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "e237e1c1c8dfe6c74fb24502669219a846d25834b1a104fdf865f2830a48cf49"
     },
     "landing-page-design": {
       "source": "skillssh/skills",
@@ -140,6 +160,18 @@
       "source": "anthropics/skills",
       "sourceType": "github",
       "computedHash": "cfbc539377088ca7e44a813b30c306327385bbd973cd7a721e1743f60837dd62"
+    },
+    "playwright-best-practices": {
+      "source": "currents-dev/playwright-best-practices-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "996c8cafaa0b6bcb1a6de785a63fb4a3dfe794f17584ff82daedec9e3eaacad3"
+    },
+    "ponytail": {
+      "source": "dietrichgebert/ponytail",
+      "sourceType": "github",
+      "skillPath": "skills/ponytail/SKILL.md",
+      "computedHash": "491ccdc2c13a29cebabbac6bbe37f39e2e21ddff890c0b3fcf83b53b05dcc5c8"
     },
     "pptx": {
       "source": "anthropics/skills",
@@ -206,6 +238,12 @@
       "source": "sleekdotdesign/agent-skills",
       "sourceType": "github",
       "computedHash": "bf5dd6714897077fdc7a4ba007e5a7ee9696e5afc4620523738be786366852f8"
+    },
+    "stitch-design-taste": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/stitch-skill/SKILL.md",
+      "computedHash": "c96b580192b34167efa01f460bbc669ff4315cf97f3cf6ff85ded8029aa720b8"
     },
     "stitch-loop": {
       "source": "google-labs-code/stitch-skills",

@@ -1,4 +1,4 @@
-import React, { FormEvent, useState, useEffect, useCallback } from 'react';
+import React, { FormEvent, useState, useEffect, useCallback, useRef } from 'react';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
@@ -21,6 +21,7 @@ interface SpotData {
     id: number;
     name: string;
     description: string;
+    address?: string;
     latitude: string;
     longitude: string;
     price: string;
@@ -32,6 +33,7 @@ interface SpotData {
     category?: { id: number; name: string };
     tags?: { id: number; name: string; slug: string }[];
     reviews: Review[];
+    media?: { id: number; original_url: string }[];
 }
 
 export default function CulinarySpotDetail() {
@@ -66,6 +68,13 @@ export default function CulinarySpotDetail() {
     });
 
     const [previewImages, setPreviewImages] = useState<string[]>([]);
+    const [mobilePhotoIndex, setMobilePhotoIndex] = useState(0);
+    const reviewSectionRef = useRef<HTMLDivElement>(null);
+
+    const scrollToReviews = () => {
+        setShowReviewForm(true);
+        reviewSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -181,23 +190,22 @@ export default function CulinarySpotDetail() {
     const lat = Number(spot.latitude);
     const lng = Number(spot.longitude);
 
+    // A handful of spots have curated local photos from the initial redesign
+    // (public/images/merchants/*); real uploaded media always takes priority.
+    // Spots with neither show an honest "no photo" placeholder instead of a
+    // fake stock image.
     const isKnownSpot = spot.name.match(/(Lekker Paimo|Lumpia Gang Lombok|Mie Kopyok Pak Dhuwur|Nasi Gandul Pak Memet|Soto Bangkong|Toko Oen Semarang)/i);
     const folderName = spot.name.toUpperCase().replace(/\s+/g, '_');
 
-    const heroImages = isKnownSpot ? [
-        `/images/merchants/${folderName}/unnamed.webp`,
-        `/images/merchants/${folderName}/unnamed (1).webp`,
-        `/images/merchants/${folderName}/unnamed (2).webp`,
-    ] : [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCLhWzNxGZHTXERnZjz0e7Qg76YTAM6IEyi_WQyEOTdjLiNPcGuNOs9WQ_H8vOV4TVC_0six0KCLGVmW78xnFYisTrkBh34c7TPu5xqBd4vG1IhuFdu3ugenuS_X3-ZrVnf5Lhx2l3Q5nwhiopQZf0uMzv639VHtS5SmMX0d0AW-Fd7TUGbxPzXWdfxratJF_l8MQbuoyliriK9GMEk9D2yJyilwXODOach5v8i2AGzw1K91_MoqAgpDpaKCWQ3I14xBESbuM35fnFh',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCuLCx98Fp0qcutnnwP2gcJhNatE8ezSC1w7vjcBl1bL4cndXJTpAvtSNyxhucKS4W7dD892XBL55HK5fBbYO71PE6ENRttf_3hBrUnwWI6wB1NmA0JhXKALRflUijpJFpqXtftwPDUDkflUVbYcmBCL67ZTcBTfHonPPTzJ6r04Y-I7wOYbemqxm9sXX49yinf5gRGdp2k6gYk147V1i03zhouo1c0KeUv789_v9Dmd5928hJSQgEPTfZ2Oebcmu_Xu8Dcn23SRcb9',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuB0RfkrjRd-q5Qm3RvGd82v_n2ksUV51tIEw5yaNlGPZSWVA5U0ms3kgZVBiw-dMdw346cBU4uRwpedL6wT5itNjXEfuuF9uDSIY0e9TCBzLvnHwk1GdPHVYpJTtqxRsPp7h7_SD_64mA1znSoxg_POvixRuHwBTaJwyMBC1MhN5OLBYElEHsKSDy6DHcLBQPOe2zuAdyYoDG7QsxKzSuG0o70P1tNI2Z4kBEtH0nhvmu5mShpClArfq9PydQ4u8QLvhNP9xoJSAJ7k',
-    ];
-
-    // Use the original URL from Spatie directly — APP_URL on VPS is correctly set
-    const getMediaUrl = (url: string): string => {
-        return url || '';
-    };
+    const heroImages: string[] = spot.media && spot.media.length > 0
+        ? spot.media.map(m => m.original_url)
+        : isKnownSpot
+            ? [
+                `/images/merchants/${folderName}/unnamed.webp`,
+                `/images/merchants/${folderName}/unnamed (1).webp`,
+                `/images/merchants/${folderName}/unnamed (2).webp`,
+            ]
+            : [];
 
     const timeAgo = (dateStr: string) => {
         const diff = Date.now() - new Date(dateStr).getTime();
@@ -212,23 +220,109 @@ export default function CulinarySpotDetail() {
     return (
         <>
             <Head title={spot.name} />
-            <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light font-display text-slate-900">
-                {/* Top Navigation */}
-                <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-primary/10 px-4 md:px-20 py-3">
+            <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light text-ink-900">
+                {/* Mobile-native hero — swipeable gallery, floating back/share/favorite, overlapping meta sheet */}
+                <div className="md:hidden relative">
+                    <div
+                        className="relative h-[280px] overflow-x-auto no-scrollbar flex snap-x snap-mandatory"
+                        onScroll={(e) => {
+                            const el = e.currentTarget;
+                            setMobilePhotoIndex(Math.round(el.scrollLeft / el.clientWidth));
+                        }}
+                    >
+                        {(heroImages.length > 0 ? heroImages : [null]).map((src, idx) => (
+                            <div key={idx} className="relative h-full w-full flex-none snap-start bg-ink-300 bg-cover bg-center flex items-center justify-center" style={src ? { backgroundImage: `url("${src}")` } : undefined}>
+                                {!src && <span className="material-symbols-outlined text-ink-400 text-6xl">restaurant</span>}
+                            </div>
+                        ))}
+                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(30,20,12,.32)_0%,transparent_26%,transparent_62%,rgba(30,20,12,.28)_100%)]" />
+                    </div>
+
+                    {heroImages.length > 1 && (
+                        <div className="absolute right-4 top-[220px] z-20 bg-black/50 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-full backdrop-blur-sm">
+                            {mobilePhotoIndex + 1} / {heroImages.length}
+                        </div>
+                    )}
+
+                    <div className="absolute top-3 left-0 right-0 z-20 flex items-center justify-between px-4">
+                        <Link href="/" className="h-10 w-10 rounded-xl bg-surface/90 backdrop-blur-sm flex items-center justify-center text-ink-900 shadow-sm">
+                            <span className="material-symbols-outlined">arrow_back</span>
+                        </Link>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => navigator.share ? navigator.share({ title: spot.name, url: window.location.href }) : navigator.clipboard.writeText(window.location.href)}
+                                className="h-10 w-10 rounded-xl bg-surface/90 backdrop-blur-sm flex items-center justify-center text-ink-900 shadow-sm"
+                                aria-label="Bagikan"
+                            >
+                                <span className="material-symbols-outlined">ios_share</span>
+                            </button>
+                            <button
+                                onClick={toggleFavorite}
+                                className="h-10 w-10 rounded-xl bg-surface/90 backdrop-blur-sm flex items-center justify-center shadow-sm"
+                                aria-label="Favorit"
+                            >
+                                <span className={`material-symbols-outlined ${isFavorite ? 'text-primary fill-icon' : 'text-ink-900'}`}>favorite</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Meta sheet — overlaps the hero */}
+                    <div className="relative -mt-6 bg-background-light rounded-t-[26px] px-[18px] pt-5 pb-1">
+                        <div className="flex items-center gap-2 mb-3">
+                            <span className="bg-chip text-chip-ink text-[11px] font-semibold px-2.5 py-1.5 rounded-full">
+                                {spot.category?.name || 'Kuliner'}
+                            </span>
+                            {spot.status === 'closed' && (
+                                <span className="bg-red-100 text-red-600 text-[10.5px] font-bold px-2.5 py-1.5 rounded-full flex items-center gap-1">
+                                    🚫 Tutup Permanen
+                                </span>
+                            )}
+                        </div>
+                        <h1 className="font-display text-[26px] font-bold leading-tight tracking-tight flex items-center gap-2">
+                            {spot.name}
+                            {spot.is_promoted && <span className="material-symbols-outlined text-primary fill-icon text-xl">verified</span>}
+                        </h1>
+                        <p className="flex items-center gap-1.5 mt-2 text-[12.5px] font-medium text-ink-500">
+                            <span className="material-symbols-outlined text-base">location_on</span>
+                            {spot.address || 'Semarang'}
+                        </p>
+
+                        <div className="flex mt-4 bg-surface border border-ink-300 rounded-[18px] overflow-hidden">
+                            <div className="flex-1 py-3.5 px-2 text-center flex flex-col items-center gap-1.5 border-r border-ink-300">
+                                <b className="font-display text-[16px] font-bold flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-primary text-base fill-icon">star</span>
+                                    {spot.average_rating > 0 ? spot.average_rating.toString() : '-'}
+                                </b>
+                                <span className="text-[10.5px] font-medium text-ink-500">{spot.review_count} ulasan</span>
+                            </div>
+                            <div className="flex-1 py-3.5 px-2 text-center flex flex-col items-center gap-1.5 border-r border-ink-300">
+                                <b className="font-display text-[16px] font-bold">Rp {Math.round(Number(spot.price) / 1000)}rb</b>
+                                <span className="text-[10.5px] font-medium text-ink-500">rata-rata</span>
+                            </div>
+                            <div className="flex-1 py-3.5 px-2 text-center flex flex-col items-center gap-1.5">
+                                <b className="font-display text-[16px] font-bold">{spot.is_promoted ? 'Promoted' : 'Reguler'}</b>
+                                <span className="text-[10.5px] font-medium text-ink-500">status</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Top Navigation — desktop only */}
+                <header className="hidden md:block sticky top-0 z-50 bg-surface/85 backdrop-blur-md border-b border-primary/10 px-4 md:px-20 py-3">
                     <div className="max-w-[1200px] mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <Link href="/" className="flex items-center gap-3">
-                                <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-white">
+                                <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white">
                                     <span className="material-symbols-outlined">restaurant</span>
                                 </div>
-                                <h2 className="text-lg font-bold leading-tight tracking-tight">
+                                <h2 className="font-display text-lg font-bold leading-tight tracking-tight">
                                     {spot.name}
                                 </h2>
                             </Link>
                         </div>
                         <div className="flex gap-3 items-center">
                             {auth.user ? (
-                                <span className="text-sm text-slate-500">Hi, {auth.user.name}</span>
+                                <span className="text-sm text-ink-500">Hi, {auth.user.name}</span>
                             ) : (
                                 <Link href="/login" className="text-sm font-bold text-primary hover:underline">Login</Link>
                             )}
@@ -236,30 +330,37 @@ export default function CulinarySpotDetail() {
                     </div>
                 </header>
 
-                <main className="max-w-[1200px] mx-auto w-full px-4 py-6">
-                    {/* Hero Gallery */}
-                    <div className="mb-8">
+                <main className="max-w-[1200px] mx-auto w-full px-4 py-6 pb-28 md:pb-6">
+                    {/* Hero Gallery — desktop only */}
+                    <div className="hidden md:block mb-8">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[300px] md:h-[450px]">
                             <div
-                                className="md:col-span-2 relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center cursor-pointer"
-                                style={{ backgroundImage: `url("${heroImages[0]}")` }}
-                                onClick={() => openLightbox(heroImages, 0)}
+                                className="md:col-span-2 relative overflow-hidden rounded-2xl bg-ink-300 bg-cover bg-center cursor-pointer flex items-center justify-center"
+                                style={heroImages[0] ? { backgroundImage: `url("${heroImages[0]}")` } : undefined}
+                                onClick={() => heroImages.length > 0 && openLightbox(heroImages, 0)}
                             >
+                                {!heroImages[0] && (
+                                    <span className="material-symbols-outlined text-ink-400 text-6xl">restaurant</span>
+                                )}
                                 {spot.is_promoted && (
-                                    <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
-                                        ⭐ Promoted
+                                    <div className="absolute top-4 left-4 bg-secondary text-[#241a06] px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                        Pilihan
                                     </div>
                                 )}
                             </div>
                             <div className="hidden md:grid grid-rows-2 gap-4">
-                                <div className="relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center cursor-pointer"
-                                    style={{ backgroundImage: `url("${heroImages[1]}")` }}
-                                    onClick={() => openLightbox(heroImages, 1)}
-                                ></div>
-                                <div className="relative overflow-hidden rounded-xl bg-slate-200 bg-cover bg-center cursor-pointer"
-                                    style={{ backgroundImage: `url("${heroImages[2]}")` }}
-                                    onClick={() => openLightbox(heroImages, 2)}
-                                ></div>
+                                <div className="relative overflow-hidden rounded-2xl bg-ink-300 bg-cover bg-center cursor-pointer flex items-center justify-center"
+                                    style={heroImages[1] ? { backgroundImage: `url("${heroImages[1]}")` } : undefined}
+                                    onClick={() => heroImages[1] && openLightbox(heroImages, 1)}
+                                >
+                                    {!heroImages[1] && <span className="material-symbols-outlined text-ink-400 text-3xl">restaurant</span>}
+                                </div>
+                                <div className="relative overflow-hidden rounded-2xl bg-ink-300 bg-cover bg-center cursor-pointer flex items-center justify-center"
+                                    style={heroImages[2] ? { backgroundImage: `url("${heroImages[2]}")` } : undefined}
+                                    onClick={() => heroImages[2] && openLightbox(heroImages, 2)}
+                                >
+                                    {!heroImages[2] && <span className="material-symbols-outlined text-ink-400 text-3xl">restaurant</span>}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -267,10 +368,10 @@ export default function CulinarySpotDetail() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Main Content */}
                         <div className="lg:col-span-2">
-                            <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
+                            <div className="hidden md:flex flex-wrap justify-between items-start gap-4 mb-6">
                                 <div>
                                     <div className="flex items-center gap-3">
-                                        <h1 className="text-4xl font-bold tracking-tight">{spot.name}</h1>
+                                        <h1 className="font-display text-4xl font-bold tracking-tight">{spot.name}</h1>
                                         {spot.status === 'closed' && (
                                             <span className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">
                                                 🚫 Tutup Permanen
@@ -278,9 +379,9 @@ export default function CulinarySpotDetail() {
                                         )}
                                         <button
                                             onClick={toggleFavorite}
-                                            className="bg-white border text-[24px] border-slate-200 w-12 h-12 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm"
+                                            className="bg-surface border text-[24px] border-ink-300 w-12 h-12 rounded-full flex items-center justify-center hover:bg-ink-100 transition-colors shadow-sm"
                                         >
-                                            <span className={`material-symbols-outlined leading-none m-0 p-0 ${isFavorite ? 'text-red-500 fill-icon' : 'text-slate-400'}`}>
+                                            <span className={`material-symbols-outlined leading-none m-0 p-0 ${isFavorite ? 'text-primary fill-icon' : 'text-ink-400'}`}>
                                                 favorite
                                             </span>
                                         </button>
@@ -289,11 +390,11 @@ export default function CulinarySpotDetail() {
                                         <p className="text-sm text-red-500 mt-1">Alasan: {spot.closed_reason}</p>
                                     )}
                                     <div className="flex flex-wrap items-center gap-2 mt-2">
-                                        <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">
+                                        <span className="bg-chip text-chip-ink text-xs font-bold px-3 py-1 rounded-full">
                                             {spot.category?.name || 'Kuliner'}
                                         </span>
                                         {spot.tags && spot.tags.map(tag => (
-                                            <span key={tag.id} className="bg-amber-50 text-amber-600 text-xs font-medium px-2.5 py-1 rounded-full border border-amber-200">
+                                            <span key={tag.id} className="bg-secondary/15 text-secondary-700 text-xs font-medium px-2.5 py-1 rounded-full border border-secondary/30">
                                                 {tag.name}
                                             </span>
                                         ))}
@@ -301,31 +402,31 @@ export default function CulinarySpotDetail() {
                                 </div>
                             </div>
 
-                            {/* Stats Bar */}
-                            <div className="flex flex-wrap gap-4 mb-8">
+                            {/* Stats Bar — desktop only, mobile has its own compact stats row in the hero sheet */}
+                            <div className="hidden md:flex flex-wrap gap-4 mb-8">
                                 {[
                                     { icon: 'star', value: spot.average_rating > 0 ? spot.average_rating.toString() : '-', label: 'Rating' },
                                     { icon: 'reviews', value: spot.review_count.toString(), label: 'Reviews' },
                                     { icon: 'payments', value: `Rp ${Number(spot.price).toLocaleString('id-ID')}`, label: 'Harga Rata-rata' },
                                 ].map((stat) => (
-                                    <div key={stat.label} className="flex-1 min-w-[140px] bg-white border border-primary/10 rounded-xl p-4 flex flex-col items-center text-center">
+                                    <div key={stat.label} className="flex-1 min-w-[140px] bg-surface border border-ink-300 rounded-2xl p-4 flex flex-col items-center text-center">
                                         <span className="material-symbols-outlined text-primary mb-1">{stat.icon}</span>
-                                        <span className="text-2xl font-bold">{stat.value}</span>
-                                        <span className="text-xs text-slate-500 uppercase tracking-wider">{stat.label}</span>
+                                        <span className="font-display text-2xl font-bold">{stat.value}</span>
+                                        <span className="text-xs text-ink-500 uppercase tracking-wider">{stat.label}</span>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Description */}
                             <div className="mb-12">
-                                <h3 className="text-xl font-bold mb-4">Tentang Tempat Ini</h3>
-                                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{spot.description}</p>
+                                <h3 className="font-display text-xl font-bold mb-4">Tentang Tempat Ini</h3>
+                                <p className="text-ink-600 leading-relaxed whitespace-pre-wrap">{spot.description}</p>
                             </div>
 
                             {/* Reviews Section */}
-                            <div className="mb-12">
+                            <div className="mb-12" ref={reviewSectionRef}>
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-2xl font-bold">Ulasan ({spot.review_count})</h3>
+                                    <h3 className="font-display text-2xl font-bold">Ulasan ({spot.review_count})</h3>
                                     {auth.user ? (
                                         <button
                                             onClick={() => setShowReviewForm(!showReviewForm)}
@@ -343,8 +444,8 @@ export default function CulinarySpotDetail() {
 
                                 {/* Review Form */}
                                 {showReviewForm && auth.user && (
-                                    <div className="bg-white rounded-2xl p-6 mb-8 border border-slate-200 shadow-sm mt-4">
-                                        <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+                                    <div className="bg-surface rounded-2xl p-6 mb-8 border border-ink-200 shadow-sm mt-4">
+                                        <h4 className="font-display font-bold text-lg mb-4 flex items-center gap-2">
                                             <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                                                 {auth.user.name.charAt(0)}
                                             </div>
@@ -352,7 +453,7 @@ export default function CulinarySpotDetail() {
                                         </h4>
                                         <form onSubmit={submitReview} className="space-y-5">
                                             <div>
-                                                <label className="block text-sm font-bold text-slate-700 mb-2">Beri Rating</label>
+                                                <label className="block text-sm font-bold text-ink-700 mb-2">Beri Rating</label>
                                                 <div className="flex gap-2">
                                                     {[1, 2, 3, 4, 5].map((star) => (
                                                         <button
@@ -360,7 +461,7 @@ export default function CulinarySpotDetail() {
                                                             type="button"
                                                             onClick={() => reviewForm.setData('rating', star)}
                                                             className={`text-3xl transition-transform hover:scale-110 ${
-                                                                star <= reviewForm.data.rating ? 'text-yellow-400' : 'text-slate-200'
+                                                                star <= reviewForm.data.rating ? 'text-yellow-400' : 'text-ink-200'
                                                             }`}
                                                         >
                                                             ★
@@ -369,12 +470,12 @@ export default function CulinarySpotDetail() {
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-slate-700 mb-2">Cerita Anda</label>
+                                                <label className="block text-sm font-bold text-ink-700 mb-2">Cerita Anda</label>
                                                 <textarea
                                                     value={reviewForm.data.comment}
                                                     onChange={(e) => reviewForm.setData('comment', e.target.value)}
                                                     rows={4}
-                                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-shadow bg-slate-50 focus:bg-white"
+                                                    className="w-full px-4 py-3 rounded-xl border border-ink-200 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-shadow bg-ink-50 focus:bg-surface"
                                                     placeholder="Bagikan detil makanan, suasana, dan pelayanan toko ini..."
                                                     required
                                                 />
@@ -383,13 +484,13 @@ export default function CulinarySpotDetail() {
 
                                             {/* Photo Upload Section */}
                                             <div>
-                                                <label className="block text-sm font-bold text-slate-700 mb-2">Tambah Foto</label>
+                                                <label className="block text-sm font-bold text-ink-700 mb-2">Tambah Foto</label>
                                                 
                                                 {/* Previews Array */}
                                                 {previewImages.length > 0 && (
                                                     <div className="flex flex-wrap gap-3 mb-3">
                                                         {previewImages.map((src, idx) => (
-                                                            <div key={idx} className="relative h-20 w-20 rounded-lg overflow-hidden border border-slate-200 shadow-sm group">
+                                                            <div key={idx} className="relative h-20 w-20 rounded-lg overflow-hidden border border-ink-200 shadow-sm group">
                                                                 <img src={src} alt="preview" className="w-full h-full object-cover" />
                                                                 <button
                                                                     type="button"
@@ -429,7 +530,7 @@ export default function CulinarySpotDetail() {
                                                     type="button"
                                                     disabled={reviewForm.processing}
                                                     onClick={() => setShowReviewForm(false)}
-                                                    className="px-6 py-2.5 border border-slate-200 text-slate-600 rounded-lg font-bold text-sm hover:bg-slate-50 transition-all focus:ring-4 focus:ring-slate-100"
+                                                    className="px-6 py-2.5 border border-ink-200 text-ink-600 rounded-lg font-bold text-sm hover:bg-ink-50 transition-all focus:ring-4 focus:ring-ink-100"
                                                 >
                                                     Batal
                                                 </button>
@@ -442,53 +543,53 @@ export default function CulinarySpotDetail() {
                                 <div className="space-y-6">
                                     {spot.reviews.length > 0 ? (
                                         spot.reviews.map((review) => (
-                                            <div key={review.id} className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+                                            <div key={review.id} className="bg-surface rounded-xl border border-ink-100 p-5 shadow-sm hover:shadow-md transition-shadow">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex items-center gap-3">
                                                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-bold shadow-sm">
                                                             {review.user.name.charAt(0)}
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-sm text-slate-900">{review.user.name}</p>
-                                                            <p className="text-xs text-slate-400 font-medium">{timeAgo(review.created_at)}</p>
+                                                            <p className="font-bold text-sm text-ink-900">{review.user.name}</p>
+                                                            <p className="text-xs text-ink-400 font-medium">{timeAgo(review.created_at)}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-1">
                                                         {[...Array(5)].map((_, i) => (
-                                                            <span key={i} className={`text-lg md:text-xl leading-none ${i < review.rating ? 'text-yellow-400' : 'text-slate-200'}`}>★</span>
+                                                            <span key={i} className={`text-lg md:text-xl leading-none ${i < review.rating ? 'text-yellow-400' : 'text-ink-200'}`}>★</span>
                                                         ))}
                                                         {review.is_verified && (
                                                             <span className="ml-2 text-[10px] bg-green-50 text-green-600 border border-green-200/50 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Terverifikasi</span>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <p className="text-slate-600 text-sm leading-relaxed mb-4">{review.comment}</p>
+                                                <p className="text-ink-600 text-sm leading-relaxed mb-4">{review.comment}</p>
 
                                                 {/* Edit Review Button & Form */}
                                                 {auth.user && auth.user.id === review.user.id && review.is_editable && (
                                                     editingReviewId === review.id ? (
-                                                        <form onSubmit={submitEditReview} className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+                                                        <form onSubmit={submitEditReview} className="bg-ink-50 rounded-xl p-4 mb-4 border border-ink-200">
                                                             <div className="flex items-center gap-1 mb-3">
                                                                 {[1, 2, 3, 4, 5].map(star => (
                                                                     <button
                                                                         key={star}
                                                                         type="button"
                                                                         onClick={() => editForm.setData('rating', star)}
-                                                                        className={`text-lg ${star <= editForm.data.rating ? 'text-yellow-400' : 'text-slate-200'}`}
+                                                                        className={`text-lg ${star <= editForm.data.rating ? 'text-yellow-400' : 'text-ink-200'}`}
                                                                     >★</button>
                                                                 ))}
                                                             </div>
                                                             <textarea
                                                                 value={editForm.data.comment}
                                                                 onChange={e => editForm.setData('comment', e.target.value)}
-                                                                className="w-full p-3 text-sm border border-slate-200 rounded-lg resize-none"
+                                                                className="w-full p-3 text-sm border border-ink-200 rounded-lg resize-none"
                                                                 rows={3}
                                                             />
                                                             <div className="flex gap-2 mt-2">
                                                                 <button type="submit" disabled={editForm.processing} className="px-4 py-2 text-xs font-bold bg-primary text-white rounded-lg">
                                                                     {editForm.processing ? '⏳...' : '💾 Simpan'}
                                                                 </button>
-                                                                <button type="button" onClick={() => setEditingReviewId(null)} className="px-4 py-2 text-xs font-bold bg-slate-200 text-slate-600 rounded-lg">
+                                                                <button type="button" onClick={() => setEditingReviewId(null)} className="px-4 py-2 text-xs font-bold bg-ink-200 text-ink-600 rounded-lg">
                                                                     Batal
                                                                 </button>
                                                             </div>
@@ -514,7 +615,7 @@ export default function CulinarySpotDetail() {
                                                                     key={image.id}
                                                                     type="button"
                                                                     onClick={() => openLightbox(allPhotoUrls, idx)}
-                                                                    className="relative h-24 w-24 md:h-28 md:w-28 rounded-xl overflow-hidden border-2 border-slate-200/60 cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none group bg-slate-100 shadow-sm hover:shadow-md transition-all"
+                                                                    className="relative h-24 w-24 md:h-28 md:w-28 rounded-xl overflow-hidden border-2 border-ink-200/60 cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none group bg-ink-100 shadow-sm hover:shadow-md transition-all"
                                                                 >
                                                                     <img 
                                                                         src={photoUrl}
@@ -533,10 +634,10 @@ export default function CulinarySpotDetail() {
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="text-center py-16 bg-slate-50/50 border border-dashed border-slate-200 rounded-2xl">
-                                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">rate_review</span>
-                                            <p className="text-slate-500 font-medium">Belum ada ulasan untuk tempat ini.</p>
-                                            <p className="text-slate-400 text-sm mt-1">Jadilah yang pertama menceritakan pengalaman Anda!</p>
+                                        <div className="text-center py-16 bg-ink-50/50 border border-dashed border-ink-200 rounded-2xl">
+                                            <span className="material-symbols-outlined text-5xl text-ink-300 mb-3 block">rate_review</span>
+                                            <p className="text-ink-500 font-medium">Belum ada ulasan untuk tempat ini.</p>
+                                            <p className="text-ink-400 text-sm mt-1">Jadilah yang pertama menceritakan pengalaman Anda!</p>
                                         </div>
                                     )}
                                 </div>
@@ -546,49 +647,49 @@ export default function CulinarySpotDetail() {
                         {/* Sidebar */}
                         <div className="lg:col-span-1 space-y-6">
                             {/* Map */}
-                            <div className="bg-white rounded-xl border border-primary/10 p-5 shadow-sm">
-                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                            <div className="bg-surface rounded-xl border border-primary/10 p-5 shadow-sm">
+                                <h3 className="font-display font-bold text-lg mb-4 flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary">location_on</span>
                                     Lokasi
                                 </h3>
-                                <div className="w-full h-48 rounded-lg overflow-hidden relative mb-4 border border-slate-200">
-                                    <MapContainer center={[lat, lng]} zoom={16} keyboard={false} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+                                <div className="w-full h-48 rounded-lg overflow-hidden relative mb-4 border border-ink-200">
+                                    <MapContainer center={[lat, lng]} zoom={16} keyboard={false} preferCanvas style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
                                         <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                                         <Marker position={[lat, lng]}>
                                             <Popup>{spot.name}</Popup>
                                         </Marker>
                                     </MapContainer>
                                 </div>
-                                <p className="font-bold text-slate-900">{spot.name}</p>
-                                <p className="text-slate-500 text-sm mb-4">Semarang, Jawa Tengah</p>
+                                <p className="font-bold text-ink-900">{spot.name}</p>
+                                <p className="text-ink-500 text-sm mb-4">Semarang, Jawa Tengah</p>
                                 <a
                                     href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block w-full py-2.5 bg-slate-100 rounded-lg font-bold text-slate-700 text-sm hover:bg-primary hover:text-white hover:shadow-md transition-all text-center focus:ring-4 focus:ring-primary/20"
+                                    className="block w-full py-2.5 bg-ink-100 rounded-lg font-bold text-ink-700 text-sm hover:bg-primary hover:text-white hover:shadow-md transition-all text-center focus:ring-4 focus:ring-primary/20"
                                 >
                                     Dapatkan Arah Google Maps
                                 </a>
                             </div>
 
                             {/* Info */}
-                            <div className="bg-white rounded-xl border border-primary/10 p-5 shadow-sm">
-                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                            <div className="bg-surface rounded-xl border border-primary/10 p-5 shadow-sm">
+                                <h3 className="font-display font-bold text-lg mb-4 flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary">info</span>
                                     Info Singkat
                                 </h3>
                                 <div className="space-y-4 text-sm">
-                                    <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                                        <span className="text-slate-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">category</span> Kategori</span>
-                                        <span className="font-bold text-slate-800">{spot.category?.name || '-'}</span>
+                                    <div className="flex justify-between items-center pb-3 border-b border-ink-100">
+                                        <span className="text-ink-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">category</span> Kategori</span>
+                                        <span className="font-bold text-ink-800">{spot.category?.name || '-'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                                        <span className="text-slate-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">payments</span> Harga Perkiraan</span>
+                                    <div className="flex justify-between items-center pb-3 border-b border-ink-100">
+                                        <span className="text-ink-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">payments</span> Harga Perkiraan</span>
                                         <span className="font-bold text-primary">Rp {Number(spot.price).toLocaleString('id-ID')}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-slate-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">verified</span> Status</span>
-                                        <span className={`font-bold text-[11px] px-2 py-1 rounded-md uppercase tracking-wider ${spot.is_promoted ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-500'}`}>
+                                        <span className="text-ink-500 flex items-center gap-1.5 font-medium"><span className="material-symbols-outlined text-[16px]">verified</span> Status</span>
+                                        <span className={`font-bold text-[11px] px-2 py-1 rounded-md uppercase tracking-wider ${spot.is_promoted ? 'bg-primary/10 text-primary' : 'bg-ink-100 text-ink-500'}`}>
                                             {spot.is_promoted ? 'Promoted' : 'Reguler'}
                                         </span>
                                     </div>
@@ -597,12 +698,12 @@ export default function CulinarySpotDetail() {
 
                             {/* Laporkan Tutup Card */}
                             {spot.status !== 'closed' && spot.status !== 'pending_close' && (
-                                <div className="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
-                                    <h3 className="font-bold text-lg mb-2 flex items-center gap-2 text-red-600">
+                                <div className="bg-surface rounded-xl border border-red-100 p-5 shadow-sm">
+                                    <h3 className="font-display font-bold text-lg mb-2 flex items-center gap-2 text-red-600">
                                         <span className="material-symbols-outlined">report</span>
                                         Toko Tutup Permanen?
                                     </h3>
-                                    <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                                    <p className="text-xs text-ink-500 mb-4 leading-relaxed">
                                         Jika Anda mengetahui bahwa tempat kuliner ini sudah tutup secara permanen, harap laporkan agar kami dapat memverifikasi.
                                     </p>
                                     {auth.user ? (
@@ -613,7 +714,7 @@ export default function CulinarySpotDetail() {
                                                     onChange={e => setReportReason(e.target.value)}
                                                     placeholder="Alasan penutupan (misal: Ruko disewakan / pindah kota)..."
                                                     rows={3}
-                                                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-red-500"
+                                                    className="w-full px-3 py-2 text-xs border border-ink-200 rounded-lg outline-none focus:ring-1 focus:ring-red-500"
                                                     required
                                                 />
                                                 <div className="flex gap-2">
@@ -636,7 +737,7 @@ export default function CulinarySpotDetail() {
                                     ) : (
                                         <Link
                                             href="/login"
-                                            className="block w-full py-2 bg-slate-50 text-slate-500 border border-slate-200 rounded-lg font-semibold text-xs text-center text-decoration-none"
+                                            className="block w-full py-2 bg-ink-50 text-ink-500 border border-ink-200 rounded-lg font-semibold text-xs text-center text-decoration-none"
                                         >
                                             Login untuk melaporkan tutup
                                         </Link>
@@ -657,8 +758,38 @@ export default function CulinarySpotDetail() {
                     </div>
                 </main>
 
+                {/* Sticky action bar — mobile only */}
+                <div className="md:hidden fixed left-0 right-0 bottom-0 z-40 bg-surface border-t border-ink-300 px-4 pt-3 flex gap-2.5" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+                    <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-[52px] h-[50px] rounded-2xl border-[1.5px] border-ink-300 bg-background-light flex items-center justify-center text-ink-900 shrink-0"
+                        aria-label="Rute"
+                    >
+                        <span className="material-symbols-outlined text-2xl">directions</span>
+                    </a>
+                    {auth.user ? (
+                        <button
+                            onClick={scrollToReviews}
+                            className="flex-1 h-[50px] rounded-2xl bg-primary text-white font-bold text-[15px] flex items-center justify-center gap-2"
+                        >
+                            <span className="material-symbols-outlined text-lg">rate_review</span>
+                            Tulis Ulasan
+                        </button>
+                    ) : (
+                        <Link
+                            href="/login"
+                            className="flex-1 h-[50px] rounded-2xl bg-primary text-white font-bold text-[15px] flex items-center justify-center gap-2"
+                        >
+                            <span className="material-symbols-outlined text-lg">login</span>
+                            Login untuk Ulasan
+                        </Link>
+                    )}
+                </div>
+
                 {/* Footer */}
-                <footer className="mt-20 border-t border-primary/10 bg-white py-10 px-4">
+                <footer className="mt-20 border-t border-primary/10 bg-surface py-10 px-4">
                     <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-center">
                         <div className="flex items-center gap-3">
                             <div className="h-8 w-8 bg-primary/20 rounded flex items-center justify-center text-primary">
@@ -666,7 +797,7 @@ export default function CulinarySpotDetail() {
                             </div>
                             <span className="font-bold">Semarang Food Explorer</span>
                         </div>
-                        <div className="text-slate-500 text-sm">
+                        <div className="text-ink-500 text-sm">
                             © {new Date().getFullYear()} Semarang Food Explorer. All rights reserved.
                         </div>
                     </div>

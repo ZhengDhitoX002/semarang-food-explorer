@@ -1,12 +1,78 @@
 @import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/hanken-grotesk";
 
 @theme {
-    --color-primary: #e77e23;
-    --color-background-light: #f8f7f6;
-    --color-background-dark: #211811;
-    --color-off-black: #1a1a21;
+    /* ===== Rempah - customer & merchant (warm/craft) ===== */
+    /* Primary accent: terracotta/brick red, canonical value #b5471f */
+    --color-primary-50:  #fbf1ea;
+    --color-primary-100: #f5ddc9;
+    --color-primary-200: #eabc94;
+    --color-primary-300: #dc9560;
+    --color-primary-400: #c96a38;
+    --color-primary-500: #b5471f;
+    --color-primary-600: #963a1a;
+    --color-primary-700: #782f16;
+    --color-primary-800: #5c2512;
+    --color-primary-900: #3d190d;
+    --color-primary: var(--color-primary-500);
 
-    --font-family-display: 'Inter', sans-serif;
+    /* Secondary accent: clove green, canonical value #7d8a3e */
+    --color-secondary-50:  #f4f5e9;
+    --color-secondary-100: #e6e9c9;
+    --color-secondary-200: #cdd39a;
+    --color-secondary-300: #adb86c;
+    --color-secondary-400: #94a350;
+    --color-secondary-500: #7d8a3e;
+    --color-secondary-600: #656f31;
+    --color-secondary-700: #4f5726;
+    --color-secondary-800: #3b401d;
+    --color-secondary-900: #272a14;
+    --color-secondary: var(--color-secondary-500);
+
+    /* Warm parchment neutrals - replaces default Tailwind slate-* everywhere.
+       Anchored to the mockup's actual values: ink-50=--surf, ink-200=--bg,
+       ink-300=--line, ink-500=--mut, ink-900=--ink. */
+    --color-ink-50:  #faf3e5;
+    --color-ink-100: #f4ebd9;
+    --color-ink-200: #ede0cd;
+    --color-ink-300: #e2d2b7;
+    --color-ink-400: #c7b393;
+    --color-ink-500: #98836c;
+    --color-ink-600: #7a6752;
+    --color-ink-700: #5c4d3c;
+    --color-ink-800: #4a3c2e;
+    --color-ink-900: #3a2b21;
+
+    --color-background-light: #ede0cd;
+    --color-surface: #faf3e5;
+    --color-background-dark: #2a1f16;
+    --color-off-black: #3a2b21;
+    --color-chip: #ece0c9;
+    --color-chip-ink: #8a6a3a;
+
+    --radius-card: 22px;
+
+    /* ===== Admin - dark utilitarian shell (separate from Rempah) ===== */
+    --color-admin-bg: #171b21;
+    --color-admin-surface: #212831;
+    --color-admin-ink: #eef2f6;
+    --color-admin-mut: #8896a3;
+    --color-admin-line: #2d353f;
+    --color-admin-accent: #e08a3e;
+    --color-admin-accent2: #e0b23e;
+    --color-admin-chip: #2b333d;
+    --color-admin-chip-ink: #e0b76e;
+
+    /* Body font is shared across both Rempah and Admin (per the design doc);
+       only the display/headline font differs per context. Correct Tailwind v4
+       namespace (--font-*) so font-sans/font-display/font-admin-display
+       utilities actually generate. */
+    --font-sans: 'Hanken Grotesk Variable', sans-serif;
+    --font-display: 'Bricolage Grotesque Variable', sans-serif;
+    --font-admin-display: 'Space Grotesk Variable', sans-serif;
+    --default-font-family: var(--font-sans);
 }
 
 /* Glassmorphism search bar */
@@ -14,11 +80,11 @@
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(231, 126, 35, 0.1);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 10%, transparent);
     transition: all 0.3s ease;
 }
 .glass-search:focus-within {
-    box-shadow: 0 0 20px rgba(231, 126, 35, 0.15);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 15%, transparent);
     border-color: var(--color-primary);
 }
 
@@ -41,11 +107,11 @@
     background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(231, 126, 35, 0.2);
+    background: color-mix(in srgb, var(--color-primary) 20%, transparent);
     border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(231, 126, 35, 0.4);
+    background: color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 /* Material Symbols filled variant */
@@ -71,6 +137,48 @@
     width: 100% !important;
     height: 100% !important;
     z-index: 1;
+    background: var(--color-background-light);
+}
+
+/* Warm the map tiles to match the Rempah palette instead of raw Google Maps colors.
+   A `filter` on the tile pane forces the browser to re-rasterize every tile
+   image on each pan/zoom frame, which is very expensive (visible as janky
+   dragging, especially on mobile). A single translucent overlay with
+   mix-blend-mode achieves the same warm tint at a fraction of the cost,
+   since it's one composited layer instead of a filter graph re-run per tile. */
+.leaflet-tile-pane {
+    position: relative;
+}
+.leaflet-tile-pane::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 250;
+    pointer-events: none;
+    background: rgba(181, 71, 31, 0.06);
+    mix-blend-mode: multiply;
+}
+
+/* Custom price-pin marker (replaces default Leaflet blue pin) */
+.map-pin {
+    background: var(--color-surface);
+    color: var(--color-ink-900);
+    font: 700 11px/1 var(--font-sans);
+    padding: 6px 9px;
+    border-radius: 20px;
+    box-shadow: 0 6px 16px -4px rgba(20, 12, 4, .4);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    border: 1px solid var(--color-ink-300);
+}
+.map-pin .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    flex-shrink: 0;
 }
 
 .leaflet-pane,

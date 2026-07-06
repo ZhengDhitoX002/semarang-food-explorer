@@ -15,14 +15,14 @@
 
     <!-- PWA Setup -->
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#f97316">
+    <meta name="theme-color" content="#b5471f">
     <link rel="apple-touch-icon" href="/pwa-192x192.png">
 
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.tsx'])
     @inertiaHead
 </head>
-<body class="bg-background-light font-display text-slate-900 antialiased">
+<body class="bg-background-light text-ink-900 antialiased">
     @inertia
 </body>
 </html>

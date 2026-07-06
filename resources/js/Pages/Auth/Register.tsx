@@ -1,4 +1,4 @@
-import React, { FormEvent } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Register() {
@@ -8,6 +8,7 @@ export default function Register() {
         password: '',
         password_confirmation: '',
     });
+    const [showPassword, setShowPassword] = useState(false);
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -17,77 +18,112 @@ export default function Register() {
     return (
         <>
             <Head title="Daftar Akun" />
-            <div className="min-h-screen flex items-center justify-center bg-background-light font-display px-4">
-                <div className="w-full max-w-md">
-                    {/* Logo */}
-                    <div className="text-center mb-8">
-                        <Link href="/" className="inline-flex items-center gap-3">
-                            <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                                <span className="material-symbols-outlined text-2xl">restaurant_menu</span>
-                            </div>
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                                Semarang<span className="text-primary">Food</span>
-                            </h1>
-                        </Link>
-                        <p className="text-slate-500 mt-3">Buat akun baru</p>
-                    </div>
+            <div className="min-h-screen bg-background-light flex flex-col">
+                {/* Hero — mirrors Login, plain warm gradient so text stays legible */}
+                <div className="relative h-56 sm:h-64 shrink-0 overflow-hidden bg-[linear-gradient(160deg,var(--color-primary-100)_0%,var(--color-background-light)_65%)]">
+                    <Link href="/" className="absolute inset-x-0 bottom-7 text-center px-10">
+                        <p className="text-[10px] font-bold tracking-[0.24em] uppercase text-primary mb-3">
+                            Jelajah Kuliner
+                        </p>
+                        <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink-900">
+                            Semarang.
+                        </h1>
+                        <p className="text-xs font-medium text-ink-500 mt-2.5 leading-relaxed">
+                            Temukan kuliner otentik kota Semarang — dari lumpia sampai tahu gimbal.
+                        </p>
+                    </Link>
+                </div>
 
-                    {/* Form Card */}
-                    <div className="bg-white rounded-[24px] border border-slate-100 shadow-xl shadow-slate-200/50 p-8">
-                        <form onSubmit={submit} className="space-y-5">
+                {/* Card */}
+                <div className="flex-1 bg-background-light relative z-10 px-5 pt-7 pb-10">
+                    <div className="w-full max-w-md mx-auto">
+                        <h2 className="font-display text-xl font-bold text-ink-900 mb-1">Buat akun baru</h2>
+                        <p className="text-sm text-ink-500 mb-6">Daftar untuk mulai menjelajah kuliner Semarang.</p>
+
+                        <form onSubmit={submit} className="space-y-4">
                             {/* Name */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Nama Lengkap</label>
-                                <input
-                                    type="text"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
-                                    placeholder="Nama Anda"
-                                    required
-                                />
-                                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                                <label className="block text-sm font-bold text-ink-700 mb-2">Nama Lengkap</label>
+                                <div className="relative">
+                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 text-[20px] pointer-events-none">
+                                        person
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={data.name}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        className="w-full pl-11 pr-4 py-3.5 rounded-full border border-ink-300 bg-surface text-sm font-medium focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                        placeholder="Nama Anda"
+                                        required
+                                    />
+                                </div>
+                                {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
                             </div>
 
                             {/* Email */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Email</label>
-                                <input
-                                    type="email"
-                                    value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
-                                    placeholder="contoh@email.com"
-                                    required
-                                />
-                                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                                <label className="block text-sm font-bold text-ink-700 mb-2">Email</label>
+                                <div className="relative">
+                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 text-[20px] pointer-events-none">
+                                        mail
+                                    </span>
+                                    <input
+                                        type="email"
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
+                                        className="w-full pl-11 pr-4 py-3.5 rounded-full border border-ink-300 bg-surface text-sm font-medium focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                        placeholder="contoh@email.com"
+                                        required
+                                    />
+                                </div>
+                                {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
                             </div>
 
                             {/* Password */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Password</label>
-                                <input
-                                    type="password"
-                                    value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
-                                    placeholder="Minimal 8 karakter"
-                                    required
-                                />
-                                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+                                <label className="block text-sm font-bold text-ink-700 mb-2">Password</label>
+                                <div className="relative">
+                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 text-[20px] pointer-events-none">
+                                        lock
+                                    </span>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={data.password}
+                                        onChange={(e) => setData('password', e.target.value)}
+                                        className="w-full pl-11 pr-11 py-3.5 rounded-full border border-ink-300 bg-surface text-sm font-medium focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                        placeholder="Minimal 8 karakter"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((s) => !s)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-400"
+                                        aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                                    >
+                                        <span className="material-symbols-outlined text-[20px]">
+                                            {showPassword ? 'visibility' : 'visibility_off'}
+                                        </span>
+                                    </button>
+                                </div>
+                                {errors.password && <p className="text-red-600 text-xs mt-1">{errors.password}</p>}
                             </div>
 
                             {/* Confirm Password */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Konfirmasi Password</label>
-                                <input
-                                    type="password"
-                                    value={data.password_confirmation}
-                                    onChange={(e) => setData('password_confirmation', e.target.value)}
-                                    className="w-full px-6 py-3.5 rounded-full border border-slate-200 text-sm font-medium focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
-                                    placeholder="Ulangi password"
-                                    required
-                                />
+                                <label className="block text-sm font-bold text-ink-700 mb-2">Konfirmasi Password</label>
+                                <div className="relative">
+                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 text-[20px] pointer-events-none">
+                                        lock
+                                    </span>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={data.password_confirmation}
+                                        onChange={(e) => setData('password_confirmation', e.target.value)}
+                                        className="w-full pl-11 pr-4 py-3.5 rounded-full border border-ink-300 bg-surface text-sm font-medium focus:border-primary appearance-none outline-none transition-all duration-300 focus:-translate-y-0.5 focus:shadow-md"
+                                        placeholder="Ulangi password"
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             {/* Submit */}
@@ -100,14 +136,12 @@ export default function Register() {
                             </button>
                         </form>
 
-                        <div className="mt-6 text-center">
-                            <p className="text-sm text-slate-500">
-                                Sudah punya akun?{' '}
-                                <Link href="/login" className="text-primary font-bold hover:underline">
-                                    Masuk di sini
-                                </Link>
-                            </p>
-                        </div>
+                        <p className="text-sm text-ink-500 text-center mt-6">
+                            Sudah punya akun?{' '}
+                            <Link href="/login" className="text-primary font-bold hover:underline">
+                                Masuk di sini
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>

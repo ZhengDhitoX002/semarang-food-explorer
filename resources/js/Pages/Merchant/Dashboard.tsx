@@ -30,13 +30,13 @@ interface SpotEntry {
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100">
-                <p className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider">{label}</p>
+            <div className="bg-surface/95 backdrop-blur-md p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-ink-300">
+                <p className="text-ink-500 text-xs font-bold mb-2 uppercase tracking-wider">{label}</p>
                 {payload.map((entry: any, index: number) => (
                     <div key={index} className="flex items-center gap-3 mb-1">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                        <span className="text-slate-700 font-medium text-sm flex-1">{entry.name}</span>
-                        <span className="font-bold text-slate-900 text-sm">{entry.value.toLocaleString()}</span>
+                        <span className="text-ink-700 font-medium text-sm flex-1">{entry.name}</span>
+                        <span className="font-bold text-ink-900 text-sm">{entry.value.toLocaleString()}</span>
                     </div>
                 ))}
             </div>
@@ -46,10 +46,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const quickActions = [
-    { icon: 'add_business', label: 'Daftarkan Toko', desc: 'Tambah toko baru', href: '/merchant/shop/create', color: 'from-primary to-orange-400' },
-    { icon: 'campaign', label: 'Promosi Toko', desc: 'Tingkatkan visibilitas', href: '/merchant/promotion', color: 'from-blue-500 to-indigo-500' },
-    { icon: 'storefront', label: 'Lihat Toko', desc: 'Kelola toko Anda', href: '/merchant/shops', color: 'from-emerald-500 to-teal-500' },
-    { icon: 'payments', label: 'Riwayat Bayar', desc: 'Lihat transaksi', href: '/merchant/payments', color: 'from-violet-500 to-purple-500' },
+    { icon: 'add_business', label: 'Daftarkan Toko', desc: 'Tambah toko baru', href: '/merchant/shop/create' },
+    { icon: 'campaign', label: 'Promosi Toko', desc: 'Tingkatkan visibilitas', href: '/merchant/promotion' },
+    { icon: 'storefront', label: 'Lihat Toko', desc: 'Kelola toko Anda', href: '/merchant/shops' },
+    { icon: 'payments', label: 'Riwayat Bayar', desc: 'Lihat transaksi', href: '/merchant/payments' },
 ];
 
 export default function Dashboard() {
@@ -65,60 +65,101 @@ export default function Dashboard() {
 
     const { auth, spots = [], analytics = [], totalViews = 0, totalClicks = 0, transactions = [], avgRating = 0 } = props || {};
 
-    const { chartData, revenueData, isFake } = useMemo(() => {
-        let finalChartData: any[] = [];
-        let finalRevenueData: any[] = [];
-        let usingFake = false;
+    // Compares the first half of a series against the second half to get a
+    // real growth %, instead of a hardcoded literal that never changes.
+    const computeGrowth = (values: number[]): { label: string; trend: 'up' | 'down' | 'neutral' } => {
+        const mid = Math.ceil(values.length / 2);
+        const prev = values.slice(0, mid).reduce((s, v) => s + v, 0);
+        const curr = values.slice(mid).reduce((s, v) => s + v, 0);
+        if (prev === 0) return curr > 0 ? { label: 'Baru', trend: 'up' } : { label: '-', trend: 'neutral' };
+        const pct = ((curr - prev) / prev) * 100;
+        if (Math.abs(pct) < 0.5) return { label: '0%', trend: 'neutral' };
+        return { label: `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`, trend: pct > 0 ? 'up' : 'down' };
+    };
 
+    const { chartData, isFake } = useMemo(() => {
         const dates = [...new Set(analytics.map(a => a.date))].sort();
-        
+
         if (dates.length < 5) {
-            usingFake = true;
+            // Not enough real analytics yet - show an illustrative trend line
+            // (a gentle random walk, not a periodic sine wave) so the layout
+            // isn't empty. Clearly labelled "Simulasi Data" below.
             const today = new Date();
+            const data: { name: string; Views: number; Clicks: number }[] = [];
+            let views = 30;
             for (let i = 29; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
-                const baseViews = 200 + Math.floor(Math.sin(i) * 50) + (30 - i) * 5; 
-                const baseClicks = Math.floor(baseViews * (0.15 + (Math.random() * 0.1)));
-                finalChartData.push({
+                views = Math.max(4, views + (Math.random() - 0.4) * 6);
+                data.push({
                     name: d.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
-                    Views: baseViews,
-                    Clicks: baseClicks
+                    Views: Math.round(views),
+                    Clicks: Math.round(views * (0.12 + Math.random() * 0.08)),
                 });
             }
-            const weeks = ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'];
-            finalRevenueData = weeks.map((w, idx) => ({
-                name: w,
-                Pendapatan: (20 + (idx * 5) + Math.floor(Math.random() * 10)) * 15000,
-                fill: idx === 3 ? '#e77e23' : '#fcd9b6'
-            }));
-        } else {
-            finalChartData = dates.map(date => {
-                const dObj = new Date(date);
-                return {
-                    name: dObj.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
-                    Views: analytics.filter(a => a.date === date && a.event_type === 'view').reduce((s, a) => s + Number(a.count), 0),
-                    Clicks: analytics.filter(a => a.date === date && a.event_type === 'click').reduce((s, a) => s + Number(a.count), 0)
-                };
-            }).slice(-30);
-            finalRevenueData = [
-                { name: 'Sebelumnya', Pendapatan: transactions.length > 10 ? 225000 : transactions.length * 15000, fill: '#fcd9b6' },
-                { name: 'Saat Ini', Pendapatan: transactions.length * 15000, fill: '#e77e23' }
-            ];
+            return { chartData: data, isFake: true };
         }
 
-        return { chartData: finalChartData, revenueData: finalRevenueData, isFake: usingFake };
-    }, [analytics, transactions]);
+        const data = dates.map(date => {
+            const dObj = new Date(date);
+            return {
+                name: dObj.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
+                Views: analytics.filter(a => a.date === date && a.event_type === 'view').reduce((s, a) => s + Number(a.count), 0),
+                Clicks: analytics.filter(a => a.date === date && a.event_type === 'click').reduce((s, a) => s + Number(a.count), 0),
+            };
+        }).slice(-30);
+        return { chartData: data, isFake: false };
+    }, [analytics]);
 
-    const displayTotalViews = chartData.length > 0 && isFake ? chartData.reduce((acc: number, curr: any) => acc + curr.Views, 0) : totalViews;
-    const displayTotalClicks = chartData.length > 0 && isFake ? chartData.reduce((acc: number, curr: any) => acc + curr.Clicks, 0) : totalClicks;
+    // Weekly revenue is always built from real paid transactions - never
+    // faked - grouped into the last 6 Monday-start weeks.
+    const revenueData = useMemo(() => {
+        const WEEK_COUNT = 6;
+        const startOfWeek = (d: Date) => {
+            const day = d.getDay();
+            const s = new Date(d);
+            s.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+            s.setHours(0, 0, 0, 0);
+            return s;
+        };
+        const thisWeekStart = startOfWeek(new Date());
+        const buckets = Array.from({ length: WEEK_COUNT }, (_, i) => {
+            const start = new Date(thisWeekStart);
+            start.setDate(thisWeekStart.getDate() - (WEEK_COUNT - 1 - i) * 7);
+            return { start, total: 0 };
+        });
+
+        transactions.forEach(tx => {
+            if (tx.status !== 'paid') return;
+            const txDate = new Date(tx.created_at);
+            for (let i = buckets.length - 1; i >= 0; i--) {
+                if (txDate >= buckets[i].start) {
+                    buckets[i].total += Number(tx.amount);
+                    break;
+                }
+            }
+        });
+
+        return buckets.map((b, idx) => ({
+            name: b.start.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+            Pendapatan: b.total,
+            fill: idx === buckets.length - 1 ? '#b5471f' : '#f5ddc9',
+        }));
+    }, [transactions]);
+
+    const displayTotalViews = isFake ? chartData.reduce((acc, curr) => acc + curr.Views, 0) : totalViews;
+    const displayTotalClicks = isFake ? chartData.reduce((acc, curr) => acc + curr.Clicks, 0) : totalClicks;
     const totalRevenue = transactions.reduce((sum, tx) => sum + (tx.status === 'paid' ? Number(tx.amount) : 0), 0);
 
+    const viewsGrowth = computeGrowth(chartData.map(d => d.Views));
+    const clicksGrowth = computeGrowth(chartData.map(d => d.Clicks));
+    const revenueGrowth = computeGrowth(revenueData.map(d => d.Pendapatan));
+
     const kpiCards = [
-        { icon: 'visibility', label: 'Trafik Pengunjung', value: displayTotalViews.toLocaleString('id-ID'), growth: '+14.5%', trend: 'up', color: 'text-indigo-600', bg: 'bg-indigo-50/50', border: 'border-indigo-100' },
-        { icon: 'ads_click', label: 'Total Interaksi', value: displayTotalClicks.toLocaleString('id-ID'), growth: '+21.2%', trend: 'up', color: 'text-emerald-600', bg: 'bg-emerald-50/50', border: 'border-emerald-100' },
-        { icon: 'account_balance_wallet', label: 'Total Pendapatan', value: `Rp ${totalRevenue > 0 ? totalRevenue.toLocaleString('id-ID') : '0'}`, growth: totalRevenue > 0 ? '+12%' : '-', trend: totalRevenue > 0 ? 'up' : 'neutral', color: 'text-amber-500', bg: 'bg-amber-50/50', border: 'border-amber-100' },
-        { icon: 'storefront', label: 'Toko Terdaftar', value: spots.length.toString(), growth: 'Aktif', trend: 'neutral', color: 'text-rose-500', bg: 'bg-rose-50/50', border: 'border-rose-100' },
+        { icon: 'visibility', label: 'Kunjungan', value: displayTotalViews.toLocaleString('id-ID'), growth: viewsGrowth.label, trend: viewsGrowth.trend },
+        { icon: 'ads_click', label: 'Interaksi', value: displayTotalClicks.toLocaleString('id-ID'), growth: clicksGrowth.label, trend: clicksGrowth.trend },
+        { icon: 'payments', label: 'Pendapatan', value: `Rp ${totalRevenue.toLocaleString('id-ID')}`, growth: revenueGrowth.label, trend: revenueGrowth.trend },
+        { icon: 'storefront', label: 'Toko Terdaftar', value: spots.length.toString(), growth: 'Aktif', trend: 'neutral' },
     ];
 
     const todayDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -131,13 +172,13 @@ export default function Dashboard() {
                 {/* Welcome Hero */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                     <div>
-                        <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
-                            Welcome
+                        <h2 className="font-display text-3xl font-bold text-ink-900 tracking-tight mb-1">
+                            Dashboard
                         </h2>
-                        <p className="text-slate-500 font-medium text-sm">Rangkuman bisnis Anda — {todayDate}</p>
+                        <p className="text-ink-500 font-medium text-sm">Ringkasan performa &amp; aktivitas tokomu — {todayDate}</p>
                     </div>
                     {isFake && (
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-600 text-sm font-bold">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-chip border border-ink-300 rounded-xl text-chip-ink text-sm font-bold">
                             <span className="material-symbols-outlined text-[18px]">model_training</span>
                             Simulasi Data
                         </div>
@@ -150,14 +191,14 @@ export default function Dashboard() {
                         <Link
                             key={action.label}
                             href={action.href}
-                            className="group bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-4"
+                            className="group bg-surface rounded-2xl border border-ink-300 p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-4"
                         >
-                            <div className={`h-11 w-11 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center text-white shadow-md flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                            <div className="h-11 w-11 bg-chip rounded-xl flex items-center justify-center text-primary flex-shrink-0 group-hover:scale-110 transition-transform">
                                 <span className="material-symbols-outlined text-xl">{action.icon}</span>
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-slate-900">{action.label}</p>
-                                <p className="text-[11px] text-slate-400 font-medium">{action.desc}</p>
+                                <p className="text-sm font-bold text-ink-900">{action.label}</p>
+                                <p className="text-[11px] text-ink-400 font-medium">{action.desc}</p>
                             </div>
                         </Link>
                     ))}
@@ -166,21 +207,25 @@ export default function Dashboard() {
                 {/* KPI Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                     {kpiCards.map((stat) => (
-                        <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow duration-300 relative overflow-hidden group">
-                            <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full ${stat.bg} blur-2xl opacity-50 group-hover:opacity-100 transition-opacity`} />
+                        <div key={stat.label} className="bg-surface rounded-3xl border border-ink-300 p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow duration-300 relative overflow-hidden group">
                             <div className="relative z-10">
                                 <div className="flex items-start justify-between mb-6">
-                                    <div className={`h-12 w-12 rounded-2xl ${stat.bg} ${stat.color} border ${stat.border} flex items-center justify-center shadow-inner`}>
+                                    <div className="h-12 w-12 rounded-2xl bg-chip text-primary flex items-center justify-center">
                                         <span className="material-symbols-outlined">{stat.icon}</span>
                                     </div>
-                                    <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${stat.trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-500'}`}>
+                                    <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${
+                                        stat.trend === 'up' ? 'bg-secondary/15 text-secondary-700' :
+                                        stat.trend === 'down' ? 'bg-primary/10 text-primary' :
+                                        'bg-ink-100 text-ink-500'
+                                    }`}>
                                         {stat.trend === 'up' && <span className="material-symbols-outlined text-[14px]">trending_up</span>}
+                                        {stat.trend === 'down' && <span className="material-symbols-outlined text-[14px]">trending_down</span>}
                                         {stat.growth}
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-slate-500 text-sm font-medium mb-1">{stat.label}</p>
-                                    <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">{stat.value}</h3>
+                                    <p className="text-ink-500 text-sm font-medium mb-1">{stat.label}</p>
+                                    <h3 className="font-display text-2xl font-bold text-ink-900 tracking-tight">{stat.value}</h3>
                                 </div>
                             </div>
                         </div>
@@ -189,11 +234,11 @@ export default function Dashboard() {
 
                 {/* Charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+                    <div className="lg:col-span-2 bg-surface rounded-3xl border border-ink-300 p-6 md:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900">Pertumbuhan Trafik</h3>
-                                <p className="text-sm text-slate-500">Views & klik 30 hari terakhir</p>
+                                <h3 className="font-display text-lg font-bold text-ink-900">Traffic 30 Hari</h3>
+                                <p className="text-sm text-ink-500">Kunjungan &amp; klik 30 hari terakhir</p>
                             </div>
                         </div>
                         <div className="w-full h-[280px]">
@@ -201,61 +246,69 @@ export default function Dashboard() {
                                 <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor="#b5471f" stopOpacity={0.35}/>
+                                            <stop offset="95%" stopColor="#b5471f" stopOpacity={0}/>
                                         </linearGradient>
                                         <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
-                                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor="#7d8a3e" stopOpacity={0.3}/>
+                                            <stop offset="95%" stopColor="#7d8a3e" stopOpacity={0}/>
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} dx={-10} />
+                                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e2d2b7" opacity={0.6} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#98836c', fontWeight: 600 }} dy={10} interval="preserveStartEnd" minTickGap={24} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#98836c', fontWeight: 600 }} dx={-10} allowDecimals={false} />
                                     <RechartsTooltip content={<CustomTooltip />} />
                                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '10px' }} />
-                                    <Area type="monotone" name="Views" dataKey="Views" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorViews)" />
-                                    <Area type="monotone" name="Clicks" dataKey="Clicks" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorClicks)" />
+                                    <Area type="natural" name="Kunjungan" dataKey="Views" stroke="#b5471f" strokeWidth={2.5} fillOpacity={1} fill="url(#colorViews)" dot={{ r: 2.5, strokeWidth: 0, fill: '#b5471f' }} activeDot={{ r: 5 }} />
+                                    <Area type="natural" name="Klik" dataKey="Clicks" stroke="#7d8a3e" strokeWidth={2.5} fillOpacity={1} fill="url(#colorClicks)" dot={{ r: 2.5, strokeWidth: 0, fill: '#7d8a3e' }} activeDot={{ r: 5 }} />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)] flex flex-col">
-                        <h3 className="text-lg font-bold text-slate-900">Pendapatan Mingguan</h3>
-                        <p className="text-sm text-slate-500 mb-6">Dalam Rupiah (IDR)</p>
-                        <div className="flex-1 w-full min-h-[220px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={revenueData} margin={{ top: 0, right: 0, left: -15, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dx={-5} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
-                                    <RechartsTooltip
-                                        formatter={(value: any) => [`Rp ${Number(value).toLocaleString('id-ID')}`, 'Pendapatan']}
-                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                    />
-                                    <Bar dataKey="Pendapatan" radius={[8, 8, 8, 8]}>
-                                        {revenueData.map((entry: any, index: number) => (
-                                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
+                    <div className="bg-surface rounded-3xl border border-ink-300 p-6 md:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)] flex flex-col">
+                        <h3 className="font-display text-lg font-bold text-ink-900">Pendapatan Mingguan</h3>
+                        <p className="text-sm text-ink-500 mb-6">6 minggu terakhir, dalam Rupiah</p>
+                        {revenueData.every(d => d.Pendapatan === 0) ? (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+                                <span className="material-symbols-outlined text-3xl text-ink-300 mb-2">payments</span>
+                                <p className="text-sm font-bold text-ink-400">Belum ada pendapatan</p>
+                                <p className="text-xs text-ink-400 mt-1">Grafik akan terisi setelah ada promosi yang lunas.</p>
+                            </div>
+                        ) : (
+                            <div className="flex-1 w-full min-h-[220px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={revenueData} margin={{ top: 0, right: 0, left: -15, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2d2b7" opacity={0.6} />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#98836c', fontWeight: 600 }} dy={10} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#98836c', fontWeight: 600 }} dx={-5} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} allowDecimals={false} />
+                                        <RechartsTooltip
+                                            formatter={(value: any) => [`Rp ${Number(value).toLocaleString('id-ID')}`, 'Pendapatan']}
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        />
+                                        <Bar dataKey="Pendapatan" radius={[8, 8, 8, 8]} maxBarSize={40}>
+                                            {revenueData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Bottom Grid: Transactions + Spots */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+                    <div className="lg:col-span-2 bg-surface rounded-3xl border border-ink-300 p-6 md:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-bold text-slate-900">Riwayat Transaksi</h3>
+                            <h3 className="font-display text-lg font-bold text-ink-900">Transaksi Terbaru</h3>
                             <Link href="/merchant/payments" className="text-sm font-bold text-primary hover:underline">Lihat Semua</Link>
                         </div>
                         <div className="overflow-x-auto rounded-xl">
                             <table className="w-full text-sm text-left">
                                 <thead>
-                                    <tr className="bg-slate-50 text-slate-500 font-bold">
+                                    <tr className="bg-ink-100 text-ink-500 font-bold">
                                         <th className="py-3 px-4 rounded-l-xl">Status</th>
                                         <th className="py-3 px-4">Toko</th>
                                         <th className="py-3 px-4">Nominal</th>
@@ -264,22 +317,22 @@ export default function Dashboard() {
                                 </thead>
                                 <tbody>
                                     {transactions.length > 0 ? transactions.slice(0, 5).map((tx) => (
-                                        <tr key={tx.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                        <tr key={tx.id} className="border-b border-ink-200 hover:bg-ink-100/50 transition-colors">
                                             <td className="py-3 px-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold ${
-                                                    tx.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                                                    tx.status === 'paid' ? 'bg-secondary/15 text-secondary-700' : 'bg-primary/10 text-primary'
                                                 }`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${tx.status === 'paid' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${tx.status === 'paid' ? 'bg-secondary' : 'bg-primary'}`} />
                                                     {tx.status === 'paid' ? 'Lunas' : 'Pending'}
                                                 </span>
                                             </td>
-                                            <td className="py-3 px-4 font-bold text-slate-900">{tx.culinary_spot?.name || '-'}</td>
-                                            <td className="py-3 px-4 font-bold text-slate-700">Rp {Number(tx.amount).toLocaleString('id-ID')}</td>
-                                            <td className="py-3 px-4 text-slate-400 text-right text-xs">{new Date(tx.created_at).toLocaleDateString('id-ID')}</td>
+                                            <td className="py-3 px-4 font-bold text-ink-900">{tx.culinary_spot?.name || '-'}</td>
+                                            <td className="py-3 px-4 font-bold text-ink-700">Rp {Number(tx.amount).toLocaleString('id-ID')}</td>
+                                            <td className="py-3 px-4 text-ink-400 text-right text-xs">{new Date(tx.created_at).toLocaleDateString('id-ID')}</td>
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={4} className="py-8 text-center text-slate-400">
+                                            <td colSpan={4} className="py-8 text-center text-ink-400">
                                                 <span className="material-symbols-outlined text-3xl mb-2 opacity-50 block">receipt_long</span>
                                                 Belum ada transaksi
                                             </td>
@@ -290,28 +343,28 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+                    <div className="bg-surface rounded-3xl border border-ink-300 p-6 md:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-bold text-slate-900">Toko Anda</h3>
-                            <Link href="/merchant/shops" className="text-xs font-bold text-primary hover:underline">Semua</Link>
+                            <h3 className="font-display text-lg font-bold text-ink-900">Toko Saya</h3>
+                            <Link href="/merchant/shops" className="text-xs font-bold text-primary hover:underline">Kelola</Link>
                         </div>
                         <div className="space-y-3">
                             {spots.length > 0 ? spots.map((spot) => (
                                 <Link key={spot.id} href={`/culinary/${spot.id}`}
-                                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-primary/20 hover:shadow-sm transition-all group"
+                                    className="flex items-center gap-3 p-3 rounded-xl border border-ink-200 hover:border-primary/30 hover:shadow-sm transition-all group"
                                 >
-                                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                                    <div className="h-10 w-10 bg-chip rounded-xl flex items-center justify-center text-primary flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
                                         <span className="material-symbols-outlined text-lg">store</span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-sm text-slate-900 truncate">{spot.name}</p>
-                                        <p className="text-[11px] text-slate-400">{spot.category?.name}</p>
+                                        <p className="font-display font-bold text-sm text-ink-900 truncate">{spot.name}</p>
+                                        <p className="text-[11px] text-ink-400">{spot.category?.name}</p>
                                     </div>
-                                    <span className="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
+                                    <span className="material-symbols-outlined text-ink-300 text-lg">chevron_right</span>
                                 </Link>
                             )) : (
-                                <div className="text-center py-8 bg-slate-50 rounded-2xl">
-                                    <p className="text-sm font-bold text-slate-400">Belum ada toko</p>
+                                <div className="text-center py-8 bg-ink-100 rounded-2xl">
+                                    <p className="text-sm font-bold text-ink-400">Belum ada toko</p>
                                     <Link href="/merchant/shop/create" className="text-xs text-primary font-bold mt-1 inline-block hover:underline">Daftarkan Toko</Link>
                                 </div>
                             )}

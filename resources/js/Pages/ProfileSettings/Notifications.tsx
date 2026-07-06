@@ -18,52 +18,52 @@ export default function Notifications() {
             <Head title="Notifikasi" />
             <div className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
                 <div className="flex items-center gap-4 mb-8">
-                    <Link href="/profile" className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors">
-                        <span className="material-symbols-outlined text-slate-500">arrow_back</span>
+                    <Link href="/profile" className="w-10 h-10 rounded-full border border-ink-300 flex items-center justify-center hover:bg-ink-100 transition-colors">
+                        <span className="material-symbols-outlined text-ink-500">arrow_back</span>
                     </Link>
-                    <h1 className="text-2xl font-bold text-slate-900">Notifikasi</h1>
+                    <h1 className="font-display text-2xl font-bold text-ink-900">Notifikasi</h1>
                 </div>
 
-                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-6">
+                <div className="bg-surface rounded-3xl border border-ink-300 p-6 shadow-sm space-y-6">
                     {/* Toggle Item */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="font-bold text-slate-900">Promo & Diskon</h3>
-                            <p className="text-sm text-slate-500">Info promo kuliner terbaru di Semarang</p>
+                            <h3 className="font-display font-bold text-ink-900">Promo &amp; Diskon</h3>
+                            <p className="text-sm text-ink-500">Info promo kuliner terbaru di Semarang</p>
                         </div>
-                        <button 
+                        <button
                             onClick={() => toggle('promo')}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.promo ? 'bg-primary' : 'bg-slate-200'}`}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.promo ? 'bg-primary' : 'bg-ink-200'}`}
                         >
                             <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${settings.promo ? 'translate-x-6' : 'translate-x-0'}`} />
                         </button>
                     </div>
-                    
-                    <hr className="border-slate-100" />
+
+                    <hr className="border-ink-300" />
 
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="font-bold text-slate-900">Status Pesanan</h3>
-                            <p className="text-sm text-slate-500">Pemberitahuan saat pesanan Anda diproses</p>
+                            <h3 className="font-display font-bold text-ink-900">Status Pesanan</h3>
+                            <p className="text-sm text-ink-500">Pemberitahuan saat pesanan Anda diproses</p>
                         </div>
-                        <button 
+                        <button
                             onClick={() => toggle('order')}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.order ? 'bg-primary' : 'bg-slate-200'}`}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.order ? 'bg-primary' : 'bg-ink-200'}`}
                         >
                             <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${settings.order ? 'translate-x-6' : 'translate-x-0'}`} />
                         </button>
                     </div>
 
-                    <hr className="border-slate-100" />
+                    <hr className="border-ink-300" />
 
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="font-bold text-slate-900">Interaksi Ulasan</h3>
-                            <p className="text-sm text-slate-500">Saat merchant membalas ulasan Anda</p>
+                            <h3 className="font-display font-bold text-ink-900">Interaksi Ulasan</h3>
+                            <p className="text-sm text-ink-500">Saat merchant membalas ulasan Anda</p>
                         </div>
-                        <button 
+                        <button
                             onClick={() => toggle('review')}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.review ? 'bg-primary' : 'bg-slate-200'}`}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.review ? 'bg-primary' : 'bg-ink-200'}`}
                         >
                             <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${settings.review ? 'translate-x-6' : 'translate-x-0'}`} />
                         </button>

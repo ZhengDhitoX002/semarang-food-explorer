@@ -31,6 +31,7 @@ export default function SubmitSpot() {
     const [previewImages, setPreviewImages] = useState<string[]>([]);
     const [geocodeLoading, setGeocodeLoading] = useState(false);
     const [addressInput, setAddressInput] = useState('');
+    const [geocodeFound, setGeocodeFound] = useState(false);
 
     const handleTagToggle = (tagId: number) => {
         const current = data.tags;
@@ -52,6 +53,7 @@ export default function SubmitSpot() {
     const handleGeocode = async () => {
         if (!addressInput.trim()) return;
         setGeocodeLoading(true);
+        setGeocodeFound(false);
         try {
             const response = await fetch(
                 `/api/geocode/search?q=${encodeURIComponent(addressInput + ' Semarang')}`
@@ -64,6 +66,7 @@ export default function SubmitSpot() {
                     longitude: String(res.data.longitude),
                     address: addressInput,
                 }));
+                setGeocodeFound(true);
             } else {
                 alert('Alamat tidak ditemukan. Coba lebih spesifik.');
             }
@@ -80,120 +83,86 @@ export default function SubmitSpot() {
         });
     };
 
-    const inputStyle: React.CSSProperties = {
-        width: '100%',
-        padding: '12px 16px',
-        fontSize: 14,
-        borderRadius: 10,
-        border: '1px solid #334155',
-        background: '#0f172a',
-        color: '#e2e8f0',
-        outline: 'none',
-    };
-
-    const labelStyle: React.CSSProperties = {
-        fontSize: 13,
-        fontWeight: 600,
-        color: '#94a3b8',
-        marginBottom: 6,
-        display: 'block',
-    };
-
-    const errorStyle: React.CSSProperties = {
-        fontSize: 12,
-        color: '#ef4444',
-        marginTop: 4,
-    };
+    const inputClass = 'w-full h-[50px] px-3.5 border-[1.5px] border-ink-300 rounded-2xl bg-surface text-ink-900 text-sm font-medium placeholder:text-ink-400 outline-none focus:border-primary transition-colors';
 
     return (
         <AppLayout>
             <Head title="Submit Tempat Kuliner" />
-            <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 16px' }}>
-                <Link href="/" style={{ fontSize: 13, color: '#64748b', textDecoration: 'none', marginBottom: 16, display: 'block' }}>
-                    ← Kembali ke Explorer
+            <div className="max-w-xl mx-auto px-4 py-8">
+                <Link href="/" className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-primary mb-4 transition-colors">
+                    <span className="material-symbols-outlined text-base">arrow_back</span>
+                    Kembali ke Explorer
                 </Link>
 
-                <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, color: '#f8fafc' }}>
-                    📍 Submit Tempat Kuliner
+                <h1 className="font-display text-[22px] font-bold tracking-tight text-ink-900 mb-4">
+                    Ajukan Tempat Baru
                 </h1>
 
                 {/* Info Banner */}
-                <div style={{
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    border: '1px solid rgba(59, 130, 246, 0.3)',
-                    borderRadius: 12,
-                    padding: '14px 18px',
-                    marginBottom: 28,
-                    fontSize: 13,
-                    color: '#93c5fd',
-                    lineHeight: 1.6,
-                }}>
-                    ℹ️ Tempat yang Anda submit akan <strong>direview oleh admin</strong> terlebih dahulu sebelum ditampilkan di halaman utama.
+                <div className="flex gap-2.5 bg-chip border border-ink-300 rounded-2xl px-3.5 py-3 mb-6 text-[12px] leading-relaxed text-chip-ink">
+                    <span className="material-symbols-outlined text-base shrink-0">shield</span>
+                    Setiap tempat yang diajukan akan ditinjau admin dulu (biasanya &lt;1x24 jam) sebelum tampil ke publik — supaya rekomendasi tetap bisa dipercaya.
                 </div>
 
                 <form onSubmit={handleSubmit}>
                     {/* Name */}
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={labelStyle}>Nama Tempat *</label>
+                    <div className="mb-4">
+                        <label className="block text-sm font-bold text-ink-700 mb-1.5">Nama Tempat *</label>
                         <input
                             type="text"
                             value={data.name}
                             onChange={e => setData('name', e.target.value)}
                             placeholder="contoh: Warung Soto Bangkong"
-                            style={inputStyle}
+                            className={inputClass}
                         />
-                        {errors.name && <p style={errorStyle}>{errors.name}</p>}
+                        {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
                     </div>
 
                     {/* Description */}
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={labelStyle}>Deskripsi *</label>
+                    <div className="mb-4">
+                        <label className="block text-sm font-bold text-ink-700 mb-1.5">Deskripsi *</label>
                         <textarea
                             value={data.description}
                             onChange={e => setData('description', e.target.value)}
                             placeholder="Ceritakan tentang tempat ini..."
                             rows={4}
-                            style={{ ...inputStyle, resize: 'vertical' }}
+                            className={`${inputClass} !h-auto min-h-[90px] py-3 resize-y`}
                         />
-                        {errors.description && <p style={errorStyle}>{errors.description}</p>}
+                        {errors.description && <p className="text-red-600 text-xs mt-1">{errors.description}</p>}
                     </div>
 
                     {/* Category */}
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={labelStyle}>Kategori *</label>
+                    <div className="mb-4">
+                        <label className="block text-sm font-bold text-ink-700 mb-1.5">Kategori *</label>
                         <select
                             value={data.category_id}
                             onChange={e => setData('category_id', e.target.value)}
-                            style={inputStyle}
+                            className={inputClass}
                         >
                             <option value="">Pilih kategori...</option>
                             {categories.map(cat => (
                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                             ))}
                         </select>
-                        {errors.category_id && <p style={errorStyle}>{errors.category_id}</p>}
+                        {errors.category_id && <p className="text-red-600 text-xs mt-1">{errors.category_id}</p>}
                     </div>
 
                     {/* Tags */}
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={labelStyle}>Tags</label>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    <div className="mb-4">
+                        <label className="block text-sm font-bold text-ink-700 mb-1.5">
+                            Tag <span className="text-ink-500 font-medium">(pilih yang sesuai)</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
                             {tags.map(tag => (
                                 <button
                                     key={tag.id}
                                     type="button"
                                     onClick={() => handleTagToggle(tag.id)}
-                                    style={{
-                                        padding: '6px 14px',
-                                        fontSize: 13,
-                                        borderRadius: 20,
-                                        border: '1px solid',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        borderColor: data.tags.includes(tag.id) ? '#f4a261' : '#334155',
-                                        background: data.tags.includes(tag.id) ? 'rgba(244, 162, 97, 0.15)' : 'transparent',
-                                        color: data.tags.includes(tag.id) ? '#f4a261' : '#94a3b8',
-                                    }}
+                                    className={`text-[11.5px] font-semibold px-3.5 py-2 rounded-full border-[1.5px] transition-colors ${
+                                        data.tags.includes(tag.id)
+                                            ? 'border-primary bg-primary/10 text-primary'
+                                            : 'border-ink-300 bg-surface text-ink-500'
+                                    }`}
                                 >
                                     {tag.name}
                                 </button>
@@ -202,101 +171,88 @@ export default function SubmitSpot() {
                     </div>
 
                     {/* Address / Geocoding */}
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={labelStyle}>Alamat (Cari Koordinat Otomatis)</label>
-                        <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="mb-4">
+                        <label className="block text-sm font-bold text-ink-700 mb-1.5">Alamat</label>
+                        <div className="flex gap-2">
                             <input
                                 type="text"
                                 value={addressInput}
-                                onChange={e => setAddressInput(e.target.value)}
+                                onChange={e => { setAddressInput(e.target.value); setGeocodeFound(false); }}
                                 placeholder="contoh: Jl. Pandanaran No. 1"
-                                style={{ ...inputStyle, flex: 1 }}
+                                className={`${inputClass} flex-1`}
                             />
                             <button
                                 type="button"
                                 onClick={handleGeocode}
                                 disabled={geocodeLoading}
-                                style={{
-                                    padding: '12px 20px',
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    borderRadius: 10,
-                                    border: 'none',
-                                    background: '#3b82f6',
-                                    color: '#fff',
-                                    cursor: 'pointer',
-                                    opacity: geocodeLoading ? 0.5 : 1,
-                                    whiteSpace: 'nowrap',
-                                }}
+                                className="h-[50px] px-3.5 rounded-2xl bg-ink-900 text-background-light text-xs font-bold flex items-center gap-1.5 shrink-0 disabled:opacity-50 transition-opacity"
                             >
-                                {geocodeLoading ? '⏳ ...' : '🔍 Cari'}
+                                <span className="material-symbols-outlined text-base">my_location</span>
+                                {geocodeLoading ? '...' : 'Cari'}
                             </button>
                         </div>
+                        {geocodeFound && (
+                            <div className="flex items-start gap-1.5 mt-2 text-[10.5px] font-semibold leading-relaxed text-secondary-700">
+                                <span className="material-symbols-outlined text-sm">check_circle</span>
+                                Koordinat ditemukan: {data.latitude}, {data.longitude} — geser pin di peta kalau kurang tepat.
+                            </div>
+                        )}
                     </div>
 
                     {/* Lat/Lng */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
                         <div>
-                            <label style={labelStyle}>Latitude *</label>
-                            <input type="text" value={data.latitude} onChange={e => setData('latitude', e.target.value)} style={inputStyle} placeholder="-6.9822" />
-                            {errors.latitude && <p style={errorStyle}>{errors.latitude}</p>}
+                            <label className="block text-sm font-bold text-ink-700 mb-1.5">Latitude *</label>
+                            <input type="text" value={data.latitude} onChange={e => setData('latitude', e.target.value)} className={inputClass} placeholder="-6.9822" />
+                            {errors.latitude && <p className="text-red-600 text-xs mt-1">{errors.latitude}</p>}
                         </div>
                         <div>
-                            <label style={labelStyle}>Longitude *</label>
-                            <input type="text" value={data.longitude} onChange={e => setData('longitude', e.target.value)} style={inputStyle} placeholder="110.4180" />
-                            {errors.longitude && <p style={errorStyle}>{errors.longitude}</p>}
+                            <label className="block text-sm font-bold text-ink-700 mb-1.5">Longitude *</label>
+                            <input type="text" value={data.longitude} onChange={e => setData('longitude', e.target.value)} className={inputClass} placeholder="110.4180" />
+                            {errors.longitude && <p className="text-red-600 text-xs mt-1">{errors.longitude}</p>}
                         </div>
                     </div>
 
                     {/* Price */}
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={labelStyle}>Harga Rata-rata (Rp) *</label>
+                    <div className="mb-4">
+                        <label className="block text-sm font-bold text-ink-700 mb-1.5">Harga Rata-rata (Rp) *</label>
                         <input
                             type="number"
                             value={data.price}
                             onChange={e => setData('price', e.target.value)}
                             placeholder="15000"
-                            style={inputStyle}
+                            className={inputClass}
                         />
-                        {errors.price && <p style={errorStyle}>{errors.price}</p>}
+                        {errors.price && <p className="text-red-600 text-xs mt-1">{errors.price}</p>}
                     </div>
 
                     {/* Photos */}
-                    <div style={{ marginBottom: 28 }}>
-                        <label style={labelStyle}>Foto (max 3)</label>
-                        
+                    <div className="mb-7">
+                        <label className="block text-sm font-bold text-ink-700 mb-1.5">
+                            Foto <span className="text-ink-500 font-medium">(maks. 3, JPG/PNG di bawah 5MB)</span>
+                        </label>
+
                         {previewImages.length > 0 && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                            <div className="flex flex-wrap gap-2.5 mb-3">
                                 {previewImages.map((src, idx) => (
-                                    <div key={idx} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid #334155' }}>
-                                        <img src={src} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden border border-ink-300">
+                                        <img src={src} alt="preview" className="w-full h-full object-cover" />
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        <label style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 8,
-                            padding: '16px',
-                            border: '2px dashed rgba(231, 126, 35, 0.5)',
-                            borderRadius: 12,
-                            color: '#e77e23',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            background: 'rgba(231, 126, 35, 0.05)'
-                        }}>
-                            <span className="material-symbols-outlined">add_photo_alternate</span>
-                            <span style={{ fontSize: 14, fontWeight: 700 }}>
-                                {previewImages.length > 0 ? 'Ganti Foto' : 'Pilih Foto dari Galeri'}
+                        <label className="flex flex-col items-center gap-1.5 text-center px-4 py-4 rounded-2xl border-[1.5px] border-dashed border-primary bg-primary/5 text-primary cursor-pointer transition-colors">
+                            <span className="material-symbols-outlined text-2xl">add_photo_alternate</span>
+                            <span className="text-sm font-bold">
+                                {previewImages.length > 0 ? 'Ganti Foto' : 'Seret foto ke sini atau ketuk untuk unggah'}
                             </span>
-                            <input 
-                                type="file" 
-                                multiple 
+                            <span className="text-[11px] font-medium text-ink-500">Foto close-up makanan biasanya paling menarik perhatian</span>
+                            <input
+                                type="file"
+                                multiple
                                 accept="image/*"
-                                style={{ display: 'none' }}
+                                className="hidden"
                                 onChange={handleFileChange}
                             />
                         </label>
@@ -306,20 +262,10 @@ export default function SubmitSpot() {
                     <button
                         type="submit"
                         disabled={processing}
-                        style={{
-                            width: '100%',
-                            padding: '14px',
-                            fontSize: 15,
-                            fontWeight: 700,
-                            borderRadius: 12,
-                            border: 'none',
-                            background: processing ? '#475569' : 'linear-gradient(135deg, #e77e23, #f4a261)',
-                            color: '#fff',
-                            cursor: processing ? 'not-allowed' : 'pointer',
-                            transition: 'all 0.2s',
-                        }}
+                        className="w-full h-[50px] rounded-2xl bg-primary text-white text-[15px] font-bold flex items-center justify-center gap-2 hover:bg-primary/90 disabled:opacity-50 transition-colors"
                     >
-                        {processing ? '⏳ Mengirim...' : '🚀 Submit Tempat Kuliner'}
+                        <span className="material-symbols-outlined text-lg">send</span>
+                        {processing ? 'Mengirim...' : 'Ajukan Tempat Ini'}
                     </button>
                 </form>
             </div>

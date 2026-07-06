@@ -4,7 +4,7 @@ import { Link } from '@inertiajs/react';
 export interface CulinarySpot {
     id: number;
     name: string;
-    imageUrl: string;
+    imageUrl: string | null;
     imageAlt: string;
     rating: number;
     location: string;
@@ -23,59 +23,63 @@ export default function SpotCard({ spot, isFavorite = false, onToggleFavorite }:
     return (
         <Link
             href={`/spot/${spot.id}`}
-            className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.02] focus-visible:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer overflow-hidden block outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="group relative bg-surface rounded-[18px] border border-ink-300 hover:shadow-lg focus-visible:shadow-lg active:scale-[0.98] transition-all duration-300 cursor-pointer overflow-hidden block outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-            <div className="relative h-48 w-full overflow-hidden">
-                <div className="absolute inset-0 shimmer"></div>
-                <img
-                    alt={spot.imageAlt}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    src={spot.imageUrl}
-                    loading="lazy"
-                    onLoad={(e) => e.currentTarget.classList.add('loaded')}
-                />
-                <div className="absolute top-3 right-3 flex items-center justify-center gap-2">
-                    <div className="bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                        <span className="material-symbols-outlined text-yellow-500 text-sm fill-icon">star</span>
-                        <span className="text-xs font-bold">{spot.rating > 0 ? spot.rating.toFixed(1) : 'Baru'}</span>
+            <div className="relative aspect-[16/10] w-full overflow-hidden">
+                {spot.imageUrl ? (
+                    <>
+                        <div className="absolute inset-0 shimmer"></div>
+                        <img
+                            alt={spot.imageAlt}
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            src={spot.imageUrl}
+                            loading="lazy"
+                            onLoad={(e) => e.currentTarget.classList.add('loaded')}
+                        />
+                    </>
+                ) : (
+                    <div className="absolute inset-0 bg-chip flex items-center justify-center">
+                        <span className="material-symbols-outlined text-chip-ink text-4xl">restaurant</span>
                     </div>
-                    {onToggleFavorite && (
-                        <button
-                            onClick={(e) => onToggleFavorite(e, spot.id)}
-                            className="bg-white/90 backdrop-blur w-8 h-8 rounded-full flex items-center justify-center shadow-sm hover:scale-110 active:scale-90 transition-transform"
-                        >
-                            <span className={`material-symbols-outlined text-[18px] leading-none m-0 p-0 ${isFavorite ? 'text-red-500 fill-icon' : 'text-slate-400'}`}>
-                                favorite
-                            </span>
-                        </button>
-                    )}
+                )}
+                <div className="absolute top-2.5 left-2.5 bg-surface text-ink-900 px-2 py-1.5 rounded-full flex items-center gap-1 shadow-md">
+                    <span className="material-symbols-outlined text-primary text-sm fill-icon">star</span>
+                    <span className="text-[11px] font-bold">{spot.rating > 0 ? spot.rating.toFixed(1) : 'Baru'}</span>
                 </div>
-            </div>
-            <div className="p-4">
-                <div className="flex items-center gap-1 mb-1">
-                    <h3 className="font-bold text-lg">{spot.name}</h3>
-                    {spot.isVerified && (
-                        <span className="material-symbols-outlined text-blue-500 text-base fill-icon" title="Verified Spot">
-                            verified
+                {onToggleFavorite && (
+                    <button
+                        onClick={(e) => onToggleFavorite(e, spot.id)}
+                        className="absolute top-2.5 right-2.5 bg-surface w-[30px] h-[30px] rounded-full flex items-center justify-center shadow-md hover:scale-110 active:scale-90 transition-transform"
+                    >
+                        <span className={`material-symbols-outlined text-[17px] leading-none m-0 p-0 ${isFavorite ? 'text-primary fill-icon' : 'text-ink-400'}`}>
+                            favorite
                         </span>
-                    )}
-                </div>
-                <p className="text-slate-500 text-sm flex items-center gap-1 mb-3">
-                    <span className="material-symbols-outlined text-primary text-sm">location_on</span>
+                    </button>
+                )}
+                {spot.isVerified && (
+                    <span className="absolute bottom-2.5 left-2.5 bg-secondary text-[#241a06] text-[9.5px] font-bold uppercase tracking-wider px-2 py-1.5 rounded-lg">
+                        Pilihan
+                    </span>
+                )}
+            </div>
+            <div className="p-3">
+                <h3 className="font-display font-bold text-[14.5px] leading-tight tracking-tight text-ink-900">{spot.name}</h3>
+                <p className="text-ink-500 text-[11px] font-medium flex items-center gap-1 mt-1.5">
+                    <span className="material-symbols-outlined text-[14px]">location_on</span>
                     {spot.location}
                 </p>
-                <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                        {spot.tags.map((tag) => (
-                            <span
-                                key={tag}
-                                className="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-600 uppercase tracking-wider"
-                            >
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-                    <span className="text-primary font-bold text-sm">{spot.priceLevel}</span>
+                <div className="flex items-center gap-1.5 mt-2.5">
+                    {spot.tags.map((tag) => (
+                        <span
+                            key={tag}
+                            className="px-2 py-1 bg-chip rounded-md text-[10px] font-semibold text-chip-ink"
+                        >
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+                <div className="flex items-center justify-between mt-2.5">
+                    <span className="text-ink-900 font-bold text-[12.5px]">{spot.priceLevel}</span>
                 </div>
             </div>
         </Link>

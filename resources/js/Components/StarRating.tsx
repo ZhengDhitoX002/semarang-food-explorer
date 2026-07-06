@@ -24,7 +24,7 @@ export default function StarRating({ rating, maxStars = 5, size = 'sm', showValu
                     <span
                         key={i}
                         className={`material-symbols-outlined ${sizeClasses[size]} ${
-                            isFull || isHalf ? 'text-primary fill-icon' : 'text-slate-300'
+                            isFull || isHalf ? 'text-primary fill-icon' : 'text-ink-300'
                         }`}
                     >
                         {isHalf ? 'star_half' : 'star'}

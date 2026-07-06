@@ -22,20 +22,20 @@ export default function Security() {
             <Head title="Keamanan" />
             <div className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
                 <div className="flex items-center gap-4 mb-8">
-                    <Link href="/profile" className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors">
-                        <span className="material-symbols-outlined text-slate-500">arrow_back</span>
+                    <Link href="/profile" className="w-10 h-10 rounded-full border border-ink-300 flex items-center justify-center hover:bg-ink-100 transition-colors">
+                        <span className="material-symbols-outlined text-ink-500">arrow_back</span>
                     </Link>
-                    <h1 className="text-2xl font-bold text-slate-900">Keamanan</h1>
+                    <h1 className="font-display text-2xl font-bold text-ink-900">Keamanan</h1>
                 </div>
 
-                <div className="bg-white rounded-3xl border border-slate-100 p-6 md:p-8 shadow-sm">
+                <div className="bg-surface rounded-3xl border border-ink-300 p-6 md:p-8 shadow-sm">
                     <div className="mb-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-chip flex items-center justify-center">
                             <span className="material-symbols-outlined text-primary">lock</span>
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">Ubah Password</h2>
-                            <p className="text-sm text-slate-500">Pastikan akun Anda menggunakan sandi yang kuat.</p>
+                            <h2 className="font-display text-lg font-bold text-ink-900">Ubah Password</h2>
+                            <p className="text-sm text-ink-500">Pastikan akun Anda menggunakan sandi yang kuat.</p>
                         </div>
                     </div>
 
@@ -48,34 +48,34 @@ export default function Security() {
                     
                     <form onSubmit={submit} className="space-y-5">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Password Saat Ini</label>
+                            <label className="block text-sm font-bold text-ink-700 mb-2">Password Saat Ini</label>
                             <input
                                 type="password"
                                 value={data.current_password}
                                 onChange={e => setData('current_password', e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-xl border border-ink-300 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                             />
                             {errors.current_password && <p className="mt-2 text-sm text-red-500">{errors.current_password}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Password Baru</label>
+                            <label className="block text-sm font-bold text-ink-700 mb-2">Password Baru</label>
                             <input
                                 type="password"
                                 value={data.password}
                                 onChange={e => setData('password', e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-xl border border-ink-300 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                             />
                             {errors.password && <p className="mt-2 text-sm text-red-500">{errors.password}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Konfirmasi Password Baru</label>
+                            <label className="block text-sm font-bold text-ink-700 mb-2">Konfirmasi Password Baru</label>
                             <input
                                 type="password"
                                 value={data.password_confirmation}
                                 onChange={e => setData('password_confirmation', e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-xl border border-ink-300 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                             />
                         </div>
 
@@ -83,7 +83,7 @@ export default function Security() {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="w-full md:w-auto px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
+                                className="w-full md:w-auto px-8 py-3 bg-ink-900 text-white font-bold rounded-xl hover:bg-ink-800 transition-all active:scale-95 disabled:opacity-50"
                             >
                                 {processing ? 'Menyimpan...' : 'Perbarui Password'}
                             </button>
